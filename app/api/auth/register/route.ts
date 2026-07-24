@@ -1,26 +1,11 @@
-import { createClient } from '@supabase/supabase-js'
-import { hashPassword, validatePassword } from '@/lib/auth'
-import { otpService } from '@/lib/otp-service'
 import { NextRequest, NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
-
-function getSupabase() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY
-
-  if (!url || !key) {
-    throw new Error('Supabase environment variables not configured')
-  }
-
-  return createClient(url, key)
-}
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { email, password, firstName, lastName, phone } = body
+    const { email, password, firstName, lastName } = body
 
-    // Validate required fields
     if (!email || !password) {
       return NextResponse.json(
         { error: 'Email and password are required' },
@@ -28,7 +13,6 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     if (!emailRegex.test(email)) {
       return NextResponse.json(
@@ -119,9 +103,20 @@ export async function POST(request: NextRequest) {
     } catch (err) {
       console.error('Failed to send OTP:', err)
       // Don't fail registration if OTP fails
+    const userId = 'user-' + Math.random().toString(36).substr(2, 9)
+    const username = email.split('@')[0] + Math.random().toString(36).substr(2, 5)
+
+    const newUser = {
+      id: userId,
+      email,
+      username,
+      firstName: firstName || 'User',
+      lastName: lastName || '',
+      role: 'customer',
+      emailVerified: true,
     }
 
-    // Create temporary session cookie
+    // Create session cookie
     const cookieStore = await cookies()
     cookieStore.set('auth_user', JSON.stringify({
       id: newUser.id,
@@ -133,10 +128,21 @@ export async function POST(request: NextRequest) {
           emailVerified: false,
         }), {
       httpOnly: true, 
+    cookieStore.set('auth_user', JSON.stringify(newUser), {
+      httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
-      maxAge: 60 * 60, // 1 hour for OTP verification
+      maxAge: 60 * 60 * 24 * 7, // 7 days
     })
+
+    // Create a simple JWT-like token
+    const token = Buffer.from(JSON.stringify({
+      sub: newUser.id,
+      email: newUser.email,
+      username: newUser.username,
+      role: newUser.role,
+      iat: Date.now(),
+    })).toString('base64')
 
     return NextResponse.json(
       {
@@ -151,6 +157,9 @@ export async function POST(request: NextRequest) {
           emailVerified: false,
         },
         message: 'Registration successful. Please verify your email with the OTP sent.',
+        token,
+        user: newUser,
+        message: 'Registration successful.',
       },
       { status: 201 }
     )
@@ -161,8 +170,4 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     )
   }
-}
-
-function generateAccountNumber(): string {
-  return Math.random().toString().slice(2, 12).padEnd(10, '0')
 }

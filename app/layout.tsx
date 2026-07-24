@@ -3,10 +3,13 @@ import type { Metadata } from "next"
 import { Geist, Geist_Mono } from "next/font/google"
 import Script from "next/script"
 import { Analytics } from "@vercel/analytics/next"
+import { SpeedInsights } from "@vercel/speed-insights/next"
 import { Toaster } from "@/components/ui/toaster"
 import { BankingProvider } from "@/lib/banking-context"
-import { Auth0Provider } from "@/lib/auth0-context"
-import { AuthProvider } from "@/lib/auth-context"
+import { ThemeProvider } from "@/components/theme-provider"
+import { LoadingProgressBar } from "@/components/loading-progress-bar"
+import StatsigWrapper from "./statsig-provider"
+import { NavigationProvider } from "./navigation-provider"
 import "./globals.css"
 
 const _geist = Geist({ subsets: ["latin"] })
@@ -41,17 +44,31 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        {(process.env.NODE_ENV === "development" || process.env.VERCEL_ENV === "preview") && (
+          // eslint-disable-next-line @next/next/no-sync-scripts
+          <script
+            data-recording-token={process.env.METICULOUS_RECORDING_TOKEN}
+            data-is-production-environment="false"
+            src="https://snippet.meticulous.ai/v1/meticulous.js"
+          />
+        )}
+      </head>
       <body className={`font-sans antialiased`}>
-        <AuthProvider>
-          <Auth0Provider>
-            <BankingProvider>
-              {children}
-              <Toaster />
-              <Analytics />
-            </BankingProvider>
-          </Auth0Provider>
-        </AuthProvider>
+        <LoadingProgressBar />
+        <NavigationProvider>
+          <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+            <StatsigWrapper>
+              <BankingProvider>
+                {children}
+                <Toaster />
+                <Analytics />
+                <SpeedInsights />
+              </BankingProvider>
+            </StatsigWrapper>
+          </ThemeProvider>
+        </NavigationProvider>
         <Script id="chatbase-widget" strategy="lazyOnload">
           {`(function(){if(!window.chatbase||window.chatbase("getState")!=="initialized"){window.chatbase=(...arguments)=>{if(!window.chatbase.q){window.chatbase.q=[]}window.chatbase.q.push(arguments)};window.chatbase=new Proxy(window.chatbase,{get(target,prop){if(prop==="q"){return target.q}return(...args)=>target(prop,...args)}})}const onLoad=function(){const script=document.createElement("script");script.src="https://www.chatbase.co/embed.min.js";script.id="${process.env.NEXT_PUBLIC_CHATBOT_ID}";script.domain="www.chatbase.co";document.body.appendChild(script)};if(document.readyState==="complete"){onLoad()}else{window.addEventListener("load",onLoad)}})();`}
         </Script>
@@ -59,4 +76,3 @@ export default function RootLayout({
     </html>
   )
 }
-

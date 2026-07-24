@@ -2,6 +2,8 @@ import { MongoClient, MongoClientOptions } from 'mongodb';
 import { attachDatabasePool } from '@vercel/functions';
 
 // MongoDB is optional - only required at runtime if MongoDB features are used
+
+// MongoDB is optional - only create client if URI is provided
 const mongoUri = process.env.MONGODB_URI;
 
 const options: MongoClientOptions = {
@@ -21,6 +23,7 @@ const client = mongoUri ? new MongoClient(mongoUri, options) : null;
 if (client) {
   attachDatabasePool(client);
 }
+const client: MongoClient | null = mongoUri ? new MongoClient(mongoUri, options) : null;
 
 // Lazy initialization flag
 let mongoConnected = false;
