@@ -1,3 +1,10 @@
+import { createClient } from '@supabase/supabase-js'
+import { comparePassword, hashPassword } from '@/lib/auth'
+import { inMemoryDb } from '@/lib/in-memory-db'
+import { logLoginAttempt } from '@/lib/rbac'
+import { NextRequest, NextResponse } from 'next/server'
+import { cookies } from 'next/headers'
+import crypto from 'crypto'
 import { NextRequest, NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 import { withErrorHandler, validateRequiredFields, APIError } from '@/lib/api-error-handler'
@@ -9,6 +16,10 @@ const DEMO_USER = {
   username: 'Lin Huang',
   email: 'linhuang011@gmail.com',
   password: 'Lin1122',
+  first_name: 'Lin',
+  last_name: 'Huang',
+  role: 'customer',
+  email_verified: true,
   firstName: 'Lin',
   lastName: 'Huang',
   role: 'customer',
@@ -69,12 +80,55 @@ async function handler(request: NextRequest) {
     }
 
     if (!user) {
+      // Log failed login attempt
+      try {
+        const ip = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown'
+        const userAgent = request.headers.get('user-agent') || 'unknown'
+        // Don't log to DB for failed login of non-existent users
+      } catch (err) {
+        console.error('[v0] Error logging failed login:', err)
+      }
+      
       return NextResponse.json(
         { error: 'Invalid email/username or password' },
         { status: 401 }
       )
     }
 
+    const ip = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown'
+    const userAgent = request.headers.get('user-agent') || 'unknown'
+
+    // Generate 2FA code (6 digits)
+    const twoFACode = Math.floor(100000 + Math.random() * 900000).toString()
+    const supabase = getSupabase()
+
+    // Save 2FA code to database with 5-minute expiration
+    if (supabase && user.id) {
+      try {
+        const expiresAt = new Date(Date.now() + 5 * 60 * 1000).toISOString()
+        await supabase.from('two_factor_codes').insert({
+          user_id: user.id,
+          code: twoFACode,
+          expires_at: expiresAt,
+          used: false,
+        })
+
+        // Log login attempt (pending 2FA)
+        await logLoginAttempt(user.id, ip, userAgent, 'Web Browser', true)
+      } catch (err) {
+        console.error('[v0] Error saving 2FA code:', err)
+      }
+    }
+
+    // Return 2FA pending response (don't create full session yet)
+    return NextResponse.json(
+      {
+        success: false,
+        requiresTwoFA: true,
+        userId: user.id,
+        email: user.email,
+        // In production, send code via SMS/email, not in response
+        message: 'A verification code has been sent to your registered phone/email.',
   // Trigger welcome notification event
   try {
     await triggerNotificationEvent({

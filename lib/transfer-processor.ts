@@ -1,3 +1,17 @@
+import { createClient as createSupabaseClient } from '@supabase/supabase-js'
+
+// Lazy-load Supabase client to avoid initialization errors during build
+let supabase: ReturnType<typeof createSupabaseClient> | null = null;
+
+function getSupabaseClient() {
+  if (!supabase) {
+    supabase = createSupabaseClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL || '',
+      process.env.SUPABASE_SERVICE_ROLE_KEY || ''
+    )
+  }
+  return supabase;
+}
 import { createClient } from '@/lib/supabase/server'
 
 export interface ProcessTransferRequest {
@@ -38,6 +52,18 @@ export async function processTransfer(
   } = request
 
   try {
+    const sb = getSupabaseClient();
+    // Start a database transaction with SERIALIZABLE isolation
+    const { data, error: txError } = await sb.rpc('process_transfer', {
+      p_user_id: userId,
+      p_from_account_id: fromAccountId,
+      p_to_account_number: toAccountNumber,
+      p_to_bank_code: toBankCode,
+      p_amount: amount,
+      p_currency: currency,
+      p_idempotency_key: idempotencyKey,
+      p_narration: narration || ''
+    })
     const supabase = await createClient()
     
     // Create transaction record

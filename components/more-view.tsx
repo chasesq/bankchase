@@ -2988,6 +2988,7 @@ export function MoreView({ onLogout }: MoreViewProps) {
           )}
         </Card>
 
+        <Card className="p-4 space-y-3 bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-800">
         <Card className="p-4 space-y-3 bg-background dark:bg-blue-950/20 border-blue-200 dark:border-blue-800">
           <h3 className="font-semibold text-blue-900 dark:text-blue-100 text-sm flex items-center gap-2">
             <ShieldCheck className="h-4 w-4" />
@@ -2996,6 +2997,7 @@ export function MoreView({ onLogout }: MoreViewProps) {
           <p className="text-sm text-blue-800 dark:text-blue-200">
             Don't recognize a login? Change your password immediately and consider enabling two-factor authentication for added security.
           </p>
+          <Button className="w-full bg-blue-600 hover:bg-blue-700" onClick={() => setCurrentView("security")}>
           <Button className="w-full bg-primary hover:bg-primary" onClick={() => setCurrentView("security")}>
             Go to Security Settings
           </Button>

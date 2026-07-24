@@ -1,4 +1,7 @@
 import { MongoClient, MongoClientOptions } from 'mongodb';
+import { attachDatabasePool } from '@vercel/functions';
+
+// MongoDB is optional - only required at runtime if MongoDB features are used
 
 // MongoDB is optional - only create client if URI is provided
 const mongoUri = process.env.MONGODB_URI;
@@ -6,6 +9,7 @@ const mongoUri = process.env.MONGODB_URI;
 const options: MongoClientOptions = {
   appName: 'bankchase.app',
   maxIdleTimeMS: 5000,
+  // Connection pooling for Vercel Functions
   maxPoolSize: 10,
   minPoolSize: 2,
   serverSelectionTimeoutMS: 5000,
@@ -13,6 +17,12 @@ const options: MongoClientOptions = {
 };
 
 // Create MongoDB client (only if URI is provided)
+const client = mongoUri ? new MongoClient(mongoUri, options) : null;
+
+// Attach to Vercel's database pool for proper cleanup on function suspension
+if (client) {
+  attachDatabasePool(client);
+}
 const client: MongoClient | null = mongoUri ? new MongoClient(mongoUri, options) : null;
 
 // Lazy initialization flag
