@@ -17,13 +17,12 @@ const options: MongoClientOptions = {
 };
 
 // Create MongoDB client (only if URI is provided)
-const client = mongoUri ? new MongoClient(mongoUri, options) : null;
+const client: MongoClient | null = mongoUri ? new MongoClient(mongoUri, options) : null;
 
 // Attach to Vercel's database pool for proper cleanup on function suspension
 if (client) {
   attachDatabasePool(client);
 }
-const client: MongoClient | null = mongoUri ? new MongoClient(mongoUri, options) : null;
 
 // Lazy initialization flag
 let mongoConnected = false;
