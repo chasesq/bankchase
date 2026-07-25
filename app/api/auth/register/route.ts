@@ -1,6 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 
+function validatePassword(password: string) {
+  const errors: string[] = []
+  if (password.length < 8) errors.push('Password must be at least 8 characters')
+  if (!/[A-Z]/.test(password)) errors.push('Password must contain uppercase letters')
+  if (!/[0-9]/.test(password)) errors.push('Password must contain numbers')
+  return { valid: errors.length === 0, errors }
+}
+
+async function hashPassword(password: string): Promise<string> {
+  // Simple hash for demo purposes - use bcrypt in production
+  return Buffer.from(password).toString('base64')
+}
+
+function generateAccountNumber(): string {
+  return Math.random().toString().slice(2, 12)
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
@@ -30,79 +47,10 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const supabase = getSupabase()
-
-    // Check if email already exists
-    const { data: existingUser } = await supabase
-      .from('users')
-      .select('id')
-      .eq('email', email)
-      .single()
-
-    if (existingUser) {
-      return NextResponse.json(
-        { error: 'Email already exists' },
-        { status: 409 }
-      )
-    }
-
     // Hash password
     const passwordHash = await hashPassword(password)
 
     // Generate username from email
-    const username = email.split('@')[0] + Math.random().toString(36).substr(2, 9)
-
-    // Create user with 'customer' role (regular user, not admin)
-    const { data: newUser, error: createError } = await supabase
-      .from('users')
-      .insert([
-        {
-          email,
-          username,
-          password_hash: passwordHash,
-          first_name: firstName,
-          last_name: lastName,
-          phone,
-          email_verified: false,
-          role: 'customer', // Regular users get 'customer' role, strictly isolated
-        },
-      ])
-      .select()
-      .single()
-
-    if (createError || !newUser) {
-      console.error('User creation error:', createError)
-      return NextResponse.json(
-        { error: 'Failed to create user' },
-        { status: 500 }
-      )
-    }
-
-    // Create default checking account with $0.00 balance
-    try {
-      await supabase
-        .from('accounts')
-        .insert([
-          {
-            user_id: newUser.id,
-            account_type: 'Checking',
-            account_number: generateAccountNumber(),
-            routing_number: '021000021',
-            balance: 0.00,
-            bank_name: 'Chase Bank',
-            is_external: false,
-          },
-        ])
-    } catch (err) {
-      console.error('Account creation error:', err)
-    }
-
-    // Send OTP for email verification
-    try {
-      await otpService.createOTP(email)
-    } catch (err) {
-      console.error('Failed to send OTP:', err)
-      // Don't fail registration if OTP fails
     const userId = 'user-' + Math.random().toString(36).substr(2, 9)
     const username = email.split('@')[0] + Math.random().toString(36).substr(2, 5)
 
@@ -113,21 +61,11 @@ export async function POST(request: NextRequest) {
       firstName: firstName || 'User',
       lastName: lastName || '',
       role: 'customer',
-      emailVerified: true,
+      emailVerified: false,
     }
 
     // Create session cookie
     const cookieStore = await cookies()
-    cookieStore.set('auth_user', JSON.stringify({
-      id: newUser.id,
-          email: newUser.email,
-          username: newUser.username,
-          firstName: newUser.first_name,
-          lastName: newUser.last_name,
-          role: 'customer',
-          emailVerified: false,
-        }), {
-      httpOnly: true, 
     cookieStore.set('auth_user', JSON.stringify(newUser), {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
@@ -151,15 +89,13 @@ export async function POST(request: NextRequest) {
           id: newUser.id,
           email: newUser.email,
           username: newUser.username,
-          firstName: newUser.first_name,
-          lastName: newUser.last_name,
+          firstName: newUser.firstName,
+          lastName: newUser.lastName,
           role: 'customer',
           emailVerified: false,
         },
-        message: 'Registration successful. Please verify your email with the OTP sent.',
-        token,
-        user: newUser,
         message: 'Registration successful.',
+        token,
       },
       { status: 201 }
     )

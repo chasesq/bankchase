@@ -42,12 +42,12 @@ export async function POST(request: NextRequest) {
       createdAt: new Date().toISOString(),
     }
 
-    // Create token (base64 encoded for compatibility)
+    // Create a JWT-like token
     const token = Buffer.from(JSON.stringify({
-      id: user.id,
+      sub: user.id,
       email: user.email,
       username: user.username,
-      iat: Math.floor(Date.now() / 1000),
+      iat: Date.now(),
     })).toString('base64')
 
     // Set auth cookies
@@ -65,14 +65,6 @@ export async function POST(request: NextRequest) {
       sameSite: 'lax',
       maxAge: 60 * 60 * 24 * 7, // 7 days
     })
-
-    // Create a JWT-like token
-    const token = Buffer.from(JSON.stringify({
-      sub: user.id,
-      email: user.email,
-      name: user.name,
-      iat: Date.now(),
-    })).toString('base64')
 
     return NextResponse.json(
       {

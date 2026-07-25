@@ -12,29 +12,45 @@ import {
   Clock,
   Filter,
   Calendar,
+  AlertCircle,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 import { useBanking } from "@/lib/banking-context"
-import { useState } from "react"
+import { useTransfers } from "@/hooks/use-transfers"
+import { useState, useEffect } from "react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { TransferDialog } from "./transfer-dialog"
 
 interface PayTransferViewProps {
-  onSendMoney: () => void
-  onPayBills: () => void
-  onTransfer: () => void
-  onWire: () => void
+  onSendMoney?: () => void
+  onPayBills?: () => void
+  onTransfer?: () => void
+  onWire?: () => void
   onReceiptOpen?: (transactionId: string) => void
+  userId?: string
 }
 
-export function PayTransferView({ onSendMoney, onPayBills, onTransfer, onWire, onReceiptOpen }: PayTransferViewProps) {
-  const { transactions, scheduledPayments, cancelScheduledPayment } = useBanking()
+export function PayTransferView({ 
+  onSendMoney, 
+  onPayBills, 
+  onTransfer, 
+  onWire, 
+  onReceiptOpen,
+  userId = "demo-user"
+}: PayTransferViewProps) {
+  const { transactions = [], scheduledPayments = [], cancelScheduledPayment } = useBanking()
+  const { transfers, accounts, notifications, createTransfer, error: transferError } = useTransfers(userId)
   const [searchQuery, setSearchQuery] = useState("")
   const [showAllTransactions, setShowAllTransactions] = useState(false)
   const [filterStatus, setFilterStatus] = useState<string>("all")
   const [showScheduledDetails, setShowScheduledDetails] = useState(false)
+  const [transferDialogOpen, setTransferDialogOpen] = useState(false)
+  const [zelleDialogOpen, setZelleDialogOpen] = useState(false)
+  const [transferType, setTransferType] = useState<'zelle' | 'bank_transfer' | 'internal'>('zelle')
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -98,11 +114,23 @@ export function PayTransferView({ onSendMoney, onPayBills, onTransfer, onWire, o
         </div>
       </div>
 
+      {/* Error Alert */}
+      {transferError && (
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>{transferError}</AlertDescription>
+        </Alert>
+      )}
+
       {/* Quick Actions Grid */}
       <div className="grid grid-cols-2 gap-3">
         <Card
           className="chase-card-shadow border-0 cursor-pointer hover:bg-muted/30 transition-colors active:scale-[0.98]"
-          onClick={onSendMoney}
+          onClick={() => {
+            setTransferType('zelle')
+            setZelleDialogOpen(true)
+            onSendMoney?.()
+          }}
         >
           <CardContent className="p-4">
             <div className="h-12 w-12 rounded-full bg-[#0a4fa6]/10 flex items-center justify-center mb-3">
@@ -115,7 +143,11 @@ export function PayTransferView({ onSendMoney, onPayBills, onTransfer, onWire, o
 
         <Card
           className="chase-card-shadow border-0 cursor-pointer hover:bg-muted/30 transition-colors active:scale-[0.98]"
-          onClick={onTransfer}
+          onClick={() => {
+            setTransferType('internal')
+            setTransferDialogOpen(true)
+            onTransfer?.()
+          }}
         >
           <CardContent className="p-4">
             <div className="h-12 w-12 rounded-full bg-[#0a4fa6]/10 flex items-center justify-center mb-3">
@@ -141,7 +173,11 @@ export function PayTransferView({ onSendMoney, onPayBills, onTransfer, onWire, o
 
         <Card
           className="chase-card-shadow border-0 cursor-pointer hover:bg-muted/30 transition-colors active:scale-[0.98]"
-          onClick={onWire}
+          onClick={() => {
+            setTransferType('bank_transfer')
+            setTransferDialogOpen(true)
+            onWire?.()
+          }}
         >
           <CardContent className="p-4">
             <div className="h-12 w-12 rounded-full bg-[#0a4fa6]/10 flex items-center justify-center mb-3">
@@ -305,6 +341,48 @@ export function PayTransferView({ onSendMoney, onPayBills, onTransfer, onWire, o
           )}
         </CardContent>
       </Card>
+
+      {/* Notifications */}
+      {notifications.length > 0 && (
+        <Card className="chase-card-shadow border-0 bg-blue-50 dark:bg-blue-900/20">
+          <CardContent className="p-4">
+            <h3 className="font-semibold text-sm text-blue-900 dark:text-blue-100 mb-3">Recent Notifications</h3>
+            <div className="space-y-2">
+              {notifications.slice(0, 3).map((notif) => (
+                <div key={notif.id} className="text-sm">
+                  <p className="font-medium text-blue-900 dark:text-blue-100">{notif.title}</p>
+                  <p className="text-xs text-blue-700 dark:text-blue-200">{notif.message}</p>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Transfer Dialogs */}
+      <TransferDialog
+        open={zelleDialogOpen}
+        onOpenChange={setZelleDialogOpen}
+        transferType="zelle"
+        userId={userId}
+        userAccounts={accounts}
+        onTransferComplete={() => {
+          setZelleDialogOpen(false)
+          // Refresh data
+        }}
+      />
+
+      <TransferDialog
+        open={transferDialogOpen}
+        onOpenChange={setTransferDialogOpen}
+        transferType={transferType}
+        userId={userId}
+        userAccounts={accounts}
+        onTransferComplete={() => {
+          setTransferDialogOpen(false)
+          // Refresh data
+        }}
+      />
     </div>
   )
 }

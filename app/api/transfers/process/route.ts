@@ -1,164 +1,200 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { v4 as uuidv4 } from 'uuid'
-import { processTransfer, validateTransfer } from '@/lib/transfer-processor'
-import { createClient } from '@/lib/supabase/server'
+import { NextRequest, NextResponse } from "next/server"
+import { db } from "@/lib/db/index"
+import { transfer, bankAccount, notification, user } from "@/lib/db/schema"
+import { eq, and } from "drizzle-orm"
+import { nanoid } from "nanoid"
 
-/**
- * POST /api/transfers/process
- * 
- * Process a real-time bank transfer with:
- * - ACID transaction guarantees
- * - Idempotency protection
- * - Balance locking
- * - Async SMS notifications
- * - Network provider handoff
- * 
- * Returns 202 Accepted with transaction ID for async processing
- */
+interface TransferRequest {
+  senderId: string
+  senderAccountId: string
+  receiverAccountId?: string
+  recipientEmail?: string
+  recipientName: string
+  amount: number
+  description?: string
+  transferType: "zelle" | "bank_transfer" | "internal"
+}
+
 export async function POST(request: NextRequest) {
   try {
-    // Get authentication from cookies
-    const supabase = await createClient()
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
-
-    if (authError || !user) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      )
-    }
-
-    // Parse request body
-    const body = await request.json()
+    const body: TransferRequest = await request.json()
+    
     const {
-      fromAccountId,
-      toAccountNumber,
-      toBankCode,
+      senderId,
+      senderAccountId,
+      receiverAccountId,
+      recipientEmail,
+      recipientName,
       amount,
-      currency = 'USD',
-      narration
+      description,
+      transferType,
     } = body
 
     // Validate required fields
-    if (!fromAccountId || !toAccountNumber || !toBankCode || !amount) {
+    if (!senderId || !senderAccountId || !amount || !recipientName) {
       return NextResponse.json(
-        {
-          error: 'Missing required fields',
-          required: ['fromAccountId', 'toAccountNumber', 'toBankCode', 'amount']
-        },
+        { error: "Missing required fields" },
         { status: 400 }
       )
     }
 
-    // Generate idempotency key from request or create new one
-    const idempotencyKey = request.headers.get('idempotency-key') || uuidv4()
-
-    // Create transfer request
-    const transferRequest = {
-      userId: user.id,
-      fromAccountId,
-      toAccountNumber,
-      toBankCode,
-      amount: parseFloat(amount.toString()),
-      currency,
-      idempotencyKey,
-      narration
-    }
-
-    // Validate transfer before processing
-    const validation = await validateTransfer(transferRequest)
-    if (!validation.valid) {
+    // Validate amount
+    if (amount <= 0) {
       return NextResponse.json(
-        {
-          error: 'Transfer validation failed',
-          details: validation.errors
-        },
+        { error: "Amount must be greater than 0" },
         { status: 400 }
       )
     }
 
-    // Process the transfer
-    const result = await processTransfer(transferRequest)
+    // Get sender account
+    const senderAcct = await db
+      .select()
+      .from(bankAccount)
+      .where(and(
+        eq(bankAccount.id, senderAccountId),
+        eq(bankAccount.userId, senderId)
+      ))
+      .limit(1)
 
-    if (!result.success) {
+    if (!senderAcct.length) {
       return NextResponse.json(
-        { error: result.error || 'Transfer processing failed' },
+        { error: "Sender account not found" },
+        { status: 404 }
+      )
+    }
+
+    // Calculate fee based on transfer type
+    const fee = transferType === "zelle" ? 0 : 2.50
+    const totalAmount = amount + fee
+
+    // Check sender balance
+    const senderBalance = parseFloat(senderAcct[0].balance)
+    if (senderBalance < totalAmount) {
+      return NextResponse.json(
+        { error: `Insufficient funds. Available: $${senderBalance.toFixed(2)}, Required: $${totalAmount.toFixed(2)}` },
         { status: 400 }
       )
     }
 
-    // Return 202 Accepted with transaction ID
-    // Client polls /api/transfers/status/:transactionId for status updates
-    return NextResponse.json(
-      {
-        status: 'processing',
-        transactionId: result.transactionId,
-        message: 'Transfer initiated. Processing in background...',
-        details: result.details,
-        _links: {
-          status: `/api/transfers/status/${result.transactionId}`,
-          poll_interval_ms: 5000
-        }
-      },
-      { 
-        status: 202,
-        headers: {
-          'Location': `/api/transfers/status/${result.transactionId}`
-        }
+    // Get receiver account (if internal transfer)
+    let receiverAcct = null
+    let receiverId = null
+    
+    if (receiverAccountId) {
+      const result = await db
+        .select()
+        .from(bankAccount)
+        .where(eq(bankAccount.id, receiverAccountId))
+        .limit(1)
+
+      if (!result.length) {
+        return NextResponse.json(
+          { error: "Receiver account not found" },
+          { status: 404 }
+        )
       }
-    )
-  } catch (error: any) {
-    console.error('[v0] Transfer processing error:', error)
+      receiverAcct = result[0]
+      receiverId = receiverAcct.userId
+    }
+
+    // Create transfer record
+    const transferId = nanoid()
+    
+    await db.insert(transfer).values({
+      id: transferId,
+      senderId,
+      senderAccountId,
+      receiverId: receiverId || null,
+      receiverAccountId: receiverAccountId || "",
+      recipientEmail,
+      recipientName,
+      amount: amount.toString(),
+      fee: fee.toString(),
+      description: description || `Transfer to ${recipientName}`,
+      transferType,
+      status: "processing",
+    })
+
+    // Debit sender account
+    const newSenderBalance = (senderBalance - totalAmount).toFixed(2)
+    await db
+      .update(bankAccount)
+      .set({
+        balance: newSenderBalance,
+        updatedAt: new Date(),
+      })
+      .where(eq(bankAccount.id, senderAccountId))
+
+    // Credit receiver account if internal transfer
+    let newReceiverBalance = null
+    if (receiverAcct) {
+      const receiverBalance = parseFloat(receiverAcct.balance)
+      newReceiverBalance = (receiverBalance + amount).toFixed(2)
+      
+      await db
+        .update(bankAccount)
+        .set({
+          balance: newReceiverBalance,
+          updatedAt: new Date(),
+        })
+        .where(eq(bankAccount.id, receiverAccountId!))
+    }
+
+    // Update transfer status to completed
+    await db
+      .update(transfer)
+      .set({
+        status: "completed",
+        updatedAt: new Date(),
+      })
+      .where(eq(transfer.id, transferId))
+
+    // Create notification for sender
+    const senderNotifId = nanoid()
+    await db.insert(notification).values({
+      id: senderNotifId,
+      userId: senderId,
+      type: "transfer_sent",
+      title: "Transfer Sent",
+      message: `You sent $${amount.toFixed(2)} to ${recipientName}`,
+      relatedTransferId: transferId,
+    })
+
+    // Create notification for receiver if internal transfer
+    if (receiverAcct) {
+      const receiverNotifId = nanoid()
+      const senderUser = await db
+        .select()
+        .from(user)
+        .where(eq(user.id, senderId))
+        .limit(1)
+
+      await db.insert(notification).values({
+        id: receiverNotifId,
+        userId: receiverId!,
+        type: "transfer_received",
+        title: "Money Received",
+        message: `You received $${amount.toFixed(2)} from ${senderUser[0]?.name || "a contact"}`,
+        relatedTransferId: transferId,
+      })
+    }
+
     return NextResponse.json(
       {
-        error: 'Internal server error',
-        message: error.message
+        success: true,
+        transferId,
+        message: "Transfer completed successfully",
+        senderNewBalance: newSenderBalance,
+        receiverNewBalance: newReceiverBalance,
+        fee,
       },
+      { status: 200 }
+    )
+  } catch (error) {
+    console.error("[v0] Transfer processing error:", error)
+    return NextResponse.json(
+      { error: "Failed to process transfer" },
       { status: 500 }
     )
   }
-}
-
-/**
- * OPTIONS /api/transfers/process
- * CORS preflight and API documentation
- */
-export async function OPTIONS(request: NextRequest) {
-  return NextResponse.json(
-    {
-      method: 'POST',
-      description: 'Process a real-time bank transfer',
-      contentType: 'application/json',
-      headers: {
-        'idempotency-key': 'Optional UUID for idempotency. Prevents duplicate processing of same request.',
-        'authorization': 'Bearer token in cookies (automatic via Supabase)'
-      },
-      requestBody: {
-        fromAccountId: 'UUID of sender\'s account',
-        toAccountNumber: 'Receiver\'s account number (IBAN or domestic format)',
-        toBankCode: 'BIC/SWIFT code or domestic routing code',
-        amount: 'Transfer amount (numeric)',
-        currency: 'ISO currency code (default: USD)',
-        narration: 'Optional transfer description'
-      },
-      response: {
-        status: 202,
-        body: {
-          status: 'processing',
-          transactionId: 'UUID for tracking transfer status',
-          message: 'Transfer initiated message',
-          _links: {
-            status: 'Endpoint to poll for transaction status'
-          }
-        }
-      },
-      errorResponses: {
-        400: 'Validation failed (insufficient balance, invalid account, missing fields)',
-        401: 'Unauthorized (not authenticated)',
-        409: 'Conflict (duplicate idempotency key)',
-        500: 'Internal server error'
-      }
-    },
-    { status: 200 }
-  )
 }
