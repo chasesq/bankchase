@@ -104,3 +104,72 @@ export const emailLog = pgTable("email_log", {
   createdAt: timestamp("createdAt").notNull().defaultNow(),
   sentAt: timestamp("sentAt"),
 })
+
+// --- Transfer & Payment tables -------------------------------------------------
+import { decimal, integer, index } from "drizzle-orm/pg-core"
+
+export const bankAccount = pgTable("bank_account", {
+  id: text("id").primaryKey(),
+  userId: text("userId").notNull().references(() => user.id, { onDelete: 'cascade' }),
+  accountName: text("accountName").notNull(),
+  accountNumber: text("accountNumber").notNull(),
+  routingNumber: text("routingNumber").notNull(),
+  bankName: text("bankName").notNull(),
+  accountType: text("accountType").notNull().default("checking"), // checking, savings
+  balance: decimal("balance", { precision: 15, scale: 2 }).notNull().default("0.00"),
+  isDefault: boolean("isDefault").notNull().default(false),
+  createdAt: timestamp("createdAt").notNull().defaultNow(),
+  updatedAt: timestamp("updatedAt").notNull().defaultNow(),
+}, (table) => ({
+  userIdIdx: index("bank_account_user_id_idx").on(table.userId),
+}))
+
+export const transfer = pgTable("transfer", {
+  id: text("id").primaryKey(),
+  senderId: text("senderId").notNull().references(() => user.id, { onDelete: 'cascade' }),
+  senderAccountId: text("senderAccountId").notNull().references(() => bankAccount.id),
+  receiverId: text("receiverId").references(() => user.id, { onDelete: 'set null' }),
+  receiverAccountId: text("receiverAccountId").notNull().references(() => bankAccount.id),
+  recipientEmail: text("recipientEmail"), // For Zelle transfers to external email
+  recipientName: text("recipientName"),
+  amount: decimal("amount", { precision: 15, scale: 2 }).notNull(),
+  fee: decimal("fee", { precision: 10, scale: 2 }).notNull().default("0.00"),
+  description: text("description"),
+  transferType: text("transferType").notNull(), // zelle, bank_transfer, internal
+  status: text("status").notNull().default("pending"), // pending, processing, completed, failed, cancelled
+  failureReason: text("failureReason"),
+  createdAt: timestamp("createdAt").notNull().defaultNow(),
+  updatedAt: timestamp("updatedAt").notNull().defaultNow(),
+}, (table) => ({
+  senderIdIdx: index("transfer_sender_id_idx").on(table.senderId),
+  receiverIdIdx: index("transfer_receiver_id_idx").on(table.receiverId),
+  statusIdx: index("transfer_status_idx").on(table.status),
+  createdAtIdx: index("transfer_created_at_idx").on(table.createdAt),
+}))
+
+export const notification = pgTable("notification", {
+  id: text("id").primaryKey(),
+  userId: text("userId").notNull().references(() => user.id, { onDelete: 'cascade' }),
+  type: text("type").notNull(), // transfer_received, transfer_sent, transfer_failed, balance_alert
+  title: text("title").notNull(),
+  message: text("message").notNull(),
+  relatedTransferId: text("relatedTransferId").references(() => transfer.id, { onDelete: 'set null' }),
+  isRead: boolean("isRead").notNull().default(false),
+  readAt: timestamp("readAt"),
+  createdAt: timestamp("createdAt").notNull().defaultNow(),
+}, (table) => ({
+  userIdIdx: index("notification_user_id_idx").on(table.userId),
+  isReadIdx: index("notification_is_read_idx").on(table.isRead),
+}))
+
+export const zelleRecipient = pgTable("zelle_recipient", {
+  id: text("id").primaryKey(),
+  userId: text("userId").notNull().references(() => user.id, { onDelete: 'cascade' }),
+  email: text("email").notNull(),
+  displayName: text("displayName").notNull(),
+  isVerified: boolean("isVerified").notNull().default(true),
+  createdAt: timestamp("createdAt").notNull().defaultNow(),
+  updatedAt: timestamp("updatedAt").notNull().defaultNow(),
+}, (table) => ({
+  userIdIdx: index("zelle_recipient_user_id_idx").on(table.userId),
+}))
