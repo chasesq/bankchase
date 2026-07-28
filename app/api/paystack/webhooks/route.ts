@@ -3,8 +3,7 @@ import crypto from 'crypto'
 import { createClient } from '@/lib/supabase/server'
 import {
   notifyOnDeposit,
-  notifyOnDebit,
-  notifyOnTransferFailed
+  notifyOnDebit
 } from '@/lib/notifications'
 
 const PAYSTACK_SECRET_KEY = process.env.PAYSTACK_SECRET_KEY
@@ -340,7 +339,7 @@ async function handleTransferFailure(data: any) {
 
     // Send multi-channel notifications (Email, SMS, Push)
     if (userDetails) {
-      notifyOnTransferFailed({
+      notifyOnDebit({
         context: {
           userId: transaction.user_id,
           userEmail: userDetails.email,
