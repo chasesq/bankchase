@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import crypto from 'crypto'
 import { createClient } from '@/lib/supabase/server'
-import { sendCreditAlertEmail } from '@/lib/notifications/email'
-import { sendCreditAlertSMS } from '@/lib/notifications/sms'
-import { sendCreditNotification } from '@/lib/notifications/push'
+import { notifyTransaction } from '@/lib/notifications'
 
 const PAYSTACK_SECRET_KEY = process.env.PAYSTACK_SECRET_KEY
 
@@ -185,33 +183,20 @@ async function handleIncomingDeposit(data: any) {
 
     // Send multi-channel notifications (Email, SMS, Push) - Fire and forget
     if (userDetails) {
-      // Email notification
-      sendCreditAlertEmail({
-        recipientEmail: userDetails.email,
-        recipientName: userDetails.full_name || 'User',
+      notifyTransaction({
+        context: {
+          userId,
+          userEmail: userDetails.email,
+          userPhone: userDetails.phone_number,
+          userName: userDetails.full_name || 'User'
+        },
         amount: amountInMajorUnits,
-        senderName: 'Bank Transfer',
+        currency: 'NGN',
+        recipientName: 'Bank Transfer',
         reference,
-        balance: newBalance
-      }).catch(err => console.warn('[WEBHOOK] Email notification failed:', err))
-
-      // SMS notification (if phone available)
-      if (userDetails.phone_number) {
-        sendCreditAlertSMS({
-          recipientPhone: userDetails.phone_number,
-          amount: amountInMajorUnits,
-          senderName: 'Bank Transfer',
-          newBalance
-        }).catch(err => console.warn('[WEBHOOK] SMS notification failed:', err))
-      }
-
-      // Push notification
-      sendCreditNotification({
-        userId,
-        amount: amountInMajorUnits,
-        senderName: 'Bank Transfer',
-        reference
-      }).catch(err => console.warn('[WEBHOOK] Push notification failed:', err))
+        balance: newBalance,
+        type: 'deposit'
+      })
     }
 
     console.log('[v0] Deposit credited successfully:', { userId, amount: amountInMajorUnits })
@@ -265,35 +250,19 @@ async function handleTransferSuccess(data: any) {
 
     // Send multi-channel notifications (Email, SMS, Push) - Fire and forget
     if (userDetails) {
-      const amount = parseFloat(transaction.amount)
-      
-      // Email notification
-      sendCreditAlertEmail({
-        recipientEmail: userDetails.email,
-        recipientName: userDetails.full_name || 'User',
-        amount: amount,
-        senderName: recipient?.name || 'Recipient',
+      notifyTransaction({
+        context: {
+          userId: transaction.user_id,
+          userEmail: userDetails.email,
+          userPhone: userDetails.phone_number,
+          userName: userDetails.full_name || 'User'
+        },
+        amount: parseFloat(transaction.amount),
+        currency: 'NGN',
+        recipientName: recipient?.name || 'Recipient',
         reference,
-        balance: 0
-      }).catch(err => console.warn('[WEBHOOK] Email notification failed:', err))
-
-      // SMS notification (if phone available)
-      if (userDetails.phone_number) {
-        sendCreditAlertSMS({
-          recipientPhone: userDetails.phone_number,
-          amount: amount,
-          senderName: recipient?.name || 'Recipient',
-          newBalance: 0
-        }).catch(err => console.warn('[WEBHOOK] SMS notification failed:', err))
-      }
-
-      // Push notification
-      sendCreditNotification({
-        userId: transaction.user_id,
-        amount: amount,
-        senderName: recipient?.name || 'Recipient',
-        reference
-      }).catch(err => console.warn('[WEBHOOK] Push notification failed:', err))
+        type: 'transfer_success'
+      })
     }
 
     console.log('[v0] Transfer marked as completed:', transaction.id)
@@ -365,33 +334,20 @@ async function handleTransferFailure(data: any) {
 
     // Send multi-channel notifications (Email, SMS, Push) - Fire and forget
     if (userDetails) {
-      // Email notification
-      sendCreditAlertEmail({
-        recipientEmail: userDetails.email,
-        recipientName: userDetails.full_name || 'User',
+      notifyTransaction({
+        context: {
+          userId: transaction.user_id,
+          userEmail: userDetails.email,
+          userPhone: userDetails.phone_number,
+          userName: userDetails.full_name || 'User'
+        },
         amount: amount,
-        senderName: 'Transfer Failed - Refunded',
+        currency: 'NGN',
+        recipientName: 'Transfer Failed - Refunded',
         reference,
-        balance: userBalance + amount // Show new balance after refund
-      }).catch(err => console.warn('[WEBHOOK] Email notification failed:', err))
-
-      // SMS notification (if phone available)
-      if (userDetails.phone_number) {
-        sendCreditAlertSMS({
-          recipientPhone: userDetails.phone_number,
-          amount: amount,
-          senderName: 'Transfer Failed - Refunded',
-          newBalance: userBalance + amount
-        }).catch(err => console.warn('[WEBHOOK] SMS notification failed:', err))
-      }
-
-      // Push notification
-      sendCreditNotification({
-        userId: transaction.user_id,
-        amount: amount,
-        senderName: 'Transfer Failed - Refunded',
-        reference
-      }).catch(err => console.warn('[WEBHOOK] Push notification failed:', err))
+        balance: userBalance + amount,
+        type: 'transfer_failed'
+      })
     }
 
     console.log('[v0] Transfer failure processed with refund:', transaction.id)
