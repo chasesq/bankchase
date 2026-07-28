@@ -125,7 +125,7 @@ export async function sendCreditAlertEmail({
     })
 
     console.log(`[EMAIL ✓] Credit alert sent to ${recipientEmail}`, { reference })
-    return { success: true, messageId: emailResult.id }
+    return { success: true, messageId: emailResult.data?.id || 'sent' }
   } catch (error: any) {
     console.error(`[EMAIL ✗] Failed to send credit alert to ${recipientEmail}:`, error.message)
     return { success: false, error: error.message }
@@ -246,7 +246,7 @@ export async function sendDebitAlertEmail({
     })
 
     console.log(`[EMAIL ✓] Debit alert sent to ${recipientEmail}`, { reference })
-    return { success: true, messageId: emailResult.id }
+    return { success: true, messageId: emailResult.data?.id || 'sent' }
   } catch (error: any) {
     console.error(`[EMAIL ✗] Failed to send debit alert to ${recipientEmail}:`, error.message)
     return { success: false, error: error.message }
@@ -334,7 +334,7 @@ export async function sendTransferFailedEmail({
     })
 
     console.log(`[EMAIL ✓] Transfer failed alert sent to ${recipientEmail}`, { reference })
-    return { success: true, messageId: emailResult.id }
+    return { success: true, messageId: emailResult.data?.id || 'sent' }
   } catch (error: any) {
     console.error(`[EMAIL ✗] Failed to send transfer failed alert:`, error.message)
     return { success: false, error: error.message }
