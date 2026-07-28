@@ -337,6 +337,3 @@ export {
   markAllNotificationsAsRead,
   deleteNotification
 }
-
-// Re-export orchestrator functions to ensure they're available
-export { notifyOnCredit, notifyOnDebit, notifyOnTransferFailed, notifyOnDeposit }
