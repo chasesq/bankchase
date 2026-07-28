@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import crypto from 'crypto'
 import { createClient } from '@/lib/supabase/server'
-import { sendCreditAlertEmail, sendCreditAlertSMS } from '@/lib/notifications/email'
+import { sendCreditAlertEmail } from '@/lib/notifications/email'
+import { sendCreditAlertSMS } from '@/lib/notifications/sms'
 import { sendCreditNotification } from '@/lib/notifications/push'
 
 const PAYSTACK_SECRET_KEY = process.env.PAYSTACK_SECRET_KEY
