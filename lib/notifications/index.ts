@@ -314,26 +314,3 @@ export async function notifyOnDeposit({
     return { success: false, error }
   }
 }
-
-// Export individual utilities for direct use
-export {
-  // Email
-  sendCreditAlertEmail,
-  sendDebitAlertEmail,
-  sendTransferFailedEmail,
-  // SMS
-  sendCreditAlertSMS,
-  sendDebitAlertSMS,
-  sendTransferFailedSMS,
-  sendOTPSMS,
-  // Push
-  sendCreditNotification,
-  sendDebitNotification,
-  sendTransferFailedNotification,
-  sendDepositNotification,
-  sendSystemNotification,
-  getUserNotifications,
-  markNotificationAsRead,
-  markAllNotificationsAsRead,
-  deleteNotification
-}
