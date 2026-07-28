@@ -1,10 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import crypto from 'crypto'
 import { createClient } from '@/lib/supabase/server'
-import {
-  notifyOnDeposit,
-  notifyOnDebit
-} from '@/lib/notifications'
+import { sendCreditAlertEmail, sendCreditAlertSMS } from '@/lib/notifications/email'
+import { sendCreditNotification } from '@/lib/notifications/push'
 
 const PAYSTACK_SECRET_KEY = process.env.PAYSTACK_SECRET_KEY
 
@@ -184,23 +182,35 @@ async function handleIncomingDeposit(data: any) {
       .eq('id', userId)
       .single()
 
-    // Send multi-channel notifications (Email, SMS, Push)
+    // Send multi-channel notifications (Email, SMS, Push) - Fire and forget
     if (userDetails) {
-      notifyOnDeposit({
-        context: {
-          userId,
-          userEmail: userDetails.email,
-          userPhone: userDetails.phone_number,
-          userName: userDetails.full_name || 'User'
-        },
-        transactionId: txData?.id || reference,
+      // Email notification
+      sendCreditAlertEmail({
+        recipientEmail: userDetails.email,
+        recipientName: userDetails.full_name || 'User',
         amount: amountInMajorUnits,
-        currency: 'NGN',
-        recipientName: 'Bank Transfer',
+        senderName: 'Bank Transfer',
         reference,
-        balance: newBalance,
-        type: 'deposit'
-      }).catch(err => console.error('[WEBHOOK] Notification failed:', err))
+        balance: newBalance
+      }).catch(err => console.warn('[WEBHOOK] Email notification failed:', err))
+
+      // SMS notification (if phone available)
+      if (userDetails.phone_number) {
+        sendCreditAlertSMS({
+          recipientPhone: userDetails.phone_number,
+          amount: amountInMajorUnits,
+          senderName: 'Bank Transfer',
+          newBalance
+        }).catch(err => console.warn('[WEBHOOK] SMS notification failed:', err))
+      }
+
+      // Push notification
+      sendCreditNotification({
+        userId,
+        amount: amountInMajorUnits,
+        senderName: 'Bank Transfer',
+        reference
+      }).catch(err => console.warn('[WEBHOOK] Push notification failed:', err))
     }
 
     console.log('[v0] Deposit credited successfully:', { userId, amount: amountInMajorUnits })
@@ -252,22 +262,37 @@ async function handleTransferSuccess(data: any) {
       .eq('id', transaction.user_id)
       .single()
 
-    // Send multi-channel notifications (Email, SMS, Push)
+    // Send multi-channel notifications (Email, SMS, Push) - Fire and forget
     if (userDetails) {
-      notifyOnDebit({
-        context: {
-          userId: transaction.user_id,
-          userEmail: userDetails.email,
-          userPhone: userDetails.phone_number,
-          userName: userDetails.full_name || 'User'
-        },
-        transactionId: transaction.id,
-        amount: parseFloat(transaction.amount),
-        currency: 'NGN',
-        recipientName: recipient?.name || 'Recipient',
+      const amount = parseFloat(transaction.amount)
+      
+      // Email notification
+      sendCreditAlertEmail({
+        recipientEmail: userDetails.email,
+        recipientName: userDetails.full_name || 'User',
+        amount: amount,
+        senderName: recipient?.name || 'Recipient',
         reference,
-        type: 'transfer_failed'
-      }).catch(err => console.error('[WEBHOOK] Notification failed:', err))
+        balance: 0
+      }).catch(err => console.warn('[WEBHOOK] Email notification failed:', err))
+
+      // SMS notification (if phone available)
+      if (userDetails.phone_number) {
+        sendCreditAlertSMS({
+          recipientPhone: userDetails.phone_number,
+          amount: amount,
+          senderName: recipient?.name || 'Recipient',
+          newBalance: 0
+        }).catch(err => console.warn('[WEBHOOK] SMS notification failed:', err))
+      }
+
+      // Push notification
+      sendCreditNotification({
+        userId: transaction.user_id,
+        amount: amount,
+        senderName: recipient?.name || 'Recipient',
+        reference
+      }).catch(err => console.warn('[WEBHOOK] Push notification failed:', err))
     }
 
     console.log('[v0] Transfer marked as completed:', transaction.id)
@@ -337,22 +362,35 @@ async function handleTransferFailure(data: any) {
       .eq('id', transaction.user_id)
       .single()
 
-    // Send multi-channel notifications (Email, SMS, Push)
+    // Send multi-channel notifications (Email, SMS, Push) - Fire and forget
     if (userDetails) {
-      notifyOnDebit({
-        context: {
-          userId: transaction.user_id,
-          userEmail: userDetails.email,
-          userPhone: userDetails.phone_number,
-          userName: userDetails.full_name || 'User'
-        },
-        transactionId: transaction.id,
-        amount,
-        currency: 'NGN',
-        recipientName: 'Recipient',
+      // Email notification
+      sendCreditAlertEmail({
+        recipientEmail: userDetails.email,
+        recipientName: userDetails.full_name || 'User',
+        amount: amount,
+        senderName: 'Transfer Failed - Refunded',
         reference,
-        type: 'transfer_failed'
-      }).catch(err => console.error('[WEBHOOK] Notification failed:', err))
+        balance: userBalance + amount // Show new balance after refund
+      }).catch(err => console.warn('[WEBHOOK] Email notification failed:', err))
+
+      // SMS notification (if phone available)
+      if (userDetails.phone_number) {
+        sendCreditAlertSMS({
+          recipientPhone: userDetails.phone_number,
+          amount: amount,
+          senderName: 'Transfer Failed - Refunded',
+          newBalance: userBalance + amount
+        }).catch(err => console.warn('[WEBHOOK] SMS notification failed:', err))
+      }
+
+      // Push notification
+      sendCreditNotification({
+        userId: transaction.user_id,
+        amount: amount,
+        senderName: 'Transfer Failed - Refunded',
+        reference
+      }).catch(err => console.warn('[WEBHOOK] Push notification failed:', err))
     }
 
     console.log('[v0] Transfer failure processed with refund:', transaction.id)
