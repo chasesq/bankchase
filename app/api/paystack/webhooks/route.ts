@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import crypto from 'crypto'
 import { createClient } from '@/lib/supabase/server'
+import {
+  notifyOnDeposit,
+  notifyOnDebit,
+  notifyOnTransferFailed
+} from '@/lib/notifications'
 
 const PAYSTACK_SECRET_KEY = process.env.PAYSTACK_SECRET_KEY
 
@@ -157,7 +162,7 @@ async function handleIncomingDeposit(data: any) {
       .eq('id', userId)
 
     // Record deposit transaction
-    await supabase
+    const { data: txData } = await supabase
       .from('transactions')
       .insert({
         user_id: userId,
@@ -170,18 +175,34 @@ async function handleIncomingDeposit(data: any) {
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       })
+      .select()
+      .single()
 
-    // Create notification
-    await supabase
-      .from('notifications')
-      .insert({
-        user_id: userId,
-        type: 'deposit_received',
-        title: 'Money Received',
-        message: `You received ₦${amountInMajorUnits.toFixed(2)} via bank transfer`,
-        read: false,
-        created_at: new Date().toISOString()
-      })
+    // Get user details for notifications
+    const { data: userDetails } = await supabase
+      .from('profiles')
+      .select('email, phone_number, full_name')
+      .eq('id', userId)
+      .single()
+
+    // Send multi-channel notifications (Email, SMS, Push)
+    if (userDetails) {
+      notifyOnDeposit({
+        context: {
+          userId,
+          userEmail: userDetails.email,
+          userPhone: userDetails.phone_number,
+          userName: userDetails.full_name || 'User'
+        },
+        transactionId: txData?.id || reference,
+        amount: amountInMajorUnits,
+        currency: 'NGN',
+        recipientName: 'Bank Transfer',
+        reference,
+        balance: newBalance,
+        type: 'deposit'
+      }).catch(err => console.error('[WEBHOOK] Notification failed:', err))
+    }
 
     console.log('[v0] Deposit credited successfully:', { userId, amount: amountInMajorUnits })
   } catch (error: any) {
@@ -225,18 +246,30 @@ async function handleTransferSuccess(data: any) {
       })
       .eq('id', transaction.id)
 
-    // Create notification
-    await supabase
-      .from('notifications')
-      .insert({
-        user_id: transaction.user_id,
-        type: 'transfer_completed',
-        title: 'Transfer Completed',
-        message: `Your transfer of ₦${parseFloat(transaction.amount).toFixed(2)} to ${recipient?.name} has been completed`,
-        transaction_id: transaction.id,
-        read: false,
-        created_at: new Date().toISOString()
-      })
+    // Get user details for notifications
+    const { data: userDetails } = await supabase
+      .from('profiles')
+      .select('email, phone_number, full_name')
+      .eq('id', transaction.user_id)
+      .single()
+
+    // Send multi-channel notifications (Email, SMS, Push)
+    if (userDetails) {
+      notifyOnDebit({
+        context: {
+          userId: transaction.user_id,
+          userEmail: userDetails.email,
+          userPhone: userDetails.phone_number,
+          userName: userDetails.full_name || 'User'
+        },
+        transactionId: transaction.id,
+        amount: parseFloat(transaction.amount),
+        currency: 'NGN',
+        recipientName: recipient?.name || 'Recipient',
+        reference,
+        type: 'transfer_failed'
+      }).catch(err => console.error('[WEBHOOK] Notification failed:', err))
+    }
 
     console.log('[v0] Transfer marked as completed:', transaction.id)
   } catch (error: any) {
@@ -298,18 +331,30 @@ async function handleTransferFailure(data: any) {
       })
       .eq('id', transaction.id)
 
-    // Create notification
-    await supabase
-      .from('notifications')
-      .insert({
-        user_id: transaction.user_id,
-        type: 'transfer_failed',
-        title: 'Transfer Failed',
-        message: `Your transfer of ₦${amount.toFixed(2)} failed. Amount has been refunded. Reason: ${reason}`,
-        transaction_id: transaction.id,
-        read: false,
-        created_at: new Date().toISOString()
-      })
+    // Get user details for notifications
+    const { data: userDetails } = await supabase
+      .from('profiles')
+      .select('email, phone_number, full_name')
+      .eq('id', transaction.user_id)
+      .single()
+
+    // Send multi-channel notifications (Email, SMS, Push)
+    if (userDetails) {
+      notifyOnTransferFailed({
+        context: {
+          userId: transaction.user_id,
+          userEmail: userDetails.email,
+          userPhone: userDetails.phone_number,
+          userName: userDetails.full_name || 'User'
+        },
+        transactionId: transaction.id,
+        amount,
+        currency: 'NGN',
+        recipientName: 'Recipient',
+        reference,
+        type: 'transfer_failed'
+      }).catch(err => console.error('[WEBHOOK] Notification failed:', err))
+    }
 
     console.log('[v0] Transfer failure processed with refund:', transaction.id)
   } catch (error: any) {
