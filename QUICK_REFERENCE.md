@@ -1,208 +1,328 @@
-# Neon + Better Auth - Quick Reference
+# Email Management System - Quick Reference Guide
 
-## Authentication Routes
-- `GET /sign-in` - Login page
-- `GET /sign-up` - Registration page
-- `POST /api/auth/sign-in` - Sign in (called by form)
-- `POST /api/auth/sign-up` - Sign up (called by form)
-
-## Core Files
-
-### lib/auth.ts
-- Configures Better Auth with Neon database
-- Sets up email + password authentication
-- Manages session cookies and CORS
-
-### lib/auth-client.ts
-- Client-side auth client for browser
-- `authClient.signIn.email({ email, password })`
-- `authClient.signUp.email({ email, password, name })`
-- `authClient.signOut()`
-
-### lib/db/index.ts
-- Creates shared `pg` Pool
-- Exports Drizzle `db` instance
-- Used by Better Auth + your queries
-
-### lib/db/schema.ts
-- Better Auth tables: user, session, account, verification
-- Add your custom tables here
-- Column names are camelCase (required by Better Auth)
-
-## Common Patterns
-
-### Check Session in Server Component
-```typescript
-import { auth } from '@/lib/auth'
-import { headers } from 'next/headers'
-import { redirect } from 'next/navigation'
-
-export default async function Page() {
-  const session = await auth.api.getSession({ headers: await headers() })
-  if (!session?.user) redirect('/sign-in')
-  
-  return <div>{session.user.email}</div>
-}
+## Access Dashboard
+```
+http://localhost:3000/dashboard/email
 ```
 
-### Server Action with User Data
+## Quick API Reference
+
+### Send Email
 ```typescript
-'use server'
+import { sendEmailWithManagement } from '@/lib/email-notification-integration'
 
-import { auth } from '@/lib/auth'
-import { db } from '@/lib/db'
-import { headers } from 'next/headers'
-
-async function getUserId() {
-  const session = await auth.api.getSession({ headers: await headers() })
-  if (!session?.user) throw new Error('Unauthorized')
-  return session.user.id
-}
-
-export async function getMyData() {
-  const userId = await getUserId()
-  return db.query.myTable.findMany({
-    where: (t) => eq(t.userId, userId)
-  })
-}
-```
-
-### Client Component Using Auth
-```typescript
-'use client'
-
-import { authClient } from '@/lib/auth-client'
-import { useRouter } from 'next/navigation'
-
-export function LogoutButton() {
-  const router = useRouter()
-  
-  const handleLogout = async () => {
-    await authClient.signOut()
-    router.push('/sign-in')
-    router.refresh()
+const result = await sendEmailWithManagement({
+  userId: 'user-id',
+  recipientEmail: 'user@example.com',
+  recipientName: 'John Doe',
+  subject: 'Hello', // optional
+  templateId: 'template-id', // optional
+  variables: {
+    firstName: 'John',
+    amount: '1000'
+  },
+  metadata: {
+    transactionId: 'txn-123'
   }
-  
-  return <button onClick={handleLogout}>Logout</button>
+})
+
+console.log(result.success, result.messageId)
+```
+
+### Get Email Stats
+```typescript
+import { getEmailStatistics } from '@/lib/email-notification-integration'
+
+const stats = await getEmailStatistics('user-id', 30) // Last 30 days
+console.log(stats.stats.openRate, stats.stats.clickRate)
+```
+
+### Update Email Status
+```typescript
+import { updateEmailStatus } from '@/lib/email-notification-integration'
+
+await updateEmailStatus('message-id', 'opened')
+await updateEmailStatus('message-id', 'clicked')
+```
+
+### Render Template
+```typescript
+import { renderEmailTemplate } from '@/lib/email-notification-integration'
+
+const rendered = await renderEmailTemplate(
+  'user-id',
+  'template-id',
+  { firstName: 'John', amount: '1000' }
+)
+console.log(rendered.subject, rendered.htmlBody)
+```
+
+## API Endpoints
+
+### Domains
+```bash
+# List domains
+GET /api/email/domains
+
+# Add domain
+POST /api/email/domains
+Body: { "domain_name": "example.com" }
+
+# Verify domain
+POST /api/email/domains/verify
+Body: { "domain_id": "uuid" }
+```
+
+### Templates
+```bash
+# List templates
+GET /api/email/templates
+
+# Create template
+POST /api/email/templates
+Body: {
+  "name": "Welcome",
+  "subject": "Welcome {{firstName}}",
+  "html_body": "<p>Hello {{firstName}}</p>",
+  "text_body": "Hello {{firstName}}"
 }
 ```
 
-### Query User Data
-```typescript
-import { db } from '@/lib/db'
-import { user } from '@/lib/db/schema'
-import { eq } from 'drizzle-orm'
+### Senders
+```bash
+# List senders
+GET /api/email/senders
 
-// Get user by email
-const foundUser = await db.query.user.findFirst({
-  where: eq(user.email, 'user@example.com')
+# Create sender
+POST /api/email/senders
+Body: {
+  "domain_id": "uuid",
+  "from_email": "noreply@example.com",
+  "from_name": "Company Name"
+}
+```
+
+### Email Logs
+```bash
+# List logs
+GET /api/email/logs?status=sent&page=1&limit=20
+
+# Create log
+POST /api/email/logs
+Body: {
+  "template_id": "uuid",
+  "recipient_email": "user@example.com",
+  "recipient_name": "John",
+  "subject": "Subject",
+  "message_id": "resend-id"
+}
+```
+
+### Settings
+```bash
+# Get settings
+GET /api/email/settings
+
+# Update settings
+PUT /api/email/settings
+Body: {
+  "default_domain_id": "uuid",
+  "default_sender_id": "uuid",
+  "enable_delivery_tracking": true,
+  "enable_open_tracking": true
+}
+```
+
+## Database Queries
+
+### Find User's Domains
+```sql
+SELECT * FROM email_domains WHERE user_id = 'user-id';
+```
+
+### Get Email Statistics
+```sql
+SELECT status, COUNT(*) FROM email_logs 
+WHERE user_id = 'user-id' 
+GROUP BY status;
+```
+
+### Find Failed Emails
+```sql
+SELECT * FROM email_logs 
+WHERE user_id = 'user-id' AND status = 'bounced'
+ORDER BY created_at DESC;
+```
+
+### Get User's Templates
+```sql
+SELECT * FROM email_templates 
+WHERE user_id = 'user-id'
+ORDER BY created_at DESC;
+```
+
+## Dashboard Navigation
+
+| Tab | Purpose | Link |
+|-----|---------|------|
+| Domains | Verify domains, see DNS records | `/dashboard/email?tab=domains` |
+| Templates | Create/edit templates | `/dashboard/email?tab=templates` |
+| Email Logs | View sent emails, track delivery | `/dashboard/email?tab=logs` |
+| Settings | Configure defaults, tracking | `/dashboard/email?tab=settings` |
+
+## Setup Checklist
+
+- [ ] Run database migration
+- [ ] Set RESEND_API_KEY in .env.local
+- [ ] Add domain in dashboard
+- [ ] Add DNS record to registrar
+- [ ] Wait 15-30 minutes for DNS propagation
+- [ ] Click "Verify" in dashboard
+- [ ] Create email template
+- [ ] Create sender identity
+- [ ] Configure settings
+- [ ] Send test email
+- [ ] Check email logs
+
+## Common Tasks
+
+### Add New Domain
+1. Dashboard → Domains → Add Domain
+2. Enter domain name
+3. Copy DNS record
+4. Add to registrar
+5. Wait 15-30 minutes
+6. Click "Verify"
+
+### Create Email Template
+1. Dashboard → Templates → Create Template
+2. Fill name, subject, content
+3. Use {{variable}} format
+4. Save
+
+### Send Email with Template
+```typescript
+await sendEmailWithManagement({
+  userId: 'user-id',
+  templateId: 'template-id',
+  recipientEmail: 'user@example.com',
+  variables: { name: 'John' }
 })
-
-// Get user by ID
-const userData = await db.query.user.findFirst({
-  where: eq(user.id, userId)
-})
 ```
 
-## Database Operations
+### Track Email
+1. Dashboard → Email Logs
+2. Search by email or subject
+3. Filter by status
+4. Check timestamps
 
-### Select
+### Check Delivery Rate
 ```typescript
-import { db } from '@/lib/db'
-import { posts } from '@/lib/db/schema'
-import { eq } from 'drizzle-orm'
-
-const userPosts = await db.query.posts.findMany({
-  where: eq(posts.userId, userId)
-})
+const stats = await getEmailStatistics('user-id')
+const rate = (stats.delivered / stats.total) * 100
+console.log(`Delivery rate: ${rate}%`)
 ```
 
-### Insert
-```typescript
-const newPost = await db.insert(posts).values({
-  title: 'Hello',
-  content: 'World',
-  userId: userId
-}).returning()
+## Environment Variables
+
+```bash
+# Required
+RESEND_API_KEY=re_xxxxxxxxxxxx
+
+# Optional
+SENDER_EMAIL=noreply@bankchase.com
+SMS_SENDER_ID=N-Alert
 ```
-
-### Update
-```typescript
-await db.update(posts)
-  .set({ title: 'Updated' })
-  .where(and(
-    eq(posts.id, postId),
-    eq(posts.userId, userId)
-  ))
-```
-
-### Delete
-```typescript
-await db.delete(posts)
-  .where(and(
-    eq(posts.id, postId),
-    eq(posts.userId, userId)
-  ))
-```
-
-## Important Rules
-
-1. **ALWAYS scope by userId** - Every query touching user data must have `eq(table.userId, userId)`
-2. **Use getUserId()** - Get the current user ID from the session
-3. **Never expose secrets** - DATABASE_URL and BETTER_AUTH_SECRET never in client code
-4. **HTTP-only cookies** - Session cookies are sent with every request automatically
-5. **Revalidate after mutations** - Use `revalidatePath()` to refresh cached pages
-
-## Debugging
-
-### Check if user is logged in
-```typescript
-const session = await auth.api.getSession({ headers: await headers() })
-console.log(session?.user)
-```
-
-### Test server action
-```typescript
-// In browser console after signing in:
-fetch('/api/auth/session').then(r => r.json()).then(console.log)
-```
-
-### View database
-- Open Neon dashboard
-- Check tables: user, session, account, verification
-
-## Deployment
-
-1. Set environment variables in Vercel:
-   - DATABASE_URL
-   - DATABASE_URL_UNPOOLED  
-   - BETTER_AUTH_SECRET
-
-2. Database is auto-managed by Better Auth
-   - Tables created on first signup
-   - No migrations needed
-
-3. Sessions work with Vercel deployments
-   - baseURL auto-detects production URL
-   - trustedOrigins includes all environments
 
 ## Troubleshooting
 
-**User signed up but can't sign in:**
-- Session created? Check: `const session = await auth.api.getSession(...)`
-- Cookie sent? Check: Network tab → find session cookie
-- Secret set? Check: env var BETTER_AUTH_SECRET exists
+### Domain won't verify
+- Check DNS record added to registrar
+- Wait 15-30 minutes for propagation
+- Use mxtoolbox.com to check CNAME
 
-**"Unauthorized" in server actions:**
-- Is `getUserId()` being called?
-- Is request from authenticated page?
-- Did you check session first?
+### Email not sending
+- Verify RESEND_API_KEY is set
+- Check sender email is verified
+- Check recipient email is valid
 
-**Database connection timeout:**
-- Check DATABASE_URL format
-- Verify Neon project is active
-- Restart dev server
+### Template variables not working
+- Use {{variableName}} format
+- Pass variables in send call
+- Check spelling (case-sensitive)
 
-**userId column errors:**
-- When adding custom tables, always add: `userId: text('userId').notNull()`
-- This is required for multi-user safety
+### Low delivery rate
+- Add SPF/DKIM records
+- Reduce sending frequency
+- Check bounce reasons in logs
+
+## Performance Tips
+
+1. **Batch Send Emails**
+   ```typescript
+   const promises = emails.map(e => 
+     sendEmailWithManagement({
+       userId: 'user-id',
+       recipientEmail: e.email,
+       variables: e.vars
+     })
+   )
+   await Promise.all(promises)
+   ```
+
+2. **Clean Old Logs**
+   ```typescript
+   import { cleanupOldEmailLogs } from '@/lib/email-notification-integration'
+   await cleanupOldEmailLogs('user-id', 90) // 90-day retention
+   ```
+
+3. **Use Templates**
+   - Preload templates at startup
+   - Render once, cache result
+   - Reuse across sends
+
+## Files Reference
+
+| File | Purpose |
+|------|---------|
+| `migrations/email_management.sql` | Database schema |
+| `app/api/email/*` | API endpoints |
+| `app/dashboard/email/` | Dashboard UI |
+| `lib/email-notification-integration.ts` | Integration functions |
+| `EMAIL_MANAGEMENT_COMPLETE.md` | Full documentation |
+| `EMAIL_SETUP_STEP_BY_STEP.md` | Step-by-step setup |
+
+## Support
+
+- **Full Docs:** Read `EMAIL_MANAGEMENT_COMPLETE.md`
+- **Setup Help:** Read `EMAIL_SETUP_STEP_BY_STEP.md`
+- **API Issues:** Check `/api/email/logs` for errors
+- **Dashboard:** Visit `/dashboard/email`
+
+## Build Command
+
+```bash
+npm run build
+```
+
+## Start Dev Server
+
+```bash
+npm run dev
+# Visit http://localhost:3000/dashboard/email
+```
+
+## Deploy
+
+```bash
+git add .
+git commit -m "Email management system"
+git push origin main
+# Auto-deploys on Vercel
+```
+
+---
+
+**Version:** 1.0.0
+**Status:** Production Ready
+**Last Updated:** 2024
