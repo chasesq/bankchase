@@ -1,15 +1,19 @@
-# Chase Bank Voice Agent - Deployment Guide
+# BankChase Platform - Complete Deployment Guide
+
+This comprehensive guide covers deploying BankChase using Docker, GitHub Container Registry, and Maven.
 
 ## Table of Contents
 1. [Prerequisites](#prerequisites)
-2. [Local Development Setup](#local-development-setup)
-3. [Docker Deployment](#docker-deployment)
-4. [Production Deployment](#production-deployment)
-5. [Environment Variables](#environment-variables)
-6. [Database Setup](#database-setup)
-7. [Monitoring and Logging](#monitoring-and-logging)
-8. [Security Checklist](#security-checklist)
-9. [Troubleshooting](#troubleshooting)
+2. [Container Registry Setup (ghcr.io)](#container-registry-setup)
+3. [Local Development Setup](#local-development-setup)
+4. [Docker Deployment](#docker-deployment)
+5. [Maven Setup & Deployment](#maven-setup--deployment)
+6. [Production Deployment](#production-deployment)
+7. [Environment Variables](#environment-variables)
+8. [Database Setup](#database-setup)
+9. [Monitoring and Logging](#monitoring-and-logging)
+10. [Security Checklist](#security-checklist)
+11. [Troubleshooting](#troubleshooting)
 
 ---
 
@@ -31,6 +35,83 @@
 - JWT_SECRET (generate a strong 32+ character secret)
 - Database credentials (create a strong password)
 - Admin credentials (email/password for initial login)
+
+---
+
+## Container Registry Setup (ghcr.io)
+
+GitHub Container Registry (ghcr.io) replaces the deprecated Docker registry. Here's how to set it up:
+
+### 1. Create GitHub Personal Access Token
+
+1. Go to https://github.com/settings/tokens
+2. Click "Generate new token (classic)"
+3. Select scopes:
+   - `read:packages` - Download container images
+   - `write:packages` - Upload container images
+   - `delete:packages` - Delete container images
+4. Copy the token (you won't see it again)
+
+### 2. Authenticate with Container Registry
+
+```bash
+# Login to ghcr.io
+export GITHUB_TOKEN=<your-personal-access-token>
+echo $GITHUB_TOKEN | docker login ghcr.io -u <your-github-username> --password-stdin
+
+# Verify login
+docker login ghcr.io
+
+# Test push
+docker tag ubuntu:latest ghcr.io/<your-username>/ubuntu:test
+docker push ghcr.io/<your-username>/ubuntu:test
+```
+
+### 3. Build and Push BankChase Image
+
+```bash
+# Build image
+docker build -t ghcr.io/bensilva2/bankchase:latest .
+
+# Push to Container Registry
+docker push ghcr.io/bensilva2/bankchase:latest
+
+# Push with version tag
+docker tag ghcr.io/bensilva2/bankchase:latest ghcr.io/bensilva2/bankchase:v0.1.0
+docker push ghcr.io/bensilva2/bankchase:v0.1.0
+```
+
+### 4. Container Registry GitHub Actions (Automated)
+
+The `.github/workflows/docker-publish.yml` workflow automatically:
+- Builds Docker images on push to main/develop
+- Pushes to ghcr.io with multiple tags
+- Includes git SHA and version tags
+- Caches layers for faster builds
+
+Triggers on:
+- Push to `main` or `develop` branches
+- Changes to `backend/`, `Dockerfile`, or `docker-compose.yml`
+
+### 5. Pulling Images
+
+```bash
+# Pull latest
+docker pull ghcr.io/bensilva2/bankchase:latest
+
+# Pull specific version
+docker pull ghcr.io/bensilva2/bankchase:v0.1.0
+
+# Use in docker-compose.yml
+image: ghcr.io/bensilva2/bankchase:latest
+```
+
+### 6. Permissions & Settings
+
+In GitHub, go to Settings > Packages:
+- Change visibility: Make images public or private
+- Set expiration: Clean up old images automatically
+- Manage access: Control who can pull/push
 
 ---
 
@@ -170,6 +251,95 @@ docker-compose build --no-cache
 # Run command in container
 docker-compose exec api python scripts/run_migrations.py
 ```
+
+---
+
+## Maven Setup & Deployment
+
+Maven is configured for Java/Spring Boot components and GitHub Packages integration.
+
+### 1. Prerequisites
+
+```bash
+# Install Java 17+
+java -version
+
+# Install Maven 3.8+
+mvn -version
+
+# GitHub token (same as Container Registry)
+export GITHUB_TOKEN=<your-personal-access-token>
+```
+
+### 2. Configure Maven Settings
+
+Maven automatically uses `.github/maven-settings.xml` which contains:
+- GitHub repository configuration
+- Authentication using GITHUB_TOKEN
+- Central repository fallback
+
+### 3. Build Project
+
+```bash
+# Install dependencies
+mvn clean install -s .github/maven-settings.xml
+
+# Build package
+mvn package -s .github/maven-settings.xml
+
+# Run tests
+mvn test -s .github/maven-settings.xml
+```
+
+### 4. Publish to GitHub Packages
+
+```bash
+# Deploy to GitHub Packages Maven repository
+mvn deploy -s .github/maven-settings.xml
+
+# Deployed to: https://maven.pkg.github.com/bensilva2/bankchase
+```
+
+### 5. Use Packages in Other Projects
+
+In your `pom.xml`:
+
+```xml
+<repositories>
+  <repository>
+    <id>github</id>
+    <url>https://maven.pkg.github.com/bensilva2/bankchase</url>
+    <snapshots>
+      <enabled>true</enabled>
+    </snapshots>
+  </repository>
+</repositories>
+
+<dependencies>
+  <dependency>
+    <groupId>com.bankchase</groupId>
+    <artifactId>bankchase-platform</artifactId>
+    <version>0.1.0</version>
+  </dependency>
+</dependencies>
+```
+
+### 6. GitHub Actions CI/CD
+
+The `.github/workflows/maven-build.yml` workflow:
+- Builds on push to main/develop
+- Runs all tests
+- Publishes to GitHub Packages
+- Uploads artifacts (7-day retention)
+
+Triggers on:
+- Push to `main` or `develop` branches
+- Changes to `pom.xml` or `src/`
+
+### 7. View Published Packages
+
+- Go to: https://github.com/Bensilva2/bankchase/packages
+- Click on package to see versions and deployment options
 
 ---
 
