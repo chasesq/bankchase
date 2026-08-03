@@ -17,9 +17,9 @@ export default async function AdminDashboard() {
     getEmailLogs(20),
   ])
 
-  const completedWorkflows = workflows.filter((w) => w.status === 'completed').length
-  const failedWorkflows = workflows.filter((w) => w.status === 'failed').length
-  const sentEmails = emails.filter((e) => e.status === 'sent').length
+  const completedWorkflows = workflows?.filter?.((w: any) => w.status === 'completed')?.length || 0
+  const failedWorkflows = workflows?.filter?.((w: any) => w.status === 'failed')?.length || 0
+  const sentEmails = emails?.filter?.((e: any) => e.status === 'sent')?.length || 0
 
   return (
     <main className="min-h-screen bg-background text-foreground">

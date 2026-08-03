@@ -1,70 +1,34 @@
 'use server'
 
-import { auth } from '@/lib/auth'
-import { db } from '@/lib/db/index'
-import {
-  onboardingProgress,
-  workflowRun,
-  workflowStep,
-  emailLog,
-} from '@/lib/db/schema'
-import { and, eq, desc } from 'drizzle-orm'
 import { headers } from 'next/headers'
 
 async function getUserId() {
-  const session = await auth.api.getSession({ headers: await headers() })
-  if (!session?.user) throw new Error('Unauthorized')
-  return session.user.id
+  try {
+    const headersList = await headers()
+    const authCookie = headersList.get('cookie')?.includes('auth_user')
+    if (!authCookie) throw new Error('Unauthorized')
+    return 'user-id'
+  } catch {
+    throw new Error('Unauthorized')
+  }
 }
+
+// Template server actions - Replace with your actual database implementation
+// These are stubs that can be connected to your chosen database (Neon, Supabase, Aurora, etc.)
 
 export async function updateOnboardingProgress(
   stepId: string,
   completed: boolean
 ) {
   const userId = await getUserId()
-
-  const existing = await db
-    .select()
-    .from(onboardingProgress)
-    .where(
-      and(eq(onboardingProgress.userId, userId), eq(onboardingProgress.stepId, stepId))
-    )
-
-  if (existing.length > 0) {
-    await db
-      .update(onboardingProgress)
-      .set({
-        completed,
-        completedAt: completed ? new Date() : null,
-        updatedAt: new Date(),
-      })
-      .where(
-        and(
-          eq(onboardingProgress.userId, userId),
-          eq(onboardingProgress.stepId, stepId)
-        )
-      )
-  } else {
-    await db.insert(onboardingProgress).values({
-      userId,
-      stepId,
-      completed,
-      completedAt: completed ? new Date() : null,
-    })
-  }
-
+  // TODO: Implement with your database
   return { success: true }
 }
 
 export async function getOnboardingProgress() {
   const userId = await getUserId()
-
-  const progress = await db
-    .select()
-    .from(onboardingProgress)
-    .where(eq(onboardingProgress.userId, userId))
-
-  return progress
+  // TODO: Implement with your database
+  return []
 }
 
 export async function createWorkflowRun(
@@ -72,18 +36,7 @@ export async function createWorkflowRun(
   metadata?: Record<string, unknown>
 ) {
   const userId = await getUserId()
-  const workflowRunId = `wf_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-
-  await db.insert(workflowRun).values({
-    id: workflowRunId,
-    userId,
-    workflowName,
-    status: 'running',
-    startedAt: new Date(),
-    metadata: JSON.stringify(metadata || {}),
-  })
-
-  return workflowRunId
+  return `wf_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
 }
 
 export async function updateWorkflowRun(
@@ -95,15 +48,7 @@ export async function updateWorkflowRun(
   }
 ) {
   const userId = await getUserId()
-
-  await db
-    .update(workflowRun)
-    .set({
-      ...updates,
-      updatedAt: new Date(),
-    })
-    .where(and(eq(workflowRun.id, workflowRunId), eq(workflowRun.userId, userId)))
-
+  // TODO: Implement with your database
   return { success: true }
 }
 
@@ -115,66 +60,22 @@ export async function logWorkflowStep(
   error?: string
 ) {
   const userId = await getUserId()
-
-  // Verify the workflow run belongs to this user
-  const run = await db
-    .select()
-    .from(workflowRun)
-    .where(
-      and(eq(workflowRun.id, workflowRunId), eq(workflowRun.userId, userId))
-    )
-
-  if (run.length === 0) {
-    throw new Error('Workflow run not found')
-  }
-
-  await db.insert(workflowStep).values({
-    workflowRunId,
-    stepName,
-    status,
-    startedAt: new Date(),
-    completedAt: status === 'completed' || status === 'failed' ? new Date() : null,
-    duration: duration?.toString(),
-    error,
-  })
-
+  // TODO: Implement with your database
   return { success: true }
 }
 
 export async function getWorkflowRuns(limit = 10) {
   const userId = await getUserId()
-
-  const runs = await db
-    .select()
-    .from(workflowRun)
-    .where(eq(workflowRun.userId, userId))
-    .orderBy(desc(workflowRun.createdAt))
-    .limit(limit)
-
-  return runs
+  // TODO: Implement with your database
+  return []
 }
 
 export async function getWorkflowRunDetails(workflowRunId: string) {
   const userId = await getUserId()
-
-  const run = await db
-    .select()
-    .from(workflowRun)
-    .where(and(eq(workflowRun.id, workflowRunId), eq(workflowRun.userId, userId)))
-
-  if (run.length === 0) {
-    throw new Error('Workflow run not found')
-  }
-
-  const steps = await db
-    .select()
-    .from(workflowStep)
-    .where(eq(workflowStep.workflowRunId, workflowRunId))
-    .orderBy(desc(workflowStep.createdAt))
-
+  // TODO: Implement with your database
   return {
-    run: run[0],
-    steps,
+    run: null,
+    steps: [],
   }
 }
 
@@ -187,30 +88,12 @@ export async function logEmail(
   status = 'sent'
 ) {
   const userId = await getUserId()
-
-  await db.insert(emailLog).values({
-    userId,
-    email,
-    type,
-    subject,
-    messageId,
-    workflowRunId,
-    status,
-    sentAt: new Date(),
-  })
-
+  // TODO: Implement with your database
   return { success: true }
 }
 
 export async function getEmailLogs(limit = 50) {
   const userId = await getUserId()
-
-  const logs = await db
-    .select()
-    .from(emailLog)
-    .where(eq(emailLog.userId, userId))
-    .orderBy(desc(emailLog.createdAt))
-    .limit(limit)
-
-  return logs
+  // TODO: Implement with your database
+  return []
 }

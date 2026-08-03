@@ -5,12 +5,16 @@ import { useRouter } from 'next/navigation'
 
 import { ProtectedRoute } from '@/components/ProtectedRoute'
 import { Navigation } from '@/components/Navigation'
+import { Card } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { ArrowLeft, User, Mail, Phone, MapPin, Edit, Save, X } from 'lucide-react'
 
 function AccountManagementContent() {
   const router = useRouter()
   const [isEditing, setIsEditing] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [userId, setUserId] = useState<string>('')
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -21,6 +25,15 @@ function AccountManagementContent() {
     state: '',
     zipCode: '',
   })
+
+  useEffect(() => {
+    // Get user ID from session
+    const user = localStorage.getItem('auth_user')
+    if (user) {
+      const userData = JSON.parse(user)
+      setUserId(userData.id)
+    }
+  }, [])
 
   const handleSave = async () => {
     try {
