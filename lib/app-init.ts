@@ -5,9 +5,17 @@
 
 import { initializeEventConsumers } from './event-emitter';
 import { initializeAlertConsumer } from './alert-consumer';
-import { setAlertConsumerActive } from '@/app/api/admin/health/route';
 
 let initialized = false;
+let alertConsumerActive = false;
+
+export function setAlertConsumerActive(active: boolean) {
+  alertConsumerActive = active;
+}
+
+export function getAlertConsumerStatus() {
+  return alertConsumerActive;
+}
 
 /**
  * Initialize all background services

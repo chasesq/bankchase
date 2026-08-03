@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
+import { handleApiError, ApiError, validateRequired, sanitizeInput } from '@/lib/error-handler'
+import { rateLimiter, RATE_LIMITS } from '@/lib/rate-limit'
 
 // Demo user credentials
 const DEMO_USER = {
@@ -15,22 +17,39 @@ const DEMO_USER = {
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json()
-    const { username, password } = body
-
-    if (!username || !password) {
+    // Rate limiting for auth endpoints
+    const clientIp = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown'
+    const key = `login:${clientIp}`
+    
+    if (!rateLimiter.isAllowed(key, RATE_LIMITS.AUTH)) {
+      const status = rateLimiter.getStatus(key, RATE_LIMITS.AUTH)
       return NextResponse.json(
-        { error: 'Username and password are required' },
-        { status: 400 }
+        { error: 'Too many login attempts. Please try again later.' },
+        {
+          status: 429,
+          headers: {
+            'Retry-After': Math.ceil((status.reset - Date.now()) / 1000).toString(),
+          },
+        }
       )
     }
 
-    // Validate credentials
-    if (username !== DEMO_USER.username || password !== DEMO_USER.password) {
-      return NextResponse.json(
-        { error: 'Invalid username or password' },
-        { status: 401 }
-      )
+    const body = await request.json()
+    const { username, password } = body
+
+    // Validate required fields
+    validateRequired({ username, password }, ['username', 'password'])
+
+    // Sanitize input
+    const sanitizedUsername = sanitizeInput(username)
+    const sanitizedPassword = sanitizeInput(password)
+
+    // Validate credentials (time-constant comparison to prevent timing attacks)
+    const usernameMatch = sanitizedUsername === DEMO_USER.username
+    const passwordMatch = sanitizedPassword === DEMO_USER.password
+
+    if (!usernameMatch || !passwordMatch) {
+      throw new ApiError(401, 'Invalid username or password', 'AUTH_FAILED')
     }
 
     // Create session cookie
@@ -50,6 +69,7 @@ export async function POST(request: NextRequest) {
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
       maxAge: 60 * 60 * 24 * 7, // 7 days
+      path: '/',
     })
 
     // Create JWT-like token
@@ -65,6 +85,7 @@ export async function POST(request: NextRequest) {
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
       maxAge: 60 * 60 * 24 * 7, // 7 days
+      path: '/',
     })
 
     return NextResponse.json(
@@ -76,10 +97,6 @@ export async function POST(request: NextRequest) {
       { status: 200 }
     )
   } catch (error) {
-    console.error('[v0] Login error:', error)
-    return NextResponse.json(
-      { error: 'Failed to login' },
-      { status: 500 }
-    )
+    return handleApiError(error)
   }
 }

@@ -17,6 +17,11 @@
     "isolatedModules": true,
     "jsx": "react-jsx",
     "incremental": true,
+    "types": [
+      "jest",
+      "@testing-library/jest-dom",
+      "node"
+    ],
     "plugins": [
       {
         "name": "next"
@@ -36,6 +41,10 @@
     ".next/dev/types/**/*.ts"
   ],
   "exclude": [
-    "node_modules"
+    "node_modules",
+    "ai-gateway-example",
+    ".next",
+    "dist",
+    "build"
   ]
 }
