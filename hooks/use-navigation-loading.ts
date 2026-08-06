@@ -1,47 +1,38 @@
 'use client'
 
 import { useRouter, usePathname } from 'next/navigation'
-import { useCallback, useEffect, useRef } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { pageLoader } from '@/lib/page-loader'
 
 export function useNavigationLoading() {
   const router = useRouter()
   const pathname = usePathname()
-  const isNavigatingRef = useRef(false)
+  const progressIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const [isNavigating, setIsNavigating] = useState(false)
 
-  // Monitor path changes
   useEffect(() => {
+    if (progressIntervalRef.current) {
+      clearInterval(progressIntervalRef.current)
+      progressIntervalRef.current = null
+    }
+    setIsNavigating(false)
     pageLoader.completeLoading()
   }, [pathname])
 
-  const navigate = useCallback(
-    (url: string) => {
-      if (isNavigatingRef.current) return
+  const navigate = useCallback((url: string) => {
+    if (url === pathname || isNavigating) return
 
-      isNavigatingRef.current = true
-      pageLoader.startLoading(10)
+    setIsNavigating(true)
+    pageLoader.startLoading(10)
+    progressIntervalRef.current = setInterval(() => {
+      pageLoader.updateProgress((current) => Math.min(current + 8, 85))
+    }, 200)
+    router.push(url)
+  }, [isNavigating, pathname, router])
 
-      // Simulate progress while navigating
-      const progressInterval = setInterval(() => {
-        pageLoader.updateProgress((prev) => {
-          const next = prev + Math.random() * 30
-          return Math.min(next, 85)
-        })
-      }, 200)
+  useEffect(() => () => {
+    if (progressIntervalRef.current) clearInterval(progressIntervalRef.current)
+  }, [])
 
-      // Navigate
-      router.push(url)
-
-      // Cleanup on next path change
-      const cleanup = () => {
-        clearInterval(progressInterval)
-        isNavigatingRef.current = false
-      }
-
-      return cleanup
-    },
-    [router]
-  )
-
-  return { navigate, isNavigating: isNavigatingRef.current }
+  return { navigate, isNavigating }
 }

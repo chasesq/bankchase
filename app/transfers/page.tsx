@@ -7,6 +7,7 @@ import { Navigation } from '@/components/Navigation';
 import { CheckCircle, Clock, AlertCircle, TrendingDown, Download, Filter, Search, Loader } from 'lucide-react';
 import { format } from 'date-fns';
 import Link from 'next/link';
+import { useBanking } from '@/lib/banking-context';
 
 interface Transfer {
   id: string;
@@ -41,7 +42,8 @@ interface Account {
 }
 
 function TransfersContent() {
-  ;
+  const { userProfile } = useBanking();
+  const userId = userProfile.id;
   const [transfers, setTransfers] = useState<Transfer[]>([]);
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -57,7 +59,7 @@ function TransfersContent() {
 
   // Fetch transfers and balance data
   const fetchTransferData = useCallback(async () => {
-    if (!userId || !isLoaded) return;
+    if (!userId) return;
 
     setIsLoading(true);
     try {
@@ -123,17 +125,6 @@ function TransfersContent() {
       </span>
     );
   };
-
-  if (!isLoaded) {
-    return (
-      <main className="min-h-screen flex items-center justify-center bg-background">
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-12 h-12 border-4 border-muted border-t-primary rounded-full animate-spin" />
-          <p className="text-muted-foreground">Loading...</p>
-        </div>
-      </main>
-    );
-  }
 
   return (
     <main className="min-h-screen bg-background pb-24 md:pb-8">
