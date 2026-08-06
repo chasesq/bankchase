@@ -17,7 +17,17 @@
     "test:all": "pnpm test && pnpm test:e2e",
     "qstash:dev": "npx @upstash/qstash-cli@latest dev",
     "backend:dev": "cd backend && source .venv/bin/activate && python -m uvicorn main:app --reload",
-    "qstash:health": "curl http://localhost:8000/api/qstash/health"
+    "qstash:health": "curl http://localhost:8000/api/qstash/health",
+    "wrangler:docs": "npx wrangler docs",
+    "wrangler:login": "npx wrangler login",
+    "wrangler:logout": "npx wrangler logout",
+    "wrangler:whoami": "npx wrangler whoami",
+    "wrangler:auth:token": "npx wrangler auth token",
+    "wrangler:auth:list": "npx wrangler auth list",
+    "wrangler:auth:create": "npx wrangler auth create",
+    "wrangler:auth:activate": "npx wrangler auth activate",
+    "wrangler:auth:deactivate": "npx wrangler auth deactivate",
+    "wrangler:auth:delete": "npx wrangler auth delete"
   },
   "dependencies": {
     "@auth0/nextjs-auth0": "^4.21.0",
