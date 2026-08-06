@@ -31,21 +31,5 @@ jest.mock('next/navigation', () => ({
   },
 }))
 
-// Mock next-auth
-jest.mock('next-auth/react', () => ({
-  useSession: () => ({
-    data: {
-      user: {
-        id: 'test-user-id',
-        email: 'test@example.com',
-        org_id: 'test-org-id',
-      },
-      accessToken: 'test-token',
-    },
-    status: 'authenticated',
-  }),
-  SessionProvider: ({ children }) => children,
-}))
-
 // Global test timeout
 jest.setTimeout(10000)
