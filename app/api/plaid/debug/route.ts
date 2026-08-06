@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PlaidDebugService } from '@/lib/plaid-debug-service';
+import { verifyToken } from '@/lib/token-verification';
 
 export async function GET(request: NextRequest) {
   try {

@@ -14,7 +14,8 @@ import { BackButton } from '@/components/back-button'
 export default function SavingsGoalsPage() {
   const router = useRouter()
   
-  const { savingsGoals = [], updateSavingsGoal, deleteSavingsGoal, addSavingsGoal } = useBanking()
+  const { isLoaded, userProfile, savingsGoals = [], updateSavingsGoal, deleteSavingsGoal, addSavingsGoal } = useBanking()
+  const userId = userProfile.id
   const [showAddGoal, setShowAddGoal] = useState(false)
   const [editingGoal, setEditingGoal] = useState<any>(null)
   const [formData, setFormData] = useState({

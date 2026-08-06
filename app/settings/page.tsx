@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 
 import { ProtectedRoute } from '@/components/ProtectedRoute'
 import { Navigation } from '@/components/Navigation'
+import { useBanking } from '@/lib/banking-context'
 import { ArrowLeft, Bell, Lock, Globe, Moon, Save, AlertCircle, Zap } from 'lucide-react'
 import { toast } from 'sonner'
 import Link from 'next/link'
@@ -42,7 +43,8 @@ interface AppSettings {
 }
 
 function SettingsContent() {
-  
+  const { isLoaded, userProfile } = useBanking()
+  const userId = userProfile.id
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)

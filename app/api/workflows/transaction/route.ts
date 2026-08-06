@@ -1,4 +1,5 @@
 import { serve } from "@upstash/workflow/nextjs";
+import type { TransactionPayload } from "@/lib/workflow-client";
 
 export const { POST } = serve(async (context) => {
   const {
@@ -12,7 +13,7 @@ export const { POST } = serve(async (context) => {
     userEmail,
     userName,
     timestamp,
-  } = context.requestPayload;
+  } = context.requestPayload as TransactionPayload & { timestamp?: string };
 
   // Step 1: Validate transaction
   const validationResult = await context.run("validate-transaction", async () => {

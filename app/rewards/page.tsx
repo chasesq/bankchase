@@ -14,7 +14,8 @@ import { BackButton } from '@/components/back-button'
 export default function RewardsPage() {
   const router = useRouter()
   
-  const { userProfile, redeemPoints, rewardRedemptions = [] } = useBanking()
+  const { isLoaded, userProfile, redeemPoints, rewardRedemptions = [] } = useBanking()
+  const userId = userProfile.id
   const [redeemAmount, setRedeemAmount] = useState('')
   const [redeemType, setRedeemType] = useState<'cashback' | 'travel' | 'giftcard' | 'statement'>('cashback')
   const [redeemSuccess, setRedeemSuccess] = useState(false)

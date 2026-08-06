@@ -1,7 +1,8 @@
 import { serve } from "@upstash/workflow/nextjs";
+import type { SignupPayload } from "@/lib/workflow-client";
 
 export const { POST } = serve(async (context) => {
-  const { userId, email, name, createdAt } = context.requestPayload;
+  const { userId, email, name, createdAt } = context.requestPayload as SignupPayload & { createdAt?: string };
 
   // Step 1: Validate signup data
   const validationResult = await context.run("validate-signup", async () => {

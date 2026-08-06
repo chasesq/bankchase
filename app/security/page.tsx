@@ -12,7 +12,8 @@ import { Card } from '@/components/ui/card'
 export default function SecurityPage() {
   const router = useRouter()
   
-  const { linkedDevices = [], removeDevice } = useBanking()
+  const { isLoaded, userProfile, linkedDevices = [], removeDevice } = useBanking()
+  const userId = userProfile.id
   const [currentTab, setCurrentTab] = useState<'password' | 'twofa' | 'privacy' | 'devices'>('password')
   const [passwordForm, setPasswordForm] = useState({
     current: '',

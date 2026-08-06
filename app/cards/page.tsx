@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 ;
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { Navigation } from '@/components/Navigation';
+import { useBanking } from '@/lib/banking-context';
 import { CreditCard, Lock, Eye, EyeOff, Plus, MoreVertical, Check, Clock, Send } from 'lucide-react';
 import Link from 'next/link';
 import { toast } from 'sonner';
@@ -35,7 +36,8 @@ interface Card {
 }
 
 function CardsContent() {
-  ;
+  const { isLoaded, userProfile } = useBanking();
+  const userId = userProfile.id;
   const [cards, setCards] = useState<Card[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

@@ -5,11 +5,14 @@ import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { ProtectedRoute } from '@/components/ProtectedRoute'
 import { Navigation } from '@/components/Navigation'
+import { useBanking } from '@/lib/banking-context'
 import { Mail } from 'lucide-react'
 
 function ProfileContent() {
-  
-  const { user, isLoaded: userLoaded } = useUser()
+  const { userProfile, isLoaded: userLoaded } = useBanking()
+  const user = { ...userProfile, createdAt: userProfile.memberSince }
+  const userId = userProfile.id
+  const isLoaded = userLoaded
   const router = useRouter()
 
   if (!isLoaded || !userLoaded) {

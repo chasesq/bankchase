@@ -14,7 +14,8 @@ import { BackButton } from '@/components/back-button'
 export default function MessagesPage() {
   const router = useRouter()
   
-  const { messages = [], markMessageRead, deleteMessage } = useBanking()
+  const { isLoaded, userProfile, messages = [], markMessageRead, deleteMessage } = useBanking()
+  const userId = userProfile.id
   const [selectedMessage, setSelectedMessage] = useState<any>(null)
   const [searchTerm, setSearchTerm] = useState('')
   const [replyText, setReplyText] = useState('')
