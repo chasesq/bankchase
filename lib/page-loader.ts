@@ -126,16 +126,26 @@ export function usePageLoading() {
     return unsubscribe
   }, [])
 
+  const startLoading = React.useCallback((progress?: number) => pageLoader.startLoading(progress), [])
+  const updateProgress = React.useCallback(
+    (progress: number | ((current: number) => number)) => pageLoader.updateProgress(progress),
+    [],
+  )
+  const completeLoading = React.useCallback(() => pageLoader.completeLoading(), [])
+  const setError = React.useCallback((error: string) => pageLoader.setError(error), [])
+  const clearError = React.useCallback(() => pageLoader.clearError(), [])
+  const reset = React.useCallback(() => pageLoader.reset(), [])
+
   return {
     isLoading: state.isLoading,
     error: state.error,
     progress: state.progress,
-    startLoading: (progress?: number) => pageLoader.startLoading(progress),
-    updateProgress: (progress: number | ((current: number) => number)) => pageLoader.updateProgress(progress),
-    completeLoading: () => pageLoader.completeLoading(),
-    setError: (error: string) => pageLoader.setError(error),
-    clearError: () => pageLoader.clearError(),
-    reset: () => pageLoader.reset(),
+    startLoading,
+    updateProgress,
+    completeLoading,
+    setError,
+    clearError,
+    reset,
   }
 }
 
