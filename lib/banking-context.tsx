@@ -299,6 +299,8 @@ export type FAQ = {
 }
 
 type BankingContextType = {
+  isLoaded: boolean
+
   // User Profile
   userProfile: UserProfile
   updateUserProfile: (profile: Partial<UserProfile>) => void

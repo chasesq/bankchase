@@ -5,6 +5,8 @@
 
 import crypto from 'crypto'
 import { tokenizeCard, type CardBrand, type TokenizedCard } from './pci-compliance'
+
+export type { CardBrand }
 import { audit } from './audit-service'
 
 export type CardType = 'virtual' | 'physical'

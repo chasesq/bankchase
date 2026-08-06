@@ -8,9 +8,18 @@ import { DNSRecordDrawer } from '@/components/dns-record-drawer'
 import { useCloudflareDNS } from '@/lib/hooks/use-cloudflare'
 import { Plus, RefreshCw, AlertCircle, CheckCircle2 } from 'lucide-react'
 
+interface DNSRecord {
+  id: string
+  type: string
+  name: string
+  content: string
+  ttl: number
+  proxied?: boolean
+}
+
 export default function DNSManagementPage() {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
-  const [editingRecord, setEditingRecord] = useState(null)
+  const [editingRecord, setEditingRecord] = useState<DNSRecord | null>(null)
   const [selectedZone, setSelectedZone] = useState('')
   const [zones, setZones] = useState<any[]>([])
   const [records, setRecords] = useState<any[]>([])
@@ -59,7 +68,7 @@ export default function DNSManagementPage() {
     }
   }, [selectedZone, fetchRecords])
 
-  const handleOpenDrawer = (record = null) => {
+  const handleOpenDrawer = (record: DNSRecord | null = null) => {
     setEditingRecord(record)
     setIsDrawerOpen(true)
   }
@@ -113,7 +122,9 @@ export default function DNSManagementPage() {
             <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
             <div>
               <h3 className="font-semibold text-red-900 dark:text-red-100">Error</h3>
-              <p className="text-sm text-red-800 dark:text-red-200">{error}</p>
+              <p className="text-sm text-red-800 dark:text-red-200">
+                {error instanceof Error ? error.message : String(error)}
+              </p>
             </div>
           </Card>
         )}
