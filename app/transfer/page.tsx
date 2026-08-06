@@ -5,6 +5,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { Navigation } from '@/components/Navigation';
+import { useBanking } from '@/lib/banking-context';
 import { Send, ArrowRight, Clock, CheckCircle, AlertCircle, Loader } from 'lucide-react';
 import Link from 'next/link';
 import { toast } from 'sonner';
@@ -29,7 +30,8 @@ interface TransferStatus {
 }
 
 function TransferContent() {
-  ;
+  const { isLoaded, userProfile } = useBanking();
+  const userId = userProfile.id;
   const searchParams = useSearchParams();
   const cardId = searchParams.get('cardId');
 

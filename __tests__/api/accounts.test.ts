@@ -1,3 +1,5 @@
+/** @jest-environment node */
+
 /**
  * API Tests for Accounts Endpoints
  * Tests account retrieval, balance checking, and account-specific operations

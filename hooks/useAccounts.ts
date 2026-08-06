@@ -1,3 +1,4 @@
+import { useId } from 'react';
 import useSWR from 'swr';
 import ApiClient from '@/lib/api-client';
 
@@ -17,7 +18,8 @@ export interface AccountsData {
 }
 
 export function useAccounts() {
-  const { data, error, isLoading } = useSWR<AccountsData>('/accounts', () =>
+  const instanceId = useId();
+  const { data, error, isLoading } = useSWR<AccountsData>(['/accounts', instanceId], () =>
     ApiClient.getAccounts()
   );
 

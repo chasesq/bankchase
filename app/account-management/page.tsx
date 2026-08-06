@@ -5,10 +5,12 @@ import { useRouter } from 'next/navigation'
 
 import { ProtectedRoute } from '@/components/ProtectedRoute'
 import { Navigation } from '@/components/Navigation'
+import { Card } from '@/components/ui/card'
 import { ArrowLeft, User, Mail, Phone, MapPin, Edit, Save, X } from 'lucide-react'
 
 function AccountManagementContent() {
   const router = useRouter()
+  const userId = 'demo-user'
   const [isEditing, setIsEditing] = useState(false)
   const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState({

@@ -7,11 +7,14 @@ import { ProtectedRoute } from '@/components/ProtectedRoute'
 import { Navigation } from '@/components/Navigation'
 import { P2PPayment } from '@/components/p2p-payment'
 import { BackButton } from '@/components/back-button'
+import { useBanking } from '@/lib/banking-context'
 import { Send } from 'lucide-react'
 
 export default function SendMoneyPage() {
   const router = useRouter()
-  
+  const { isLoaded, userProfile } = useBanking()
+  const user = userProfile
+  const loading = !isLoaded
   const [recentTransactions, setRecentTransactions] = useState<any[]>([])
 
   useEffect(() => {

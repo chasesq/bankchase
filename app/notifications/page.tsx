@@ -15,7 +15,8 @@ import { WebhookConnectors } from '@/components/webhook-connectors'
 export default function NotificationsPage() {
   const router = useRouter()
   
-  const { notifications = [], markNotificationRead, deleteNotification, clearAllNotifications } = useBanking()
+  const { isLoaded, userProfile, notifications = [], markNotificationRead, deleteNotification, clearAllNotifications } = useBanking()
+  const userId = userProfile.id
   const [filterType, setFilterType] = useState<'all' | 'unread'>('all')
   const [activeTab, setActiveTab] = useState<'notifications' | 'webhooks' | 'preferences'>('notifications')
   const [isGeneratingEvent, setIsGeneratingEvent] = useState(false)

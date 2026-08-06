@@ -3,7 +3,8 @@
 
 import { ProtectedRoute } from '@/components/ProtectedRoute'
 import { Navigation } from '@/components/Navigation'
-import { canAccessAdminDashboard } from '@/lib/rbac'
+import { canAccessAdminDashboard, type User } from '@/lib/rbac'
+import { useBanking } from '@/lib/banking-context'
 import { useRouter } from 'next/navigation'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -12,8 +13,16 @@ import { Lock, ArrowLeft, Shield, Activity, AlertTriangle } from 'lucide-react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
 export default function SecurityDashboard() {
-  
   const router = useRouter()
+  const { isLoaded, userProfile } = useBanking()
+  const user: User = {
+    id: userProfile.id,
+    email: userProfile.email,
+    firstName: userProfile.name.split(' ')[0] ?? userProfile.name,
+    lastName: userProfile.name.split(' ').slice(1).join(' '),
+    phone: userProfile.phone,
+    role: 'admin',
+  }
 
   if (!isLoaded) {
     return (

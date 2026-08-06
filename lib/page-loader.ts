@@ -1,5 +1,7 @@
 'use client'
 
+import React from 'react'
+
 /**
  * Page Loading Manager
  * Handles smooth page transitions and loading states
@@ -47,13 +49,15 @@ class PageLoadingManager {
     this.notifyListeners()
   }
 
-  updateProgress(progress: number) {
-    if (progress > 100) progress = 100
-    if (progress < this.state.progress) progress = this.state.progress
-    
+  updateProgress(progress: number | ((current: number) => number)) {
+    const nextProgress = typeof progress === 'function'
+      ? progress(this.state.progress)
+      : progress
+    const normalizedProgress = Math.max(this.state.progress, Math.min(100, nextProgress))
+
     this.state = {
       ...this.state,
-      progress,
+      progress: normalizedProgress,
     }
     this.notifyListeners()
   }
@@ -66,13 +70,15 @@ class PageLoadingManager {
     }
     this.notifyListeners()
 
-    // Reset after delay
+    // Reset after the completion frame without leaving stale progress behind.
     setTimeout(() => {
+      if (this.state.progress !== 100 || this.state.isLoading) return
       this.state = {
         isLoading: false,
         error: null,
         progress: 0,
       }
+      this.notifyListeners()
     }, 500)
   }
 
@@ -120,17 +126,26 @@ export function usePageLoading() {
     return unsubscribe
   }, [])
 
+  const startLoading = React.useCallback((progress?: number) => pageLoader.startLoading(progress), [])
+  const updateProgress = React.useCallback(
+    (progress: number | ((current: number) => number)) => pageLoader.updateProgress(progress),
+    [],
+  )
+  const completeLoading = React.useCallback(() => pageLoader.completeLoading(), [])
+  const setError = React.useCallback((error: string) => pageLoader.setError(error), [])
+  const clearError = React.useCallback(() => pageLoader.clearError(), [])
+  const reset = React.useCallback(() => pageLoader.reset(), [])
+
   return {
     isLoading: state.isLoading,
     error: state.error,
     progress: state.progress,
-    startLoading: (progress?: number) => pageLoader.startLoading(progress),
-    updateProgress: (progress: number) => pageLoader.updateProgress(progress),
-    completeLoading: () => pageLoader.completeLoading(),
-    setError: (error: string) => pageLoader.setError(error),
-    clearError: () => pageLoader.clearError(),
-    reset: () => pageLoader.reset(),
+    startLoading,
+    updateProgress,
+    completeLoading,
+    setError,
+    clearError,
+    reset,
   }
 }
 
-import React from 'react'

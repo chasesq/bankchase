@@ -1,8 +1,9 @@
 import { serve } from "@upstash/workflow/nextjs";
+import type { NotificationPayload } from "@/lib/workflow-client";
 
 export const { POST } = serve(async (context) => {
   const { userId, type, title, message, email, sms, priority = "medium", createdAt } =
-    context.requestPayload;
+    context.requestPayload as NotificationPayload & { createdAt?: string };
 
   // Step 1: Validate notification data
   const validationResult = await context.run("validate-notification", async () => {

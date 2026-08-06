@@ -1,7 +1,15 @@
-import { useEffect, useState, useCallback } from 'react'
-import useSWR, { mutate } from 'swr'
+import { useCallback, useEffect, useState } from 'react'
+import useSWR, { mutate as mutateCache } from 'swr'
+import { subscribeToUserRealtime, type RealtimeConnectionStatus } from '@/lib/realtime'
 
-const fetcher = (url: string) => fetch(url).then(r => r.json())
+const fetcher = async (url: string) => {
+  const response = await fetch(url)
+  if (!response.ok) throw new Error(`Request failed with status ${response.status}`)
+  return response.json()
+}
+
+const getRefreshInterval = (status: RealtimeConnectionStatus) =>
+  status === 'connected' ? 0 : 5000
 
 export interface RealTimeBalance {
   accountId: string
@@ -9,142 +17,129 @@ export interface RealTimeBalance {
   lastUpdated: Date
 }
 
-export function useRealtimeBalance(userId?: string, accountId?: string) {
-  const [isConnected, setIsConnected] = useState(false)
-  const [realtimeBalance, setRealtimeBalance] = useState<RealTimeBalance | null>(null)
+function useUserRealtime(
+  userId: string | undefined,
+  resources: Array<'accounts' | 'transactions' | 'notifications'>,
+  onChange: () => void,
+) {
+  const [connectionStatus, setConnectionStatus] = useState<RealtimeConnectionStatus>('disconnected')
 
-  // Fetch initial balance
-  const { data: accountsData, mutate: mutateAccounts } = useSWR(
-    userId ? `/api/accounts/list?userId=${userId}` : null,
-    fetcher,
-    { revalidateOnFocus: false, revalidateOnReconnect: true }
-  )
-
-  // Poll for balance updates every 3 seconds
   useEffect(() => {
-    if (!accountId) return
-
-    const interval = setInterval(async () => {
-      try {
-        const response = await fetch(`/api/accounts/list?userId=${userId}`)
-        const data = await response.json()
-
-        if (data.success && data.accounts) {
-          const account = data.accounts.find((a: any) => a.id === accountId)
-          if (account) {
-            setRealtimeBalance({
-              accountId: account.id,
-              balance: account.balance,
-              lastUpdated: new Date(),
-            })
-          }
-        }
-      } catch (error) {
-        console.error('[v0] Failed to fetch balance update:', error)
-      }
-    }, 3000)
-
-    return () => clearInterval(interval)
-  }, [userId, accountId])
-
-  // Mark as connected when data is available
-  useEffect(() => {
-    if (realtimeBalance) {
-      setIsConnected(true)
+    if (!userId) {
+      setConnectionStatus('disconnected')
+      return
     }
-  }, [realtimeBalance])
 
-  const refreshBalance = useCallback(async () => {
-    if (userId) {
-      await mutateAccounts()
-    }
-  }, [userId, mutateAccounts])
+    return subscribeToUserRealtime({
+      userId,
+      resources,
+      onChange,
+      onStatus: setConnectionStatus,
+    })
+  }, [userId, resources.join(','), onChange])
 
   return {
-    balance: realtimeBalance?.balance || accountsData?.accounts?.find((a: any) => a.id === accountId)?.balance,
-    lastUpdated: realtimeBalance?.lastUpdated,
+    connectionStatus,
+    isConnected: connectionStatus === 'connected',
+  }
+}
+
+export function useRealtimeBalance(userId?: string, accountId?: string) {
+  const [lastUpdated, setLastUpdated] = useState<Date>()
+  const endpoint = userId ? `/api/accounts/list?userId=${encodeURIComponent(userId)}` : null
+
+  const refreshBalance = useCallback(async () => {
+    if (!userId) return
+    await mutateCache(endpoint)
+    setLastUpdated(new Date())
+  }, [endpoint, userId])
+
+  const handleChange = useCallback(() => {
+    void refreshBalance()
+  }, [refreshBalance])
+
+  const { connectionStatus, isConnected } = useUserRealtime(userId, ['accounts'], handleChange)
+  const { data: accountsData } = useSWR(endpoint, fetcher, {
+    revalidateOnFocus: false,
+    revalidateOnReconnect: true,
+    refreshInterval: getRefreshInterval(connectionStatus),
+  })
+
+  useEffect(() => {
+    if (accountsData?.accounts) setLastUpdated(new Date())
+  }, [accountsData])
+
+  const account = accountsData?.accounts?.find((item: { id: string }) => item.id === accountId)
+
+  return {
+    balance: account?.balance,
+    lastUpdated,
     isConnected,
+    connectionStatus,
     refreshBalance,
   }
 }
 
 export function useRealtimeTransfers(userId?: string) {
-  const [transfers, setTransfers] = useState<any[]>([])
-  const [isConnected, setIsConnected] = useState(false)
-
-  // Fetch initial transfers
-  const { data: transfersData, mutate: mutateTransfers } = useSWR(
-    userId ? `/api/transfers/list?userId=${userId}` : null,
-    fetcher,
-    { revalidateOnFocus: false, revalidateOnReconnect: true, refreshInterval: 5000 }
-  )
-
-  // Update transfers when data changes
-  useEffect(() => {
-    if (transfersData?.transfers) {
-      setTransfers(transfersData.transfers)
-      setIsConnected(true)
-    }
-  }, [transfersData])
+  const endpoint = userId ? `/api/transfers/list?userId=${encodeURIComponent(userId)}` : null
 
   const refreshTransfers = useCallback(async () => {
-    if (userId) {
-      await mutateTransfers()
-    }
-  }, [userId, mutateTransfers])
+    await mutateCache(endpoint)
+  }, [endpoint])
+
+  const handleChange = useCallback(() => {
+    void refreshTransfers()
+  }, [refreshTransfers])
+
+  const { connectionStatus, isConnected } = useUserRealtime(userId, ['transactions'], handleChange)
+  const { data: transfersData } = useSWR(endpoint, fetcher, {
+    revalidateOnFocus: false,
+    revalidateOnReconnect: true,
+    refreshInterval: getRefreshInterval(connectionStatus),
+  })
 
   return {
-    transfers,
+    transfers: transfersData?.transfers ?? [],
     isConnected,
+    connectionStatus,
     refreshTransfers,
   }
 }
 
 export function useRealtimeNotifications(userId?: string) {
-  const [notifications, setNotifications] = useState<any[]>([])
-  const [unreadCount, setUnreadCount] = useState(0)
-  const [isConnected, setIsConnected] = useState(false)
+  const endpoint = userId ? `/api/notifications/list?userId=${encodeURIComponent(userId)}` : null
 
-  // Fetch notifications with polling
-  const { data: notificationsData, mutate: mutateNotifications } = useSWR(
-    userId ? `/api/notifications/list?userId=${userId}` : null,
-    fetcher,
-    { 
-      revalidateOnFocus: false,
-      revalidateOnReconnect: true,
-      refreshInterval: 3000  // Poll every 3 seconds for new notifications
-    }
-  )
+  const refreshNotifications = useCallback(async () => {
+    await mutateCache(endpoint)
+  }, [endpoint])
 
-  // Update notifications when data changes
-  useEffect(() => {
-    if (notificationsData?.notifications) {
-      setNotifications(notificationsData.notifications)
-      setUnreadCount(notificationsData.unread || 0)
-      setIsConnected(true)
-    }
-  }, [notificationsData])
+  const handleChange = useCallback(() => {
+    void refreshNotifications()
+  }, [refreshNotifications])
+
+  const { connectionStatus, isConnected } = useUserRealtime(userId, ['notifications'], handleChange)
+  const { data: notificationsData } = useSWR(endpoint, fetcher, {
+    revalidateOnFocus: false,
+    revalidateOnReconnect: true,
+    refreshInterval: getRefreshInterval(connectionStatus),
+  })
 
   const markAsRead = useCallback(async (notificationId: string) => {
-    try {
-      const response = await fetch('/api/notifications/list', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ notificationId, isRead: true }),
-      })
+    const response = await fetch('/api/notifications/list', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ notificationId, isRead: true }),
+    })
 
-      if (response.ok) {
-        await mutateNotifications()
-      }
-    } catch (error) {
-      console.error('[v0] Failed to mark notification as read:', error)
-    }
-  }, [mutateNotifications])
+    if (!response.ok) throw new Error('Unable to update notification')
+    await mutateCache(endpoint)
+  }, [endpoint])
 
   return {
-    notifications,
-    unreadCount,
+    notifications: notificationsData?.notifications ?? [],
+    unreadCount: notificationsData?.unread ?? 0,
     isConnected,
+    connectionStatus,
     markAsRead,
   }
 }

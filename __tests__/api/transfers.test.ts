@@ -1,3 +1,5 @@
+/** @jest-environment node */
+
 /**
  * API Tests for Pay & Transfer Endpoints
  * Production-grade tests with idempotency, transaction isolation, and financial accuracy checks

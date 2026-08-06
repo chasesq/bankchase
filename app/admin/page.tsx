@@ -4,27 +4,12 @@
 import { useRouter } from 'next/navigation'
 import { ProtectedRoute } from '@/components/ProtectedRoute'
 import { Navigation } from '@/components/Navigation'
-import { AlertCircle, Lock } from 'lucide-react'
+import { Card } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { AlertCircle, BarChart3, Lock, Settings, Users } from 'lucide-react'
 
 function AdminDashboardContent() {
-  
   const router = useRouter()
-
-  if (!isLoaded) {
-    return (
-      <main className="min-h-screen flex items-center justify-center bg-background">
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-12 h-12 border-4 border-muted border-t-primary rounded-full animate-spin" />
-          <p className="text-muted-foreground">Loading...</p>
-        </div>
-      </main>
-    )
-  }
-
-  // For now, allow all authenticated users. Add role-based access later.
-  if (!userId) {
-    return null
-  }
 
   return (
     <main className="min-h-screen bg-background py-8 px-4 pb-24 md:pb-8">
