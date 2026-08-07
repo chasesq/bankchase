@@ -3,19 +3,35 @@ import { db } from "@/lib/db/index"
 import { notification } from "@/lib/db/schema"
 import { eq, desc, and } from "drizzle-orm"
 import { nanoid } from "nanoid"
+import { createClient } from "@/lib/supabase/server"
 
 export async function GET(request: NextRequest) {
   try {
-    const searchParams = request.nextUrl.searchParams
-    const userId = searchParams.get("userId")
-    const unreadOnly = searchParams.get("unreadOnly") === "true"
+    // Get authenticated user from server context
+    const supabase = await createClient()
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
 
-    if (!userId) {
+    if (authError || !user) {
       return NextResponse.json(
-        { error: "userId is required" },
-        { status: 400 }
+        { error: "Unauthorized" },
+        { status: 401 }
       )
     }
+
+    const searchParams = request.nextUrl.searchParams
+    const requestedUserId = searchParams.get("userId")
+    const unreadOnly = searchParams.get("unreadOnly") === "true"
+
+    // Validate that requested userId matches authenticated user
+    if (requestedUserId && requestedUserId !== user.id) {
+      return NextResponse.json(
+        { error: "Forbidden: Cannot access other users' notifications" },
+        { status: 403 }
+      )
+    }
+
+    // Use authenticated user's ID
+    const userId = user.id
 
     // Get notifications for user
     let query = db
@@ -48,6 +64,17 @@ export async function GET(request: NextRequest) {
 
 export async function PATCH(request: NextRequest) {
   try {
+    // Get authenticated user from server context
+    const supabase = await createClient()
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+
+    if (authError || !user) {
+      return NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 401 }
+      )
+    }
+
     const body = await request.json()
     const { notificationId, isRead } = body
 
@@ -65,7 +92,10 @@ export async function PATCH(request: NextRequest) {
         isRead,
         readAt: isRead ? new Date() : null,
       })
-      .where(eq(notification.id, notificationId))
+      .where(and(
+        eq(notification.id, notificationId),
+        eq(notification.userId, user.id)
+      ))
 
     return NextResponse.json({
       success: true,
