@@ -27,7 +27,8 @@
     "wrangler:auth:create": "pnpm exec wrangler auth create",
     "wrangler:auth:activate": "pnpm exec wrangler auth activate",
     "wrangler:auth:deactivate": "pnpm exec wrangler auth deactivate",
-    "wrangler:auth:delete": "pnpm exec wrangler auth delete"
+    "wrangler:auth:delete": "pnpm exec wrangler auth delete",
+    "monica:map": "node --env-file-if-exists=/vercel/share/.env.project scripts/map-monica-contacts.mjs"
   },
   "dependencies": {
     "@auth0/nextjs-auth0": "^4.21.0",
