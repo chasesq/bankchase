@@ -27,10 +27,11 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(request.nextUrl.searchParams.get('limit') || '50');
     const offset = parseInt(request.nextUrl.searchParams.get('offset') || '0');
     const status = request.nextUrl.searchParams.get('status');
+    const validStatuses = ['pending', 'completed', 'failed', 'reversed'] as const
 
     let transactions;
-    if (status) {
-      transactions = await getTransactionsByStatus(userId, status);
+    if (status && validStatuses.includes(status as (typeof validStatuses)[number])) {
+      transactions = await getTransactionsByStatus(userId, status as (typeof validStatuses)[number]);
     } else {
       transactions = await getUserTransactions(userId, Math.min(limit, 100), offset);
     }

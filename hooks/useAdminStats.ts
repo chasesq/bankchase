@@ -25,10 +25,15 @@ export function useAdminStats() {
   };
 }
 
+interface AdminTransfersResponse {
+  transfers: unknown[]
+  total_count: number
+}
+
 export function useAdminTransfers(limit = 50, offset = 0) {
-  const { data, error, isLoading, mutate } = useSWR(
+  const { data, error, isLoading, mutate } = useSWR<AdminTransfersResponse>(
     `/admin/demo/transfers?limit=${limit}&offset=${offset}`,
-    () => ApiClient.getAdminTransfers(limit, offset)
+    () => ApiClient.getAdminTransfers(limit, offset) as Promise<AdminTransfersResponse>
   );
 
   return {

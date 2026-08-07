@@ -6,8 +6,21 @@ import { Badge } from '@/components/ui/badge'
 import { Plus, Edit2, Trash2, Copy, Pause, Play } from 'lucide-react'
 import { biddingStrategies } from '@/lib/campaign-builder'
 
+type AdGroup = {
+  id: string
+  name: string
+  campaign: string
+  budget: number
+  spent: number
+  clicks: number
+  impressions: number
+  ctr: number
+  status: 'active' | 'paused'
+  bidding: 'target_cpc' | 'lowest_cost' | 'target_roas'
+}
+
 export function AdGroupManager() {
-  const [adGroups, setAdGroups] = useState([
+  const [adGroups, setAdGroups] = useState<AdGroup[]>([
     {
       id: '1',
       name: 'Premium Headphones - Desktop',

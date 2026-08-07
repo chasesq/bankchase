@@ -56,7 +56,6 @@ export async function triggerOnboardingWorkflow() {
         "Content-Type": "application/json",
       },
       retries: 3,
-      timeout: 3600, // 1 hour timeout
     });
 
     console.log("[Workflow] Triggered workflow:", workflowRunId);
@@ -124,7 +123,6 @@ export async function triggerTransactionWorkflow(
         timestamp: new Date().toISOString(),
       },
       retries: 3,
-      timeout: 3600,
     });
 
     console.log(
@@ -192,7 +190,6 @@ export async function triggerSignupWorkflow(
         createdAt: new Date().toISOString(),
       },
       retries: 3,
-      timeout: 3600,
     });
 
     console.log(`[v0] Signup workflow started: ${workflowRunId}`);
@@ -260,7 +257,6 @@ export async function triggerNotificationWorkflow(
         createdAt: new Date().toISOString(),
       },
       retries: 3,
-      timeout: 3600,
     });
 
     console.log(

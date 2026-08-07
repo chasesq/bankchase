@@ -10,7 +10,16 @@ export async function getTikTokStats(): Promise<TikTokStats> {
     return data
   } catch (error) {
     console.error('[v0] Error fetching TikTok stats:', error)
-    return null
+    return {
+      totalCampaigns: 0,
+      activeCampaigns: 0,
+      totalSpent: 0,
+      totalImpressions: 0,
+      totalClicks: 0,
+      totalConversions: 0,
+      averageROI: 0,
+      leadCount: 0,
+    }
   }
 }
 

@@ -104,7 +104,7 @@ export class NotificationService {
       for (const key of keys || []) {
         const data = await redis.get(key)
         if (data) {
-          const connector = JSON.parse(data)
+          const connector = typeof data === 'string' ? JSON.parse(data) : data
           if (connector.userId === userId) {
             connectors.push(connector)
           }
