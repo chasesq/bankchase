@@ -152,8 +152,8 @@ export async function POST(request: NextRequest) {
 
     // Step 3: Update status to processing
     await updateTransactionStatus(transactionId, 'processing', {
-      step: 'initiating_with_provider',
-      provider: paymentProvider,
+      step: `initiating_with_provider:${paymentProvider}`,
+      status: 'pending'
     });
 
     // Step 4: Initiate transfer with payment provider
@@ -183,7 +183,7 @@ export async function POST(request: NextRequest) {
         amount,
         currency: fromCurrency,
         timestamp: Date.now(),
-        error: transferResponse.error,
+        metadata: { error: transferResponse.error },
       });
 
       await idempotencyManager.releaseProcessing(idempotencyKey);

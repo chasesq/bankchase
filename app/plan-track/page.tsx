@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 
 import { ProtectedRoute } from '@/components/ProtectedRoute'
 import { Navigation } from '@/components/Navigation'
+import { useAuth } from '@/lib/auth-context'
 
 interface Goal {
   id: string
@@ -17,6 +18,8 @@ interface Goal {
 }
 
 export default function PlanTrackPage() {
+  const { user, token, loading: authLoading } = useAuth()
+  const isAuthenticated = Boolean(user)
   const [goals, setGoals] = useState<Goal[]>([])
   const [loading, setLoading] = useState(true)
   const [showNewGoalForm, setShowNewGoalForm] = useState(false)
@@ -31,10 +34,10 @@ export default function PlanTrackPage() {
   const loadGoals = async () => {
     try {
       setLoading(true)
-      const token = await user?.getIdToken()
+      const authToken = token ?? ''
       const response = await fetch('/api/goals', {
         headers: {
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${authToken}`,
         },
       })
 
@@ -59,12 +62,12 @@ export default function PlanTrackPage() {
 
     try {
       setSubmitting(true)
-      const token = await user?.getIdToken()
+      const authToken = token ?? ''
       const response = await fetch('/api/goals', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${authToken}`,
         },
         body: JSON.stringify({
           title: newGoal.title,
@@ -94,11 +97,11 @@ export default function PlanTrackPage() {
     if (!confirm('Are you sure you want to delete this goal?')) return
 
     try {
-      const token = await user?.getIdToken()
+      const authToken = token ?? ''
       const response = await fetch(`/api/goals?id=${goalId}`, {
         method: 'DELETE',
         headers: {
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${authToken}`,
         },
       })
 
@@ -117,7 +120,7 @@ export default function PlanTrackPage() {
   const totalTarget = goals.reduce((sum, goal) => sum + goal.target_amount, 0)
   const overallProgress = totalTarget > 0 ? Math.round((totalSaved / totalTarget) * 100) : 0
 
-  if (!isAuthenticated) {
+  if (authLoading || !isAuthenticated) {
     return (
       <div className="text-center py-12">
         <p className="text-muted-foreground">Please log in to view your goals</p>

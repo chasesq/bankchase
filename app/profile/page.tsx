@@ -51,7 +51,7 @@ function ProfileContent() {
             <div className="border-b border-border pb-6">
               <p className="text-sm text-muted-foreground uppercase tracking-wide">Full Name</p>
               <p className="text-lg font-semibold text-foreground mt-2">
-                {user.firstName} {user.lastName}
+                {user.name || 'Not set'}
               </p>
             </div>
 
@@ -61,7 +61,7 @@ function ProfileContent() {
                 <p className="text-sm text-muted-foreground uppercase tracking-wide">Email</p>
               </div>
               <p className="text-lg font-semibold text-foreground mt-2">
-                {user.emailAddresses[0]?.emailAddress || 'Not set'}
+                {user.email || 'Not set'}
               </p>
             </div>
 

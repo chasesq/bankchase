@@ -1,3 +1,5 @@
+import { createClient } from '@/lib/supabase/server'
+
 export type UserRole = 'customer' | 'admin' | 'auditor'
 
 export interface Permission {

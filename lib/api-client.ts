@@ -26,13 +26,11 @@ export class ApiClient {
     endpoint: string,
     options: RequestInit = {}
   ): Promise<T> {
-    const headers: HeadersInit = {
-      'Content-Type': 'application/json',
-      ...options.headers,
-    };
+    const headers = new Headers(options.headers)
+    headers.set('Content-Type', 'application/json')
 
     if (this.token) {
-      headers['Authorization'] = `Bearer ${this.token}`;
+      headers.set('Authorization', `Bearer ${this.token}`)
     }
 
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
@@ -54,7 +52,7 @@ export class ApiClient {
 
   // Authentication
   static async login(email: string, password: string) {
-    const data = await this.request('/auth/login', {
+    const data = await this.request<Record<string, any>>('/auth/login', {
       method: 'POST',
       body: JSON.stringify({ email, password }),
     });
@@ -69,7 +67,7 @@ export class ApiClient {
   }
 
   static async signup(email: string, password: string, firstName: string = '', lastName: string = '') {
-    const data = await this.request('/auth/signup', {
+    const data = await this.request<Record<string, any>>('/auth/signup', {
       method: 'POST',
       body: JSON.stringify({ 
         email, 

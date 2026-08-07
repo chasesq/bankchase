@@ -3,6 +3,8 @@ import { neon as neonClient } from '@neondatabase/serverless';
 let sql: any = null;
 let initialized = false;
 
+export { sql }
+
 export function getSql() {
   if (!initialized) {
     const databaseUrl = process.env.DATABASE_URL;

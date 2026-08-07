@@ -40,7 +40,7 @@ function extractUserIdFromToken(authHeader?: string): string | null {
 export async function GET(request: NextRequest) {
   try {
     const authHeader = request.headers.get('authorization')
-    const userId = extractUserIdFromToken(authHeader)
+    const userId = extractUserIdFromToken(authHeader ?? undefined)
 
     if (!userId) {
       return NextResponse.json(
@@ -132,7 +132,7 @@ export async function GET(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   try {
     const authHeader = request.headers.get('authorization')
-    const userId = extractUserIdFromToken(authHeader)
+    const userId = extractUserIdFromToken(authHeader ?? undefined)
 
     if (!userId) {
       return NextResponse.json(

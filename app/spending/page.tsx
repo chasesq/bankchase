@@ -6,12 +6,16 @@ import { useRouter } from 'next/navigation'
 import { ProtectedRoute } from '@/components/ProtectedRoute'
 import { Navigation } from '@/components/Navigation'
 import { useBanking } from '@/lib/banking-context'
+import { useAuth } from '@/lib/auth-context'
 import { TrendingDown, Calendar } from 'lucide-react'
 import { Card } from '@/components/ui/card'
 import { BackButton } from '@/components/back-button'
 
 export default function SpendingAnalysisPage() {
   const router = useRouter()
+  const { user, loading: authLoading } = useAuth()
+  const isLoaded = !authLoading
+  const userId = user?.id ?? null
   
   const { getSpendingByCategory } = useBanking()
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth())

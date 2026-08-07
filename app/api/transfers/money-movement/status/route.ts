@@ -112,7 +112,12 @@ export async function GET(request: NextRequest) {
     }
 
     // Get total count
-    const { count: totalCount } = await query.count('exact')
+    const { count: totalCount } = await supabase
+      .from('transactions')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', user.id)
+
+    const total = totalCount ?? 0
 
     // Fetch paginated results
     const { data: transactions, error: listError } = await query
@@ -152,8 +157,8 @@ export async function GET(request: NextRequest) {
         pagination: {
           limit,
           offset,
-          total: totalCount,
-          hasMore: offset + limit < totalCount
+          total,
+          hasMore: offset + limit < total
         },
         summary: {
           totalTransactions: transactions.length,
@@ -169,7 +174,7 @@ export async function GET(request: NextRequest) {
           }
         },
         _links: {
-          next: offset + limit < totalCount
+          next: offset + limit < total
             ? `/api/transfers/money-movement/status?limit=${limit}&offset=${offset + limit}${statusFilter ? `&status=${statusFilter}` : ''}${typeFilter ? `&type=${typeFilter}` : ''}`
             : null,
           prev: offset > 0

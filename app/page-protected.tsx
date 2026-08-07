@@ -10,7 +10,7 @@ export default async function Home() {
   return (
     <main className="min-h-svh bg-background p-8">
       <p className="text-sm text-muted-foreground">
-        Signed in as {session.user.email}
+        Signed in to your account
       </p>
     </main>
   )

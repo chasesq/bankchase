@@ -76,7 +76,7 @@ export async function POST(request: NextRequest) {
         const customerRes = await paystackClient.post('/customer', {
           email: user.email,
           first_name: userProfile.first_name || 'User',
-          last_name: userProfile.last_name || user.email.split('@')[0],
+          last_name: userProfile.last_name || (user.email ?? 'user@example.com').split('@')[0],
           phone: userProfile.phone_number || ''
         })
 

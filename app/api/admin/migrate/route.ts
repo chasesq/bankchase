@@ -41,34 +41,8 @@ export async function POST(request: NextRequest) {
         const filePath = path.join(scriptsDir, file)
         const sql = fs.readFileSync(filePath, 'utf-8')
 
-        // Execute SQL directly using Supabase query builder
-        const { error } = await supabase.rpc('exec', { code: sql }).catch(() => {
-          // Fallback: try to execute statements one by one
-          return new Promise((resolve) => {
-            // Split SQL into statements and execute them
-            const statements = sql
-              .split(';')
-              .map((stmt) => stmt.trim())
-              .filter((stmt) => stmt && !stmt.startsWith('--'))
-
-            let hasError = false
-            for (const statement of statements) {
-              supabase.rpc('exec', { code: statement }).then(() => {
-                // Success
-              }).catch((err) => {
-                if (!err.message?.includes('already exists') && !err.message?.includes('Unknown function')) {
-                  hasError = true
-                }
-              })
-            }
-
-            if (hasError) {
-              resolve({ error: new Error('Some statements failed') })
-            } else {
-              resolve({ error: null })
-            }
-          })
-        })
+        // Execute SQL through the configured Supabase RPC function.
+        const { error } = await supabase.rpc('exec', { code: sql })
 
         if (error) {
           // Check if it's a non-critical error

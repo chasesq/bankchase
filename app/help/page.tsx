@@ -4,12 +4,15 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 
 import { useBanking } from '@/lib/banking-context'
+import { useAuth } from '@/lib/auth-context'
 import { ArrowLeft, HelpCircle, MessageCircle, Phone, Mail, Search, ChevronDown } from 'lucide-react'
 import { Card } from '@/components/ui/card'
 
 export default function HelpPage() {
   const router = useRouter()
-  const { userId, isLoaded } = useClerkAuth()
+  const { user, loading: isLoading } = useAuth()
+  const userId = user?.id ?? null
+  const isLoaded = !isLoading
   const { faqs = [], supportTickets = [] } = useBanking()
   const [currentView, setCurrentView] = useState<'main' | 'faqs' | 'chat' | 'tickets'>('main')
   const [searchTerm, setSearchTerm] = useState('')

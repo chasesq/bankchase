@@ -22,13 +22,16 @@ import {
   Clock,
   Download,
   Trash2,
-  Toggle
 } from 'lucide-react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { useAuth } from '@/lib/auth-context'
 
 export default function PrivacySecurityPage() {
   
   const router = useRouter()
+  const { user, loading: isLoading } = useAuth()
+  const isLoaded = !isLoading
+  const userId = user?.id ?? null
   const [twoFactorEnabled, setTwoFactorEnabled] = useState(false)
   const [biometricsEnabled, setBiometricsEnabled] = useState(false)
   const [dataSharing, setDataSharing] = useState(false)

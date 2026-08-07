@@ -145,7 +145,7 @@ export async function POST(request: NextRequest) {
       })
 
     // Create notification for sender
-    await supabase
+    const { error: senderNotificationError } = await supabase
       .from('notifications')
       .insert({
         user_id: user.id,
@@ -156,11 +156,11 @@ export async function POST(request: NextRequest) {
         read: false,
         created_at: new Date().toISOString()
       })
-      .catch(err => console.warn('[v0] Failed to create sender notification:', err))
+    if (senderNotificationError) console.warn('[v0] Failed to create sender notification:', senderNotificationError)
 
     // Create notification for recipient if exists in system
     if (recipientId) {
-      await supabase
+      const { error: recipientNotificationError } = await supabase
         .from('notifications')
         .insert({
           user_id: recipientId,
@@ -171,7 +171,7 @@ export async function POST(request: NextRequest) {
           read: false,
           created_at: new Date().toISOString()
         })
-        .catch(err => console.warn('[v0] Failed to create recipient notification:', err))
+      if (recipientNotificationError) console.warn('[v0] Failed to create recipient notification:', recipientNotificationError)
     }
 
     console.log('[v0] Payment processed successfully:', {

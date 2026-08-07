@@ -8,11 +8,22 @@ import { EventList } from '@/components/stripe-events/event-list'
 import { EventStats } from '@/components/stripe-events/event-stats'
 import { StoredStripeEvent } from '@/lib/types/stripe-events'
 import { RefreshCw, Filter } from 'lucide-react'
+import { useAuth } from '@/lib/auth-context'
 
 function EventsDashboardContent() {
+  const { user, loading: authLoading } = useAuth()
+  const isLoaded = !authLoading
+  const userId = user?.id ?? null
   
   const [events, setEvents] = useState<StoredStripeEvent[]>([])
-  const [stats, setStats] = useState(null)
+  const [stats, setStats] = useState<{
+    total: number
+    received: number
+    processing: number
+    completed: number
+    failed: number
+    byType: Record<string, number>
+  } | undefined>(undefined)
   const [loading, setLoading] = useState(true)
   const [selectedStatus, setSelectedStatus] = useState<string>('all')
   const [selectedType, setSelectedType] = useState<string>('all')

@@ -44,6 +44,7 @@ interface Account {
 function TransfersContent() {
   const { userProfile } = useBanking();
   const userId = userProfile.id;
+  const isLoaded = true;
   const [transfers, setTransfers] = useState<Transfer[]>([]);
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [isLoading, setIsLoading] = useState(true);

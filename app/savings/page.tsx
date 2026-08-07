@@ -57,9 +57,7 @@ export default function SavingsGoalsPage() {
 
   const handleUpdateGoal = () => {
     if (editingGoal) {
-      updateSavingsGoal?.(editingGoal.id, {
-        currentAmount: parseFloat(formData.currentAmount) || editingGoal.currentAmount,
-      })
+      updateSavingsGoal?.(editingGoal.id, parseFloat(formData.currentAmount) || editingGoal.currentAmount)
       setEditingGoal(null)
       setFormData({ name: '', targetAmount: '', currentAmount: '', deadline: '', category: 'General' })
     }

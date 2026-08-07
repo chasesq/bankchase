@@ -13,7 +13,7 @@ export interface AdminStats {
 export function useAdminStats() {
   const { data, error, isLoading, mutate } = useSWR<AdminStats>(
     '/admin/demo/stats',
-    () => ApiClient.getAdminStats()
+    () => ApiClient.getAdminStats() as Promise<AdminStats>
   );
 
   return {

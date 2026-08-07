@@ -18,14 +18,13 @@ export async function GET(request: NextRequest) {
     }
 
     // Get notifications for user
-    let query = db
+    const filters = [eq(notification.userId, userId)]
+    if (unreadOnly) filters.push(eq(notification.isRead, false))
+
+    const query = db
       .select()
       .from(notification)
-      .where(eq(notification.userId, userId))
-
-    if (unreadOnly) {
-      query = query.where(eq(notification.isRead, false))
-    }
+      .where(and(...filters))
 
     const notifications = await query
       .orderBy(desc(notification.createdAt))

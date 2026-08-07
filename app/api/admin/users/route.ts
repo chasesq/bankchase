@@ -51,7 +51,7 @@ async function verifyAdminToken(
 export async function GET(request: NextRequest) {
   try {
     const authHeader = request.headers.get('authorization')
-    const adminUser = await verifyAdminToken(authHeader)
+    const adminUser = await verifyAdminToken(authHeader ?? undefined)
 
     if (!adminUser) {
       return NextResponse.json(
@@ -119,7 +119,7 @@ export async function GET(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   try {
     const authHeader = request.headers.get('authorization')
-    const adminUser = await verifyAdminToken(authHeader)
+    const adminUser = await verifyAdminToken(authHeader ?? undefined)
 
     if (!adminUser) {
       return NextResponse.json(
@@ -186,7 +186,7 @@ export async function PUT(request: NextRequest) {
 export async function DELETE(request: NextRequest) {
   try {
     const authHeader = request.headers.get('authorization')
-    const adminUser = await verifyAdminToken(authHeader)
+    const adminUser = await verifyAdminToken(authHeader ?? undefined)
 
     if (!adminUser) {
       return NextResponse.json(

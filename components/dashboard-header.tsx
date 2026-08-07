@@ -20,8 +20,6 @@ export function DashboardHeader() {
   const [searchQuery, setSearchQuery] = useState("")
   const fileInputRef = useRef<HTMLInputElement>(null)
   const { toast } = useToast()
-  const user = { firstName: "User", username: "Demo User" } // Default user for demo
-
   const {
     userProfile,
     notifications,
@@ -34,6 +32,13 @@ export function DashboardHeader() {
     markAllNotificationsRead,
     transactions,
   } = useBanking()
+
+  const user = {
+    firstName: userProfile.name.split(' ')[0] || 'User',
+    lastName: userProfile.name.split(' ').slice(1).join(' '),
+    username: userProfile.name,
+    email: userProfile.email,
+  }
 
   const unreadMessages = messages?.filter((m) => !m.read).length || 0
 

@@ -45,7 +45,12 @@ export default function RewardsPage() {
       alert('Insufficient points')
       return
     }
-    redeemPoints?.(parseInt(redeemAmount) * 100, redeemType)
+    redeemPoints?.({
+      type: redeemType,
+      pointsUsed: parseInt(redeemAmount) * 100,
+      value: parseInt(redeemAmount),
+      description: `${redeemType} redemption`,
+    })
     setRedeemSuccess(true)
     setRedeemAmount('')
     setTimeout(() => setRedeemSuccess(false), 3000)

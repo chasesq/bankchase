@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
     const notification = {
       id: uuidv4(),
       userId: 'user_demo',
-      type: 'transfer',
+      type: 'transfer' as const,
       channel: 'email' as const,
       title: `Transaction: ${data.description}`,
       message: `Amount: $${data.amount.toFixed(2)}`,

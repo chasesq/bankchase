@@ -2,7 +2,12 @@ import { serve } from "@upstash/workflow/nextjs";
 import { sendWorkflowCompletionEmail } from "@/lib/email/resend-client";
 
 export const { POST } = serve(async (context) => {
-  const { userId, userEmail, userName, workflowRunId } = context.requestPayload;
+  const { userId, userEmail, userName, workflowRunId } = context.requestPayload as {
+    userId?: string
+    userEmail?: string
+    userName?: string
+    workflowRunId?: string
+  }
 
   if (!workflowRunId) {
     throw new Error("workflowRunId is required");

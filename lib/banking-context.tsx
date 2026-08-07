@@ -1994,6 +1994,11 @@ export function BankingProvider({ children }: { children: React.ReactNode }) {
   return (
     <BankingContext.Provider
       value={{
+        isLoaded,
+        activateCard,
+        deactivateCard,
+        getActivatedCards,
+        getInactiveCards,
         userProfile,
         updateUserProfile,
         accounts,

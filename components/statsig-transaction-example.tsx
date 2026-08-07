@@ -29,7 +29,7 @@ export function StatsigTransactionExample() {
 
   // Check if user is in experiment
   const experiment = getExperiment('transaction_redesign');
-  const experimentVariant = experiment?.getGroupName?.();
+  const experimentVariant = experiment?.groupName ?? undefined;
 
   const handleSubmitClick = async () => {
     try {

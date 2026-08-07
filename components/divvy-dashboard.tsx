@@ -328,7 +328,7 @@ export function DivvyDashboard() {
                 </div>
 
                 <div className="grid grid-cols-3 gap-6 my-12">
-                  {content.stats.map((stat, idx) => (
+                  {content.stats?.map((stat, idx) => (
                     <div key={idx} className="bg-card border border-border rounded-lg p-6">
                       <p className="text-muted-foreground text-sm mb-2">{stat.label}</p>
                       <p className={`text-4xl font-bold ${stat.color}`}>{stat.value}</p>
@@ -369,7 +369,7 @@ export function DivvyDashboard() {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  {content.annotations.map((annotation, idx) => (
+                  {content.annotations?.map((annotation, idx) => (
                     <div
                       key={idx}
                       className={`rounded-lg border p-4 ${
@@ -420,7 +420,7 @@ export function DivvyDashboard() {
                 <div className="bg-muted/30 border border-border rounded-lg p-6">
                   <h3 className="font-semibold text-primary mb-3">Key Insights</h3>
                   <ul className="space-y-2">
-                    {content.keyInsights.map((insight, idx) => (
+                    {content.keyInsights?.map((insight, idx) => (
                       <li key={idx} className="flex items-start gap-3">
                         <span className="text-primary mt-1">•</span>
                         <span className="text-muted-foreground">{insight}</span>
@@ -444,7 +444,7 @@ export function DivvyDashboard() {
                     <ResponsiveContainer width="100%" height={300}>
                       <PieChart>
                         <Pie
-                          data={content.distribution}
+                          data={content.distribution ?? []}
                           cx="50%"
                           cy="50%"
                           labelLine={false}
@@ -453,7 +453,7 @@ export function DivvyDashboard() {
                           fill="#1abc9c"
                           dataKey="value"
                         >
-                          {content.distribution.map((entry, index) => (
+                          {(content.distribution ?? []).map((entry, index) => (
                             <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                           ))}
                         </Pie>
@@ -469,7 +469,7 @@ export function DivvyDashboard() {
                   </div>
 
                   <div className="space-y-3">
-                    {content.distribution.map((item, idx) => (
+                    {(content.distribution ?? []).map((item, idx) => (
                       <div key={idx} className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg">
                         <div
                           className="w-4 h-4 rounded"
@@ -495,7 +495,7 @@ export function DivvyDashboard() {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  {content.takeaways.map((takeaway, idx) => {
+                  {content.takeaways?.map((takeaway, idx) => {
                     const Icon = takeaway.icon
                     return (
                       <div key={idx} className="bg-card border border-border rounded-lg p-6">
