@@ -14,6 +14,10 @@ Optional variables:
 
 - `BANKCHASE_METRICS_TARGET`: metrics target, default `127.0.0.1:3000`.
 - `GRAFANA_SERVICE_NAME`: service label, default `bankchase`.
+- `COREDNS_METRICS_TARGET`: CoreDNS Prometheus target, default `127.0.0.1:9153`.
+- `COREDNS_CLUSTER`: CoreDNS cluster label, default `cloud`.
+
+CoreDNS must be version 1.7.0 or newer with both the Prometheus and cache plugins enabled. The Alloy config keeps the standard CoreDNS integration metrics and forwards them through the same Grafana Cloud remote-write endpoint as BankChase.
 
 ## Install
 

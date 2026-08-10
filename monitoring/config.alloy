@@ -24,6 +24,35 @@ prometheus.scrape "bankchase" {
   scrape_interval = "30s"
 }
 
+discovery.relabel "coredns" {
+  targets = [{
+    __address__ = env("COREDNS_METRICS_TARGET")
+    cluster     = env("COREDNS_CLUSTER")
+  }]
+
+  rule {
+    target_label = "instance"
+    replacement  = constants.hostname
+  }
+}
+
+prometheus.scrape "coredns" {
+  targets    = discovery.relabel.coredns.output
+  forward_to = [prometheus.relabel.coredns.receiver]
+  job_name   = "integrations/coredns"
+  scrape_interval = "30s"
+}
+
+prometheus.relabel "coredns" {
+  forward_to = [prometheus.remote_write.grafana.receiver]
+
+  rule {
+    source_labels = ["__name__"]
+    regex = "up|coredns_build_info|coredns_cache_entries|coredns_cache_hits_total|coredns_cache_misses_total|coredns_dns_request_duration_seconds_bucket|coredns_dns_request_size_bytes_bucket|coredns_dns_requests_total|coredns_dns_response_size_bytes_bucket|coredns_dns_responses_total|coredns_forward_healthcheck_broken_total|coredns_forward_healthcheck_failures_total|coredns_forward_request_duration_seconds_bucket|coredns_forward_requests_total|coredns_forward_responses_total|coredns_panics_total|coredns_plugin_enabled|go_goroutines|process_cpu_seconds_total|process_resident_memory_bytes"
+    action = "keep"
+  }
+}
+
 prometheus.remote_write "grafana" {
   endpoint {
     url = env("GRAFANA_CLOUD_PROMETHEUS_URL")
