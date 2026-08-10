@@ -1,0 +1,36 @@
+// Grafana Alloy configuration for the BankChase Next.js service.
+// Environment variables are supplied by the systemd service created by install-alloy.sh.
+
+discovery.relabel "bankchase" {
+  targets = [{
+    __address__ = env("BANKCHASE_METRICS_TARGET"),
+  }]
+
+  rule {
+    target_label = "job"
+    replacement  = "bankchase"
+  }
+
+  rule {
+    target_label = "service"
+    replacement  = env("GRAFANA_SERVICE_NAME")
+  }
+}
+
+prometheus.scrape "bankchase" {
+  targets    = discovery.relabel.bankchase.output
+  metrics_path = "/api/metrics"
+  forward_to = [prometheus.remote_write.grafana.receiver]
+  scrape_interval = "30s"
+}
+
+prometheus.remote_write "grafana" {
+  endpoint {
+    url = env("GRAFANA_CLOUD_PROMETHEUS_URL")
+
+    basic_auth {
+      username = env("GCLOUD_HOSTED_METRICS_ID")
+      password = env("GRAFANA_CLOUD_API_TOKEN")
+    }
+  }
+}
