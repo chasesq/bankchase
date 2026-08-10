@@ -1,111 +1,42 @@
 import { NextRequest, NextResponse } from "next/server"
-import { db } from "@/lib/db/index"
-import { notification } from "@/lib/db/schema"
-import { eq, desc, and } from "drizzle-orm"
-import { nanoid } from "nanoid"
 import { createClient } from "@/lib/supabase/server"
+
+async function getUser() {
+  const supabase = await createClient()
+  const { data: { user }, error } = await supabase.auth.getUser()
+  return { supabase, user, error }
+}
 
 export async function GET(request: NextRequest) {
   try {
-    // Get authenticated user from server context
-    const supabase = await createClient()
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    const { supabase, user, error: authError } = await getUser()
+    if (authError || !user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    const requestedUserId = request.nextUrl.searchParams.get("userId")
+    if (requestedUserId && requestedUserId !== user.id) return NextResponse.json({ error: "Forbidden" }, { status: 403 })
 
-    if (authError || !user) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      )
-    }
-
-    const searchParams = request.nextUrl.searchParams
-    const requestedUserId = searchParams.get("userId")
-    const unreadOnly = searchParams.get("unreadOnly") === "true"
-
-    // Validate that requested userId matches authenticated user
-    if (requestedUserId && requestedUserId !== user.id) {
-      return NextResponse.json(
-        { error: "Forbidden: Cannot access other users' notifications" },
-        { status: 403 }
-      )
-    }
-
-    // Use authenticated user's ID
-    const userId = user.id
-
-    // Get notifications for user
-    let query = db
-      .select()
-      .from(notification)
-      .where(eq(notification.userId, userId))
-
-    if (unreadOnly) {
-      query = query.where(eq(notification.isRead, false))
-    }
-
-    const notifications = await query
-      .orderBy(desc(notification.createdAt))
-      .limit(50)
-
-    return NextResponse.json({
-      success: true,
-      notifications,
-      count: notifications.length,
-      unread: notifications.filter(n => !n.isRead).length,
-    })
+    let query = supabase.from("notifications").select("*").eq("user_id", user.id).order("created_at", { ascending: false }).limit(50)
+    if (request.nextUrl.searchParams.get("unreadOnly") === "true") query = query.eq("is_read", false)
+    const { data: notifications, error } = await query
+    if (error) throw error
+    const rows = notifications ?? []
+    return NextResponse.json({ success: true, notifications: rows, count: rows.length, unread: rows.filter((item) => !item.is_read).length })
   } catch (error) {
     console.error("[v0] Failed to fetch notifications:", error)
-    return NextResponse.json(
-      { error: "Failed to fetch notifications" },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: "Failed to fetch notifications" }, { status: 500 })
   }
 }
 
 export async function PATCH(request: NextRequest) {
   try {
-    // Get authenticated user from server context
-    const supabase = await createClient()
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
-
-    if (authError || !user) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      )
-    }
-
-    const body = await request.json()
-    const { notificationId, isRead } = body
-
-    if (!notificationId) {
-      return NextResponse.json(
-        { error: "notificationId is required" },
-        { status: 400 }
-      )
-    }
-
-    // Update notification
-    await db
-      .update(notification)
-      .set({
-        isRead,
-        readAt: isRead ? new Date() : null,
-      })
-      .where(and(
-        eq(notification.id, notificationId),
-        eq(notification.userId, user.id)
-      ))
-
-    return NextResponse.json({
-      success: true,
-      message: "Notification updated",
-    })
+    const { supabase, user, error: authError } = await getUser()
+    if (authError || !user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    const { notificationId, isRead } = await request.json()
+    if (!notificationId || typeof isRead !== "boolean") return NextResponse.json({ error: "notificationId and isRead are required" }, { status: 400 })
+    const { error } = await supabase.from("notifications").update({ is_read: isRead, read_at: isRead ? new Date().toISOString() : null }).eq("id", notificationId).eq("user_id", user.id)
+    if (error) throw error
+    return NextResponse.json({ success: true, message: "Notification updated" })
   } catch (error) {
     console.error("[v0] Failed to update notification:", error)
-    return NextResponse.json(
-      { error: "Failed to update notification" },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: "Failed to update notification" }, { status: 500 })
   }
 }
