@@ -1,63 +1,30 @@
 import { NextRequest, NextResponse } from "next/server"
-import { db } from "@/lib/db/index"
-import { transfer, bankAccount } from "@/lib/db/schema"
-import { eq, or, desc } from "drizzle-orm"
+import { createClient } from "@/lib/supabase/server"
 
 export async function GET(request: NextRequest) {
   try {
-    const searchParams = request.nextUrl.searchParams
-    const userId = searchParams.get("userId")
-    const limit = parseInt(searchParams.get("limit") || "50")
-    const offset = parseInt(searchParams.get("offset") || "0")
+    const supabase = await createClient()
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    if (authError || !user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 
-    if (!userId) {
-      return NextResponse.json(
-        { error: "userId is required" },
-        { status: 400 }
-      )
+    const requestedUserId = request.nextUrl.searchParams.get("userId")
+    if (requestedUserId && requestedUserId !== user.id) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 })
     }
 
-    // Get transfers where user is sender or receiver
-    const transfers = await db
-      .select({
-        id: transfer.id,
-        senderId: transfer.senderId,
-        senderAccountId: transfer.senderAccountId,
-        receiverId: transfer.receiverId,
-        receiverAccountId: transfer.receiverAccountId,
-        recipientEmail: transfer.recipientEmail,
-        recipientName: transfer.recipientName,
-        amount: transfer.amount,
-        fee: transfer.fee,
-        description: transfer.description,
-        transferType: transfer.transferType,
-        status: transfer.status,
-        createdAt: transfer.createdAt,
-        updatedAt: transfer.updatedAt,
-      })
-      .from(transfer)
-      .where(or(
-        eq(transfer.senderId, userId),
-        eq(transfer.receiverId, userId)
-      ))
-      .orderBy(desc(transfer.createdAt))
-      .limit(limit)
-      .offset(offset)
+    const limit = Math.min(Math.max(Number(request.nextUrl.searchParams.get("limit") || 50), 1), 100)
+    const offset = Math.max(Number(request.nextUrl.searchParams.get("offset") || 0), 0)
+    const { data: transfers, error, count } = await supabase
+      .from("transactions")
+      .select("*", { count: "exact" })
+      .eq("user_id", user.id)
+      .order("initiated_at", { ascending: false })
+      .range(offset, offset + limit - 1)
 
-    const total = transfers.length
-
-    return NextResponse.json({
-      success: true,
-      transfers,
-      count: total,
-      limit,
-      offset,
-    })
+    if (error) throw error
+    return NextResponse.json({ success: true, transfers: transfers ?? [], count: count ?? 0, limit, offset })
   } catch (error) {
     console.error("[v0] Failed to fetch transfers:", error)
-    return NextResponse.json(
-      { error: "Failed to fetch transfers" },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: "Failed to fetch transfers" }, { status: 500 })
   }
 }
