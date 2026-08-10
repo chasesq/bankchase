@@ -1,12 +1,14 @@
 package middleware
 
 import (
+	"bytes"
 	"crypto/hmac"
 	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
-	"hex"
-	"log"
+	"io"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -125,17 +127,46 @@ func WebhookSignature() gin.HandlerFunc {
 			currentTime := time.Now().Unix()
 			maxAgeSeconds := int64(5 * 60) // 5 minutes
 
-			if currentTime-webhookTime > maxAgeSeconds {
+			if currentTime-webhookTime > maxAgeSeconds || webhookTime > currentTime+60 {
 				c.JSON(http.StatusBadRequest, gin.H{
-					"error": "Webhook timestamp is stale",
+					"error": "Webhook timestamp is stale or invalid",
 				})
 				c.Abort()
 				return
 			}
 		}
 
-		// TODO: Verify HMAC signature using webhook secret
-		// For now, just accept the webhook
+		// Read body (and reset for downstream handlers)
+		var bodyBytes []byte
+		if c.Request.Body != nil {
+			b, err := io.ReadAll(c.Request.Body)
+			if err != nil {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "Unable to read request body"})
+				c.Abort()
+				return
+			}
+			bodyBytes = b
+			// Reset the request body so the next handlers can read it
+			c.Request.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
+		}
+
+		// Verify HMAC signature using webhook secret if provided
+		secret := os.Getenv("WEBHOOK_SECRET")
+		if secret == "" {
+			// No secret configured; skip verification (useful for local/dev)
+			c.Set("webhook_signature", signature)
+			c.Set("webhook_timestamp", timestamp)
+			c.Next()
+			return
+		}
+
+		if !VerifySignature(bodyBytes, signature, secret) {
+			c.JSON(http.StatusUnauthorized, gin.H{
+				"error": "Invalid webhook signature",
+			})
+			c.Abort()
+			return
+		}
 
 		c.Set("webhook_signature", signature)
 		c.Set("webhook_timestamp", timestamp)
@@ -154,10 +185,24 @@ func parseInt64(s string, defaultVal int64) int64 {
 }
 
 // Helper function to verify HMAC signature
-func VerifySignature(payload string, signature string, secret string) bool {
-	expectedSignature := hmac.New(sha256.New, []byte(secret))
-	expectedSignature.Write([]byte(payload))
-	expected := fmt.Sprintf("%x", expectedSignature.Sum(nil))
+// payload: raw request body bytes
+// signature: hex string header (optionally prefixed with "sha256=")
+// secret: shared secret
+func VerifySignature(payload []byte, signature string, secret string) bool {
+	// Support common header format: "sha256=abcdef..." or raw hex
+	if len(signature) >= 7 && signature[:7] == "sha256=" {
+		signature = signature[7:]
+	}
 
-	return hmac.Equal([]byte(signature), []byte(expected))
+	sigBytes, err := hex.DecodeString(signature)
+	if err != nil {
+		// Not a valid hex string; reject
+		return false
+	}
+
+	mac := hmac.New(sha256.New, []byte(secret))
+	mac.Write(payload)
+	expected := mac.Sum(nil)
+
+	return hmac.Equal(expected, sigBytes)
 }
