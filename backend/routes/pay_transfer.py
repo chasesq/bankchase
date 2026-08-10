@@ -3,26 +3,25 @@ Pay & Transfer API Routes
 - Send money to another account
 - Get available banks
 """
-import uuid
-from datetime import datetime, timedelta, timezone
-from fastapi import APIRouter, Depends, HTTPException
 import asyncio
+import uuid
+from datetime import datetime
 
-from database import fetch, fetchrow, execute
 from auth import get_current_user
+from database import execute, fetch, fetchrow
+from fastapi import APIRouter, Depends, HTTPException
 from models import (
+    BankInfo,
+    BanksListResponse,
+    ReceiptResponse,
     TokenData,
     TransferRequest,
     TransferResponse,
-    ReceiptResponse,
-    BankInfo,
-    BanksListResponse,
 )
-from utils.validation import is_valid_account_number, is_valid_routing_number
-from utils.webhook_events import trigger_webhook_event
-from utils.rate_limiting import limiter
 from utils.pin_security import validate_pin
+from utils.rate_limiting import limiter
 from utils.receipt_generator import generate_receipt, save_receipt
+from utils.webhook_events import trigger_webhook_event
 
 router = APIRouter(prefix="/pay-transfer", tags=["Pay & Transfer"])
 

@@ -2,26 +2,25 @@
 FastAPI application entry point
 Initializes the app and registers all routes with background webhook processor
 """
+import asyncio
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from contextlib import asynccontextmanager
-import asyncio
-
 from routes import (
-    auth,
     accounts_router,
-    transactions_router,
-    pay_transfer_router,
     admin_demo_router,
+    auth,
     drift_router,
-    webhooks_router,
+    pay_transfer_router,
     qstash_webhooks,
+    transactions_router,
+    webhooks_router,
 )
-from utils.webhook_queue import process_webhook_queue
-from utils.rate_limiting import limiter
-from slowapi.errors import RateLimitExceeded
 from slowapi import _rate_limit_exceeded_handler
-
+from slowapi.errors import RateLimitExceeded
+from utils.rate_limiting import limiter
+from utils.webhook_queue import process_webhook_queue
 
 # Background task variables
 _webhook_processor_task = None

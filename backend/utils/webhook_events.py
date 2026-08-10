@@ -1,16 +1,15 @@
 """
 Webhook event handling and triggering logic
 """
-import json
-import uuid
-import hmac
 import hashlib
-from datetime import datetime, timezone
-from typing import Optional, Dict, Any
-import httpx
+import hmac
+import json
 import logging
+import uuid
+from typing import Any
 
-from database import execute, fetchrow, fetch
+import httpx
+from database import execute, fetch
 
 logger = logging.getLogger(__name__)
 
@@ -18,9 +17,9 @@ logger = logging.getLogger(__name__)
 async def trigger_webhook_event(
     user_id: str,
     event_type: str,
-    payload: Dict[str, Any],
+    payload: dict[str, Any],
     db_pool=None
-) -> Optional[str]:
+) -> str | None:
     """
     Trigger a webhook event for all active webhooks subscribed to this event type.
     
@@ -87,7 +86,7 @@ async def _send_webhook_request(
     webhook_url: str,
     webhook_secret: str,
     event_type: str,
-    payload: Dict[str, Any],
+    payload: dict[str, Any],
     event_id: str,
     attempt: int = 1
 ) -> bool:

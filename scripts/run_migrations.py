@@ -3,10 +3,10 @@ Database migration runner
 Executes all SQL migration files in order
 """
 import os
-import asyncpg
 import sys
 from pathlib import Path
-from datetime import datetime
+
+import asyncpg
 
 DATABASE_URL = os.getenv("DATABASE_URL") or os.getenv("POSTGRES_URL")
 
@@ -56,22 +56,21 @@ async def run_migrations():
             sql_content = sql_file.read_text()
             
             try:
-                async with pool.acquire() as conn:
-                    async with conn.transaction():
-                        await conn.execute(sql_content)
-                        await conn.execute(
-                            "INSERT INTO migrations (name) VALUES ($1)",
-                            filename
-                        )
+                async with pool.acquire() as conn, conn.transaction():
+                    await conn.execute(sql_content)
+                    await conn.execute(
+                        "INSERT INTO migrations (name) VALUES ($1)",
+                        filename
+                    )
                 
                 print(f"✓ EXECUTED: {filename}")
                 executed_count += 1
             except Exception as e:
                 print(f"✗ FAILED: {filename}")
-                print(f"  Error: {str(e)}")
+                print(f"  Error: {e!s}")
                 return False
         
-        print(f"\nMigration Summary:")
+        print("\nMigration Summary:")
         print(f"  Total files: {len(sql_files)}")
         print(f"  Newly executed: {executed_count}")
         print(f"  Status: {'SUCCESS' if executed_count >= 0 else 'FAILED'}")

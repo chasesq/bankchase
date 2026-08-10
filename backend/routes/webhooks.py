@@ -4,18 +4,17 @@ Webhook Management API Routes
 - View webhook events and retry history
 """
 import uuid
-from typing import List, Optional
-from fastapi import APIRouter, Depends, HTTPException, Query
 from datetime import datetime
 
-from database import fetch, fetchrow, execute
 from auth import get_current_user
+from database import execute, fetch, fetchrow
+from fastapi import APIRouter, Depends, HTTPException, Query
 from models import (
     TokenData,
     WebhookCreate,
-    WebhookUpdate,
-    WebhookResponse,
     WebhookEventResponse,
+    WebhookResponse,
+    WebhookUpdate,
 )
 from utils.webhook_retry import get_webhook_stats, process_pending_retries
 
@@ -72,10 +71,10 @@ async def create_webhook(
         )
     
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error creating webhook: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error creating webhook: {e!s}")
 
 
-@router.get("", response_model=List[WebhookResponse])
+@router.get("", response_model=list[WebhookResponse])
 async def list_webhooks(
     current_user: TokenData = Depends(get_current_user)
 ):
@@ -103,7 +102,7 @@ async def list_webhooks(
         ]
     
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error fetching webhooks: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error fetching webhooks: {e!s}")
 
 
 @router.get("/{webhook_id}", response_model=WebhookResponse)
@@ -137,7 +136,7 @@ async def get_webhook(
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error fetching webhook: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error fetching webhook: {e!s}")
 
 
 @router.patch("/{webhook_id}", response_model=WebhookResponse)
@@ -226,7 +225,7 @@ async def update_webhook(
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error updating webhook: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error updating webhook: {e!s}")
 
 
 @router.delete("/{webhook_id}")
@@ -283,10 +282,10 @@ async def delete_webhook(
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error deleting webhook: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error deleting webhook: {e!s}")
 
 
-@router.get("/{webhook_id}/events", response_model=List[WebhookEventResponse])
+@router.get("/{webhook_id}/events", response_model=list[WebhookEventResponse])
 async def get_webhook_events(
     webhook_id: str,
     current_user: TokenData = Depends(get_current_user),
@@ -339,7 +338,7 @@ async def get_webhook_events(
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error fetching webhook events: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error fetching webhook events: {e!s}")
 
 
 @router.get("/{webhook_id}/stats")
@@ -351,7 +350,7 @@ async def get_webhook_stats_endpoint(
         stats = await get_webhook_stats(current_user.user_id)
         return stats
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error fetching stats: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error fetching stats: {e!s}")
 
 
 @router.post("/retry-process")
@@ -363,4 +362,4 @@ async def trigger_retry_processing(
         processed = await process_pending_retries()
         return {"processed_retries": processed}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error processing retries: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error processing retries: {e!s}")

@@ -3,13 +3,12 @@ Authentication utilities - JWT tokens and password hashing
 """
 import os
 from datetime import datetime, timedelta, timezone
-from typing import Optional
-from jose import JWTError, jwt
-from passlib.context import CryptContext
-from fastapi import Depends, HTTPException, status
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
+from fastapi import Depends, HTTPException, status
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from jose import JWTError, jwt
 from models import TokenData
+from passlib.context import CryptContext
 
 # Configuration
 SECRET_KEY = os.getenv("JWT_SECRET") or os.getenv("SUPABASE_JWT_SECRET") or "dev-secret-key-change-in-production"
@@ -33,7 +32,7 @@ def get_password_hash(password: str) -> str:
     return pwd_context.hash(password)
 
 
-def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
+def create_access_token(data: dict, expires_delta: timedelta | None = None) -> str:
     """Create a JWT access token"""
     to_encode = data.copy()
     if expires_delta:

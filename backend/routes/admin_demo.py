@@ -5,20 +5,18 @@ Admin Demo Transfer API Routes
 - Bulk demo transfers
 - Process refunds
 """
-import uuid
 from datetime import datetime, timedelta, timezone
-from fastapi import APIRouter, Depends, HTTPException, Query
-from typing import Optional
 
-from database import fetch, fetchrow, execute
-from auth import get_current_user, require_role
+from auth import require_role
+from database import execute, fetch, fetchrow
+from fastapi import APIRouter, Depends, HTTPException, Query
 from models import (
-    TokenData,
-    DemoTransferRequest,
-    BulkDemoTransferRequest,
-    TransferResponse,
     BankInfo,
     BanksListResponse,
+    BulkDemoTransferRequest,
+    DemoTransferRequest,
+    TokenData,
+    TransferResponse,
 )
 from utils.rate_limiting import limiter
 
@@ -256,7 +254,7 @@ async def bulk_demo_transfer(
 async def demo_transfer_history(
     limit: int = Query(50, ge=1, le=100),
     offset: int = Query(0, ge=0),
-    status: Optional[str] = None,
+    status: str | None = None,
     current_admin: TokenData = Depends(require_role(["admin", "owner", "SuperAdmin", "OrgAdmin"]))
 ):
     """Get demo transfer history"""

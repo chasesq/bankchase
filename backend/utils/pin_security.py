@@ -2,13 +2,12 @@
 PIN security utilities for validating and storing user PINs
 Includes hashing, validation, and attempt tracking
 """
-from passlib.context import CryptContext
-from datetime import datetime, timedelta, timezone
-from fastapi import HTTPException
 import re
+from datetime import datetime, timedelta, timezone
 
-from database import fetchrow, execute, fetch
-
+from database import execute, fetchrow
+from fastapi import HTTPException
+from passlib.context import CryptContext
 
 # Password context for bcrypt hashing
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
