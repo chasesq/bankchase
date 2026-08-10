@@ -19,7 +19,7 @@ class Cache<T> {
   set(key: string, value: T, ttl = 5 * 60 * 1000): void {
     if (this.store.size >= this.maxSize) {
       const firstKey = this.store.keys().next().value
-      this.store.delete(firstKey)
+      if (firstKey !== undefined) this.store.delete(firstKey)
     }
 
     this.store.set(key, {

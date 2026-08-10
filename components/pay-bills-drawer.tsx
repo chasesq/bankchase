@@ -78,7 +78,7 @@ export function PayBillsDrawer({ open, onOpenChange, onReceiptOpen }: PayBillsDr
       id: p.id,
       name: p.name,
       category: p.category || "Custom",
-      lastAmount: p.lastAmount || 0,
+      lastAmount: p.amount || 0,
       accountNumber: p.accountNumber || "****0000",
     })),
   ]
@@ -220,9 +220,9 @@ export function PayBillsDrawer({ open, onOpenChange, onReceiptOpen }: PayBillsDr
     setNewPayeeCategory("Custom")
   }
 
-  const handleQuickPay = (payee: (typeof defaultPayees)[0]) => {
+  const handleQuickPay = (payee: { id: string; lastAmount?: number; amount?: number }) => {
     setSelectedPayee(payee.id)
-    const amt = 'lastAmount' in payee ? payee.lastAmount : (payee.amount || 0)
+    const amt = payee.lastAmount ?? payee.amount ?? 0
     setAmount(amt.toString())
     const tomorrow = new Date()
     tomorrow.setDate(tomorrow.getDate() + 1)

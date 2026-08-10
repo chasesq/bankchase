@@ -22,7 +22,7 @@ export function useStatsig() {
     // Check if a feature gate is enabled
     checkFeatureGate: (gateName: string): boolean => {
       try {
-        return client.checkFeatureGate(gateName);
+        return client.getFeatureGate(gateName).value;
       } catch (error) {
         console.error("[v0] Error checking Statsig feature gate:", error);
         return false;

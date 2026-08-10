@@ -77,7 +77,7 @@ export async function POST(request: NextRequest) {
  * Process different Paystack webhook events
  */
 async function processPaystackEvent(event: any) {
-  const supabase = createClient()
+  const supabase = await createClient()
 
   switch (event.event) {
     case 'charge.success':
@@ -106,7 +106,7 @@ async function processPaystackEvent(event: any) {
  */
 async function handleIncomingDeposit(data: any) {
   try {
-    const supabase = createClient()
+    const supabase = await createClient()
     const reference = data.reference
     const customerCode = data.customer?.customer_code
     const amountInMajorUnits = data.amount / 100 // Paystack sends in kobo (subunits)
@@ -211,7 +211,7 @@ async function handleIncomingDeposit(data: any) {
  */
 async function handleTransferSuccess(data: any) {
   try {
-    const supabase = createClient()
+    const supabase = await createClient()
     const reference = data.reference
     const transferCode = data.transfer_code
     const recipient = data.recipient
@@ -277,7 +277,7 @@ async function handleTransferSuccess(data: any) {
  */
 async function handleTransferFailure(data: any) {
   try {
-    const supabase = createClient()
+    const supabase = await createClient()
     const reference = data.reference
     const reason = data.reason || 'Unknown error'
 
@@ -345,7 +345,7 @@ async function handleTransferFailure(data: any) {
         currency: 'NGN',
         recipientName: 'Transfer Failed - Refunded',
         reference,
-        balance: userBalance + amount,
+        balance: newBalance,
         type: 'transfer_failed'
       })
     }

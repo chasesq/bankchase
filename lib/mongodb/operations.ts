@@ -96,7 +96,12 @@ export async function updateNotificationSettings(
     { userId },
     {
       $set: {
-        'notifications': settings,
+        'notifications': {
+          email: settings.email ?? true,
+          sms: settings.sms ?? true,
+          push: settings.push ?? true,
+          frequency: settings.frequency ?? 'realtime',
+        },
         updatedAt: new Date(),
       },
     },
@@ -136,7 +141,7 @@ export async function getUserTransactions(
     .toArray();
 }
 
-export async function getTransactionsByStatus(userId: string, status: string): Promise<Transaction[]> {
+export async function getTransactionsByStatus(userId: string, status: Transaction['status']): Promise<Transaction[]> {
   const collection = await getTransactionsCollection();
   return collection
     .find({ userId, status })

@@ -596,7 +596,7 @@ export function adjustRiskForDrift(
       // Gradual legitimate drift (aging, habit changes, recovery)
       isAdaptiveDrift = true
       rollingRiskMultiplier = Math.max(rollingRiskMultiplier * 1.1, 1.3) // Gentle boost
-      driftResult.action = 'adaptive_drift_update'
+      driftResult.action = 'adaptive_update'
     } else {
       // Suspicious drift - boost risk significantly
       rollingRiskMultiplier = Math.min(

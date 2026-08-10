@@ -120,7 +120,7 @@ export function WebhookConnectors() {
                 </div>
 
                 <div className="flex flex-wrap gap-2">
-                  {connector.events.map((event) => (
+                  {connector.events.map((event: string) => (
                     <span key={event} className="bg-primary/10 text-primary text-xs px-2 py-1 rounded">
                       {event}
                     </span>

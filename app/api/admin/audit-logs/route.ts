@@ -50,7 +50,7 @@ async function verifyAuditAccess(
 export async function GET(request: NextRequest) {
   try {
     const authHeader = request.headers.get('authorization')
-    const user = await verifyAuditAccess(authHeader)
+    const user = await verifyAuditAccess(authHeader ?? undefined)
 
     if (!user) {
       return NextResponse.json(
@@ -126,8 +126,8 @@ export async function GET(request: NextRequest) {
         logs: logs?.map((log) => ({
           id: log.id,
           adminId: log.admin_id,
-          adminEmail: log.users?.email,
-          adminName: `${log.users?.first_name} ${log.users?.last_name}`,
+          adminEmail: log.users?.[0]?.email,
+          adminName: `${log.users?.[0]?.first_name ?? ''} ${log.users?.[0]?.last_name ?? ''}`.trim(),
           actionType: log.action_type,
           targetResource: log.target_resource,
           targetUserId: log.target_user_id,

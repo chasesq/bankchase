@@ -67,7 +67,7 @@ export async function POST(request: NextRequest) {
     const uploadCommand = new PutObjectCommand({
       Bucket: process.env.AWS_S3_BUCKET_NAME || 'bankchase-uploads',
       Key: s3Key,
-      Body: buffer,
+      Body: new Uint8Array(buffer),
       ContentType: file.type,
       Metadata: {
         'original-name': file.name,

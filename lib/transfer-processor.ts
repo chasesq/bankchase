@@ -54,7 +54,7 @@ export async function processTransfer(
   try {
     const sb = getSupabaseClient();
     // Start a database transaction with SERIALIZABLE isolation
-    const { data, error: txError } = await sb.rpc('process_transfer', {
+    const { data, error: txError } = await (sb as any).rpc('process_transfer', {
       p_user_id: userId,
       p_from_account_id: fromAccountId,
       p_to_account_number: toAccountNumber,

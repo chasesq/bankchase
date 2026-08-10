@@ -133,7 +133,7 @@ export class Auth0PostgresWrapper {
    */
   async updateAuth0MCPToken(auth0UserId: string, mcpToken: string, expiresAt: string): Promise<void> {
     try {
-      await this.managementClient.users.update({ id: auth0UserId }, {
+      await this.managementClient.users.update(auth0UserId, {
         app_metadata: {
           mcp_token: mcpToken,
           mcp_token_expires_at: expiresAt,
@@ -150,8 +150,8 @@ export class Auth0PostgresWrapper {
    */
   async getAuth0UserByEmail(email: string): Promise<any> {
     try {
-      const users = await this.managementClient.usersByEmail.getAll({ email })
-      return users.length > 0 ? users[0] : null
+      const users = await this.managementClient.users.list({ q: `email:"${email.replace(/"/g, '')}"` })
+      return users.data.length > 0 ? users.data[0] : null
     } catch (err: any) {
       console.error('Failed to get Auth0 user:', err)
       return null
@@ -164,7 +164,7 @@ export class Auth0PostgresWrapper {
   async revokeTokens(auth0UserId: string): Promise<void> {
     try {
       // Invalidate refresh tokens
-      await this.managementClient.users.invalidateSessions({ id: auth0UserId })
+      await this.managementClient.users.revokeAccess(auth0UserId)
     } catch (err: any) {
       console.error('Failed to revoke tokens:', err)
       throw new Error('Failed to revoke tokens')

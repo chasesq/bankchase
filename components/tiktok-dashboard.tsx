@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import type { TikTokCampaign, TikTokLead, TikTokCatalog } from '@/lib/tiktok-data'
 import {
   LineChart,
   Line,
@@ -310,7 +311,7 @@ export function TikTokDashboard() {
             <div className="space-y-4">
               <h2 className="text-2xl font-bold mb-4">Active Campaigns</h2>
               <div className="grid grid-cols-1 gap-4">
-                {campaigns.map((campaign) => (
+                {campaigns.map((campaign: TikTokCampaign) => (
                   <Card key={campaign.id} className="bg-card border-border">
                     <CardContent className="p-6">
                       <div className="flex items-start justify-between mb-4">
@@ -385,7 +386,7 @@ export function TikTokDashboard() {
                     </tr>
                   </thead>
                   <tbody>
-                    {leads.map((lead) => (
+                    {leads.map((lead: TikTokLead) => (
                       <tr key={lead.id} className="border-b border-border/50 hover:bg-muted/30 transition-colors">
                         <td className="py-3 px-4 text-foreground">{lead.name}</td>
                         <td className="py-3 px-4 text-muted-foreground text-sm">{lead.email}</td>
@@ -419,7 +420,7 @@ export function TikTokDashboard() {
             <div className="space-y-4">
               <h2 className="text-2xl font-bold mb-4">Product Catalogs</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {catalogs.map((catalog) => (
+                {catalogs.map((catalog: TikTokCatalog) => (
                   <Card key={catalog.id} className="bg-card border-border">
                     <CardContent className="p-6">
                       <div className="flex items-start justify-between mb-4">

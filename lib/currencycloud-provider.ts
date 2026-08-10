@@ -73,7 +73,7 @@ export class CurrencyCloudProvider extends PaymentProvider {
           'X-Timestamp': timestamp,
           'User-Agent': 'BankChase/1.0',
         },
-        agent: this.httpsAgent,
+        ...(this.httpsAgent ? { agent: this.httpsAgent } : {}),
       };
 
       const req = https.request(options, (res) => {

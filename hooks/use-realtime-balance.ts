@@ -106,6 +106,20 @@ export function useRealtimeTransfers(userId?: string) {
   }
 }
 
+interface RealtimeNotification {
+  id: string
+  title: string
+  message: string
+  type: string
+  isRead: boolean
+  createdAt: string
+}
+
+interface NotificationsResponse {
+  notifications: RealtimeNotification[]
+  unread: number
+}
+
 export function useRealtimeNotifications(userId?: string) {
   const endpoint = userId ? `/api/notifications/list?userId=${encodeURIComponent(userId)}` : null
 
@@ -118,7 +132,7 @@ export function useRealtimeNotifications(userId?: string) {
   }, [refreshNotifications])
 
   const { connectionStatus, isConnected } = useUserRealtime(userId, ['notifications'], handleChange)
-  const { data: notificationsData } = useSWR(endpoint, fetcher, {
+  const { data: notificationsData } = useSWR<NotificationsResponse>(endpoint, fetcher, {
     revalidateOnFocus: false,
     revalidateOnReconnect: true,
     refreshInterval: getRefreshInterval(connectionStatus),

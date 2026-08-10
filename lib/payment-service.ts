@@ -4,7 +4,7 @@ import { redis } from '@/lib/redis'
 // Initialize Stripe only if API key is available
 const stripe = process.env.STRIPE_SECRET_KEY 
   ? new Stripe(process.env.STRIPE_SECRET_KEY, {
-      apiVersion: '2024-04-10',
+      apiVersion: '2026-06-24.dahlia',
     })
   : null
 
@@ -182,7 +182,7 @@ export async function confirmPayment(
       success: confirmedIntent.status === 'succeeded',
       paymentIntentId: confirmedIntent.id,
       transactionId: confirmedIntent.id,
-      status: confirmedIntent.status,
+      status: confirmedIntent.status ?? undefined,
       message:
         confirmedIntent.status === 'succeeded'
           ? 'Payment completed successfully'
@@ -200,6 +200,7 @@ export async function confirmPayment(
 
 export async function getPaymentStatus(paymentIntentId: string): Promise<any> {
   try {
+    if (!stripe) return null
     const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId)
     return {
       id: paymentIntent.id,
@@ -217,6 +218,7 @@ export async function getPaymentStatus(paymentIntentId: string): Promise<any> {
 
 export async function refundPayment(paymentIntentId: string): Promise<PaymentResult> {
   try {
+    if (!stripe) return { success: false, message: 'Stripe is not configured' }
     console.log('[v0] Initiating refund for:', paymentIntentId)
 
     const refund = await stripe.refunds.create({
@@ -228,7 +230,7 @@ export async function refundPayment(paymentIntentId: string): Promise<PaymentRes
     return {
       success: true,
       transactionId: refund.id,
-      status: refund.status,
+      status: refund.status ?? undefined,
       message: 'Refund initiated successfully',
     }
   } catch (error) {

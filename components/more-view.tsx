@@ -2848,7 +2848,7 @@ export function MoreView({ onLogout }: MoreViewProps) {
                     <div className="flex-1">
                       <p className="font-medium">{device.name}</p>
                       <p className="text-sm text-muted-foreground">
-                        {device.deviceId ? `ID: ${device.deviceId.slice(0, 8)}...` : "Unknown Device"}
+                        {device.id ? `ID: ${device.id.slice(0, 8)}...` : "Unknown Device"}
                       </p>
                       <p className="text-xs text-muted-foreground mt-1">Last active: {device.lastActive}</p>
                     </div>

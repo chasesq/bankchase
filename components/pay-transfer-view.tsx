@@ -348,7 +348,7 @@ export function PayTransferView({
           <CardContent className="p-4">
             <h3 className="font-semibold text-sm text-blue-900 dark:text-blue-100 mb-3">Recent Notifications</h3>
             <div className="space-y-2">
-              {notifications.slice(0, 3).map((notif) => (
+              {notifications.slice(0, 3).map((notif: { id: string; title: string; message: string }) => (
                 <div key={notif.id} className="text-sm">
                   <p className="font-medium text-blue-900 dark:text-blue-100">{notif.title}</p>
                   <p className="text-xs text-blue-700 dark:text-blue-200">{notif.message}</p>

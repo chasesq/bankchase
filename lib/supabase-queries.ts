@@ -149,7 +149,7 @@ export async function getUserTransactions(userId: string, limit = 50) {
 
   if (!accounts || accounts.length === 0) return []
 
-  const accountIds = accounts.map((a) => a.id)
+  const accountIds = accounts.map((a: { id: string }) => a.id)
 
   const { data, error } = await supabase
     .from('transactions')

@@ -17,6 +17,7 @@ import {
   Bookmark,
   Star,
   AlertTriangle,
+  X,
 } from "lucide-react"
 import { useBanking } from "@/lib/banking-context"
 import { useToast } from "@/hooks/use-toast"

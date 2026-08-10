@@ -17,7 +17,18 @@
     "test:all": "pnpm test && pnpm test:e2e",
     "qstash:dev": "npx @upstash/qstash-cli@latest dev",
     "backend:dev": "cd backend && source .venv/bin/activate && python -m uvicorn main:app --reload",
-    "qstash:health": "curl http://localhost:8000/api/qstash/health"
+    "qstash:health": "curl http://localhost:8000/api/qstash/health",
+    "wrangler:docs": "pnpm exec wrangler docs",
+    "wrangler:login": "pnpm exec wrangler login",
+    "wrangler:logout": "pnpm exec wrangler logout",
+    "wrangler:whoami": "pnpm exec wrangler whoami",
+    "wrangler:auth:token": "pnpm exec wrangler auth token",
+    "wrangler:auth:list": "pnpm exec wrangler auth list",
+    "wrangler:auth:create": "pnpm exec wrangler auth create",
+    "wrangler:auth:activate": "pnpm exec wrangler auth activate",
+    "wrangler:auth:deactivate": "pnpm exec wrangler auth deactivate",
+    "wrangler:auth:delete": "pnpm exec wrangler auth delete",
+    "monica:map": "node --env-file-if-exists=/vercel/share/.env.project scripts/map-monica-contacts.mjs"
   },
   "dependencies": {
     "@auth0/nextjs-auth0": "^4.21.0",
@@ -105,6 +116,7 @@
     "tw-animate-css": "latest",
     "uuid": "^14.0.0",
     "vaul": "latest",
+    "workflow": "^4.8.1",
     "zod": "3.25.76"
   },
   "devDependencies": {
@@ -125,6 +137,7 @@
     "postcss": "^8.5",
     "tailwindcss": "^4.1.9",
     "tw-animate-css": "1.3.3",
-    "typescript": "^5"
+    "typescript": "^5",
+    "wrangler": "^4.119.0"
   }
 }
