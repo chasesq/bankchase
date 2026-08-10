@@ -95,20 +95,20 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // Get user's transaction list with filters
-    let query = supabase
+    // Build base query with filters
+    let baseQuery = supabase
       .from('transactions')
       .select('*')
       .eq('user_id', user.id)
 
     // Apply status filter
     if (statusFilter && ['completed', 'processing', 'failed', 'pending'].includes(statusFilter)) {
-      query = query.eq('status', statusFilter)
+      baseQuery = baseQuery.eq('status', statusFilter)
     }
 
     // Apply type filter
     if (typeFilter && ['transfer', 'deposit', 'payment', 'withdrawal', 'bank_transfer'].includes(typeFilter)) {
-      query = query.eq('type', typeFilter)
+      baseQuery = baseQuery.eq('type', typeFilter)
     }
 
     // Get total count
@@ -118,6 +118,31 @@ export async function GET(request: NextRequest) {
       .eq('user_id', user.id)
 
     const total = totalCount ?? 0
+    // Get total count with the same filters
+    const { count: totalCount, error: countError } = await baseQuery.count('exact')
+
+    if (countError) {
+      console.error('[v0] Failed to get count:', countError)
+      return NextResponse.json(
+        { success: false, error: 'Failed to fetch transaction count' },
+        { status: 500 }
+      )
+    }
+
+    // Build fresh query for pagination (Supabase requires this)
+    let query = supabase
+      .from('transactions')
+      .select('*')
+      .eq('user_id', user.id)
+
+    // Reapply filters
+    if (statusFilter && ['completed', 'processing', 'failed', 'pending'].includes(statusFilter)) {
+      query = query.eq('status', statusFilter)
+    }
+
+    if (typeFilter && ['transfer', 'deposit', 'payment', 'withdrawal', 'bank_transfer'].includes(typeFilter)) {
+      query = query.eq('type', typeFilter)
+    }
 
     // Fetch paginated results
     const { data: transactions, error: listError } = await query
@@ -159,6 +184,8 @@ export async function GET(request: NextRequest) {
           offset,
           total,
           hasMore: offset + limit < total
+          total: totalCount || 0,
+          hasMore: offset + limit < (totalCount || 0)
         },
         summary: {
           totalTransactions: transactions.length,
@@ -175,6 +202,7 @@ export async function GET(request: NextRequest) {
         },
         _links: {
           next: offset + limit < total
+          next: offset + limit < (totalCount || 0)
             ? `/api/transfers/money-movement/status?limit=${limit}&offset=${offset + limit}${statusFilter ? `&status=${statusFilter}` : ''}${typeFilter ? `&type=${typeFilter}` : ''}`
             : null,
           prev: offset > 0

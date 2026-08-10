@@ -44,9 +44,6 @@ interface TransferResponse {
   error?: string;
 }
 
-// In-memory transfer tracking (in production, use a real database)
-const transferTracking = new Map<string, any>();
-
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createClient();
@@ -257,17 +254,6 @@ export async function POST(request: NextRequest) {
       // 5. Calculate estimated delivery time
       const estimatedDelivery = new Date(Date.now() + (toBankCode === 'INTERNAL' ? 0 : 1000 * 60 * 60 * 24)).toISOString();
 
-      // Track transfer for real-time updates
-      transferTracking.set(transactionId, {
-        status: 'completed',
-        amount,
-        fromAccount: fromAccountId,
-        toAccount: toAccountNumber,
-        recipientName,
-        timestamp,
-        completedAt: new Date().toISOString()
-      });
-
       const response: TransferResponse = {
         success: true,
         transaction: {
@@ -366,12 +352,18 @@ export async function GET(request: NextRequest) {
     }
 
     const supabase = await createClient();
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
 
-    // Get transaction from database
+    if (authError || !user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Scope status reads to the authenticated owner so transaction IDs cannot be used for IDOR.
     const { data: transaction, error } = await supabase
       .from('transactions')
       .select('*')
       .eq('id', transactionId)
+      .eq('user_id', user.id)
       .single();
 
     if (error) {
