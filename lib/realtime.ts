@@ -18,8 +18,6 @@ type UserRealtimeOptions = {
   onStatus?: (status: RealtimeConnectionStatus) => void
 }
 
-const localListeners: Map<string, Set<(data: unknown) => void>> = new Map()
-
 export function subscribeToUserRealtime({
   userId,
   resources,
@@ -67,25 +65,5 @@ export function subscribeToUserRealtime({
     closed = true
     onStatus?.('disconnected')
     void supabase.removeChannel(channel)
-  }
-}
-
-export class RealtimeService {
-  static subscribe(channel: string, callback: (data: any) => void) {
-    if (!localListeners.has(channel)) localListeners.set(channel, new Set())
-    localListeners.get(channel)?.add(callback)
-    return () => localListeners.get(channel)?.delete(callback)
-  }
-
-  static publish(channel: string, data: any) {
-    localListeners.get(channel)?.forEach((callback) => callback(data))
-  }
-
-  static on(event: string, callback: (data: any) => void) {
-    return this.subscribe(event, callback)
-  }
-
-  static emit(event: string, data: any) {
-    this.publish(event, data)
   }
 }
