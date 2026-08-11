@@ -4,15 +4,14 @@ Transactions API Routes
 - Transaction details
 """
 import uuid
-from fastapi import APIRouter, Depends, HTTPException, Query
-from typing import Optional
 
-from database import fetch, fetchrow, fetchval
 from auth import get_current_user
+from database import fetch, fetchrow
+from fastapi import APIRouter, Depends, HTTPException, Query
 from models import (
     TokenData,
-    TransactionResponse,
     TransactionHistoryResponse,
+    TransactionResponse,
 )
 
 router = APIRouter(prefix="/transactions", tags=["Transactions"])
@@ -20,7 +19,7 @@ router = APIRouter(prefix="/transactions", tags=["Transactions"])
 
 @router.get("/history", response_model=TransactionHistoryResponse)
 async def transaction_history(
-    account_id: Optional[str] = None,
+    account_id: str | None = None,
     limit: int = Query(20, ge=1, le=100),
     offset: int = Query(0, ge=0),
     current_user: TokenData = Depends(get_current_user)

@@ -4,7 +4,6 @@ Bank transfer validation utilities
 - Routing number validation (US ABA with Mod 10)
 - SWIFT code validation
 """
-import re
 
 
 def is_valid_account_number(account_number: str) -> bool:

@@ -1,13 +1,11 @@
 """
 Background worker for processing webhook retries
 """
-import asyncio
-import logging
-from datetime import datetime, timezone
 import json
-from typing import Optional
+import logging
 
-from database import fetch, execute, fetchrow
+from database import execute, fetch, fetchrow
+
 from utils.webhook_events import _send_webhook_request
 
 logger = logging.getLogger(__name__)

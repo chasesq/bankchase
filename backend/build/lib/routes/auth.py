@@ -5,19 +5,17 @@ Authentication Routes
 - Token validation
 """
 import uuid
-from datetime import datetime, timezone
-from fastapi import APIRouter, HTTPException, Depends
-from pydantic import BaseModel, EmailStr, Field
-import os
 
-from database import fetchrow, execute
 from auth import (
-    get_password_hash,
-    verify_password,
     create_access_token,
     get_current_user,
+    get_password_hash,
+    verify_password,
 )
+from database import fetchrow
+from fastapi import APIRouter, Depends, HTTPException
 from models import TokenData
+from pydantic import BaseModel, EmailStr, Field
 from utils.pin_security import set_user_pin
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -143,7 +141,7 @@ async def signup(request: SignupRequest):
         default_pin = str(user_id)[-4:]
         await set_user_pin(user_id, default_pin)
     except Exception as e:
-        print(f"[v0] Warning: Failed to set default PIN for user {user_id}: {str(e)}")
+        print(f"[v0] Warning: Failed to set default PIN for user {user_id}: {e!s}")
 
     # Create access token
     token = create_access_token({

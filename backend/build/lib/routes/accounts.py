@@ -5,16 +5,15 @@ Accounts API Routes
 - Create new account
 """
 import uuid
-from fastapi import APIRouter, Depends, HTTPException, Query
-from typing import Optional
 
-from database import fetch, fetchrow, execute
 from auth import get_current_user
+from database import fetch, fetchrow
+from fastapi import APIRouter, Depends, HTTPException
 from models import (
-    TokenData,
     AccountCreate,
     AccountResponse,
     AccountsListResponse,
+    TokenData,
 )
 
 router = APIRouter(prefix="/accounts", tags=["Accounts"])

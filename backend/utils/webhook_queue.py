@@ -7,11 +7,10 @@ import hashlib
 import hmac
 import json
 from datetime import datetime, timedelta, timezone
-from typing import Optional, Dict, Any
+from typing import Any
 
 import httpx
 from database import execute, fetch, fetchrow
-
 
 WEBHOOK_TIMEOUT = 10  # seconds
 WEBHOOK_MAX_RETRIES = 5
@@ -22,10 +21,10 @@ BATCH_SIZE = 50
 async def queue_webhook_notification(
     user_id: str,
     event: str,
-    payload: Dict[str, Any],
+    payload: dict[str, Any],
     delay_seconds: int = 0,
     max_attempts: int = WEBHOOK_MAX_RETRIES,
-) -> Optional[int]:
+) -> int | None:
     """
     Queue a webhook notification for async delivery.
     
@@ -89,7 +88,7 @@ async def _get_webhooks_for_event(user_id: str, event: str) -> list:
 async def _send_webhook(
     webhook_url: str,
     secret: str,
-    payload: Dict[str, Any],
+    payload: dict[str, Any],
 ) -> bool:
     """
     Send webhook with HMAC-SHA256 signature.
@@ -168,7 +167,7 @@ async def process_webhook_queue():
             await asyncio.sleep(5)  # Brief pause before retry
 
 
-async def _process_queue_item(item: Dict[str, Any]):
+async def _process_queue_item(item: dict[str, Any]):
     """Process a single queue item - attempt delivery and update status."""
     try:
         queue_id = item["id"]
@@ -260,7 +259,7 @@ async def _process_queue_item(item: Dict[str, Any]):
         )
 
 
-async def get_webhook_queue_stats(user_id: str) -> Dict[str, Any]:
+async def get_webhook_queue_stats(user_id: str) -> dict[str, Any]:
     """Get queue statistics for a user."""
     try:
         stats = await fetchrow(

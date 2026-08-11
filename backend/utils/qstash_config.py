@@ -2,8 +2,8 @@
 QStash configuration and utilities for background job processing
 """
 import os
-import json
-from typing import Optional, Dict, Any
+from typing import Any
+
 from qstash import AsyncQStash
 
 # QStash configuration
@@ -19,10 +19,10 @@ if QSTASH_TOKEN:
 
 async def publish_event(
     event_name: str,
-    data: Dict[str, Any],
+    data: dict[str, Any],
     delay_seconds: int = 0,
     url_path: str = "/api/qstash/webhook"
-) -> Optional[str]:
+) -> str | None:
     """
     Publish an event to QStash for processing
     
@@ -55,16 +55,16 @@ async def publish_event(
         
         return message.get("messageId") if hasattr(message, 'get') else str(message)
     except Exception as e:
-        print(f"[Error] Failed to publish event {event_name}: {str(e)}")
+        print(f"[Error] Failed to publish event {event_name}: {e!s}")
         return None
 
 
 async def schedule_job(
     job_name: str,
-    payload: Dict[str, Any],
+    payload: dict[str, Any],
     cron_expression: str,
     url_path: str = "/api/qstash/scheduled-job"
-) -> Optional[str]:
+) -> str | None:
     """
     Schedule a recurring job with QStash
     
@@ -92,11 +92,11 @@ async def schedule_job(
         # For now, return a mock ID
         return f"job_{job_name}_{__import__('uuid').uuid4().hex[:8]}"
     except Exception as e:
-        print(f"[Error] Failed to schedule job {job_name}: {str(e)}")
+        print(f"[Error] Failed to schedule job {job_name}: {e!s}")
         return None
 
 
-def verify_qstash_signature(signature: str, body: bytes, signing_key: Optional[str] = None) -> bool:
+def verify_qstash_signature(signature: str, body: bytes, signing_key: str | None = None) -> bool:
     """
     Verify QStash webhook signature
     
@@ -109,8 +109,8 @@ def verify_qstash_signature(signature: str, body: bytes, signing_key: Optional[s
         True if signature is valid
     """
     try:
-        import hmac
         import hashlib
+        import hmac
         
         key = signing_key or os.getenv("QSTASH_SIGNING_KEY", "")
         if not key:
@@ -125,11 +125,11 @@ def verify_qstash_signature(signature: str, body: bytes, signing_key: Optional[s
         
         return hmac.compare_digest(signature, expected)
     except Exception as e:
-        print(f"[Error] Signature verification failed: {str(e)}")
+        print(f"[Error] Signature verification failed: {e!s}")
         return False
 
 
-def get_config() -> Dict[str, Any]:
+def get_config() -> dict[str, Any]:
     """Get current QStash configuration"""
     return {
         "url": QSTASH_URL,

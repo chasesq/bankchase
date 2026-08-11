@@ -2,10 +2,9 @@
 Drift Detection API Routes
 - Monitor and analyze behavioral drift in banking transactions
 """
-from fastapi import APIRouter, Depends, HTTPException
-
-from database import fetch, fetchrow
 from auth import get_current_user
+from database import fetch
+from fastapi import APIRouter, Depends, HTTPException
 from models import TokenData
 
 router = APIRouter()
@@ -49,7 +48,7 @@ async def get_drift_analysis(
             "risk_level": "low"
         }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error analyzing drift: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error analyzing drift: {e!s}")
 
 
 @router.get("/risk-score")
@@ -65,4 +64,4 @@ async def get_risk_score(
             "factors": []
         }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error calculating risk: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error calculating risk: {e!s}")

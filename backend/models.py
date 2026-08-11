@@ -1,11 +1,10 @@
 """
 Pydantic models for request/response validation
 """
-from pydantic import BaseModel, Field, field_validator
-from typing import Optional, List
 from datetime import datetime
 from enum import Enum
 
+from pydantic import BaseModel, Field, field_validator
 
 # ==================== ENUMS ====================
 
@@ -47,8 +46,8 @@ class WebhookEventType(str, Enum):
 class UserCreate(BaseModel):
     email: str
     password: str
-    first_name: Optional[str] = None
-    last_name: Optional[str] = None
+    first_name: str | None = None
+    last_name: str | None = None
 
 
 class UserLogin(BaseModel):
@@ -58,9 +57,9 @@ class UserLogin(BaseModel):
 
 class TokenData(BaseModel):
     user_id: str
-    org_id: Optional[str] = None
+    org_id: str | None = None
     role: str = "user"
-    email: Optional[str] = None
+    email: str | None = None
 
 
 class TokenResponse(BaseModel):
@@ -73,7 +72,7 @@ class TokenResponse(BaseModel):
 
 class AccountCreate(BaseModel):
     account_type: AccountType = AccountType.checking
-    account_name: Optional[str] = None
+    account_name: str | None = None
     initial_balance: float = 0.0
 
 
@@ -82,14 +81,14 @@ class AccountResponse(BaseModel):
     user_id: str
     account_number: str
     account_type: str
-    account_name: Optional[str]
+    account_name: str | None
     balance: float
     is_demo_account: bool
     created_at: datetime
 
 
 class AccountsListResponse(BaseModel):
-    accounts: List[AccountResponse]
+    accounts: list[AccountResponse]
     total_balance: float
 
 
@@ -98,15 +97,15 @@ class AccountsListResponse(BaseModel):
 class BankInfo(BaseModel):
     code: str
     name: str
-    short_name: Optional[str]
-    routing_number: Optional[str]
-    swift_code: Optional[str]
+    short_name: str | None
+    routing_number: str | None
+    swift_code: str | None
     country_code: str
 
 
 class BanksListResponse(BaseModel):
     country: str
-    banks: List[BankInfo]
+    banks: list[BankInfo]
 
 
 # ==================== TRANSFER SCHEMAS ====================
@@ -115,10 +114,10 @@ class TransferRequest(BaseModel):
     from_account_number: str
     to_account_number: str
     to_bank_code: str
-    to_routing_number: Optional[str] = None
-    to_swift_code: Optional[str] = None
+    to_routing_number: str | None = None
+    to_swift_code: str | None = None
     amount: float = Field(..., gt=0)
-    narration: Optional[str] = None
+    narration: str | None = None
     country_code: str = "US"
     days_to_refund: int = Field(default=7, ge=1, le=30)
     pin: str = Field(..., description="4-6 digit PIN for transfer verification")
@@ -140,7 +139,7 @@ class TransferRequest(BaseModel):
 
     @field_validator('to_routing_number')
     @classmethod
-    def validate_routing_number(cls, v: Optional[str]) -> Optional[str]:
+    def validate_routing_number(cls, v: str | None) -> str | None:
         if v is None:
             return None
         v = v.strip()
@@ -157,8 +156,8 @@ class TransferRequest(BaseModel):
 class DemoTransferRequest(BaseModel):
     to_account_number: str
     to_bank_code: str
-    to_routing_number: Optional[str] = None
-    to_swift_code: Optional[str] = None
+    to_routing_number: str | None = None
+    to_swift_code: str | None = None
     amount: float = Field(..., gt=0)
     country_code: str = "US"
     days_to_refund: int = Field(default=7, ge=1, le=30)
@@ -175,7 +174,7 @@ class DemoTransferRequest(BaseModel):
 class BulkDemoTransferRequest(BaseModel):
     amount: float = Field(..., gt=0)
     days_to_refund: int = Field(default=7, ge=1, le=30)
-    note: Optional[str] = None
+    note: str | None = None
 
 
 class ReceiptResponse(BaseModel):
@@ -189,22 +188,22 @@ class ReceiptResponse(BaseModel):
     currency: str = "USD"
     status: str
     reference: str
-    narration: Optional[str] = None
-    balance_before: Optional[float] = None
-    balance_after: Optional[float] = None
+    narration: str | None = None
+    balance_before: float | None = None
+    balance_after: float | None = None
 
 
 class TransferResponse(BaseModel):
     status: str
     message: str
-    transfer_id: Optional[str] = None
-    debit_transaction_id: Optional[str] = None
-    credit_transaction_id: Optional[str] = None
+    transfer_id: str | None = None
+    debit_transaction_id: str | None = None
+    credit_transaction_id: str | None = None
     from_account: str
     to_account: str
     amount: float
-    will_refund_in_days: Optional[int] = None
-    receipt: Optional[ReceiptResponse] = None
+    will_refund_in_days: int | None = None
+    receipt: ReceiptResponse | None = None
 
 
 # ==================== TRANSACTION SCHEMAS ====================
@@ -214,14 +213,14 @@ class TransactionResponse(BaseModel):
     account_id: str
     type: str
     amount: float
-    description: Optional[str]
-    to_account: Optional[str]
+    description: str | None
+    to_account: str | None
     status: str
     date: datetime
 
 
 class TransactionHistoryResponse(BaseModel):
-    transactions: List[TransactionResponse]
+    transactions: list[TransactionResponse]
     total_count: int
     limit: int
     offset: int
@@ -240,7 +239,7 @@ class BehavioralFeatures(BaseModel):
 class DriftDetectionRequest(BaseModel):
     user_id: str
     org_id: str
-    session_id: Optional[str] = None
+    session_id: str | None = None
     features: BehavioralFeatures
     confidence: float = Field(..., ge=0, le=1)
 
@@ -265,19 +264,19 @@ class DriftDetectionResponse(BaseModel):
 
 class WebhookCreate(BaseModel):
     url: str
-    events: List[str] = ["transfer.completed", "transfer.pending"]
+    events: list[str] = ["transfer.completed", "transfer.pending"]
 
 
 class WebhookUpdate(BaseModel):
-    url: Optional[str] = None
-    events: Optional[List[str]] = None
-    is_active: Optional[bool] = None
+    url: str | None = None
+    events: list[str] | None = None
+    is_active: bool | None = None
 
 
 class WebhookResponse(BaseModel):
     id: str
     url: str
-    events: List[str]
+    events: list[str]
     is_active: bool
     created_at: datetime
 
@@ -289,8 +288,8 @@ class WebhookEventResponse(BaseModel):
     payload: dict
     status: str
     created_at: datetime
-    last_attempt_at: Optional[datetime] = None
-    next_retry_at: Optional[datetime] = None
+    last_attempt_at: datetime | None = None
+    next_retry_at: datetime | None = None
     retry_count: int = 0
 
 
@@ -298,4 +297,4 @@ class WebhookEventResponse(BaseModel):
 
 class ErrorResponse(BaseModel):
     detail: str
-    code: Optional[str] = None
+    code: str | None = None

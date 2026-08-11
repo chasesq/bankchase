@@ -1,12 +1,12 @@
 """
 Receipt generation utilities for creating and storing transaction receipts
 """
-from datetime import datetime, timezone
-import uuid
 import random
 import string
+import uuid
+from datetime import datetime, timezone
 
-from database import fetchrow, execute
+from database import fetchrow
 
 
 def generate_receipt_number() -> str:

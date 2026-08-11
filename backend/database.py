@@ -2,9 +2,10 @@
 Database connection module using asyncpg for PostgreSQL
 """
 import os
-import asyncpg
+from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
-from typing import AsyncGenerator
+
+import asyncpg
 
 DATABASE_URL = os.getenv("DATABASE_URL") or os.getenv("POSTGRES_URL")
 

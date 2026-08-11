@@ -2,10 +2,10 @@
 Bank seeding script
 Creates initial bank list and demo bank codes
 """
-import asyncpg
 import os
 import sys
-from datetime import datetime
+
+import asyncpg
 
 DATABASE_URL = os.getenv("DATABASE_URL") or os.getenv("POSTGRES_URL")
 
@@ -79,7 +79,7 @@ async def seed_banks():
                         VALUES ($1, $2, $3, $4, $5)
                         ON CONFLICT (swift_code) DO NOTHING
                     """, name, swift_code, routing_number, country, is_active)
-                except Exception as e:
+                except Exception:
                     print(f"  Skipped: {name} (already exists)")
             
             print(f"✓ Seeded {len(BANKS_DATA)} banks")
@@ -104,14 +104,14 @@ async def seed_banks():
             bank_count = await conn.fetchval("SELECT COUNT(*) FROM banks")
             account_count = await conn.fetchval("SELECT COUNT(*) FROM accounts")
             
-            print(f"\nSeed Summary:")
+            print("\nSeed Summary:")
             print(f"  Total banks: {bank_count}")
             print(f"  Total demo accounts: {account_count}")
             
             return True
     
     except Exception as e:
-        print(f"ERROR: {str(e)}")
+        print(f"ERROR: {e!s}")
         return False
     
     finally:
