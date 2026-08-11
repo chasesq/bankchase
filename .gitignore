@@ -13,6 +13,8 @@ next.user-config.*
 # Common ignores
 node_modules
 .next/
+.alchemy/
+.prisma/
 .DS_Store
 .vercel
 
