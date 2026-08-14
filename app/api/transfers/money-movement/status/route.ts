@@ -182,10 +182,8 @@ export async function GET(request: NextRequest) {
         pagination: {
           limit,
           offset,
-          total,
-          hasMore: offset + limit < total
-          total: totalCount || 0,
-          hasMore: offset + limit < (totalCount || 0)
+          total: totalCount || total,
+          hasMore: offset + limit < (totalCount || total)
         },
         summary: {
           totalTransactions: transactions.length,
@@ -201,8 +199,7 @@ export async function GET(request: NextRequest) {
           }
         },
         _links: {
-          next: offset + limit < total
-          next: offset + limit < (totalCount || 0)
+          next: offset + limit < (totalCount || total)
             ? `/api/transfers/money-movement/status?limit=${limit}&offset=${offset + limit}${statusFilter ? `&status=${statusFilter}` : ''}${typeFilter ? `&type=${typeFilter}` : ''}`
             : null,
           prev: offset > 0

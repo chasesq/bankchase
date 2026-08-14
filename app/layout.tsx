@@ -16,8 +16,8 @@ const _geist = Geist({ subsets: ["latin"] })
 const _geistMono = Geist_Mono({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "Banking Dashboard",
-  description: "Your personal banking dashboard",
+  title: "GitHub Actions vs GitHub Apps | Automation Guide",
+  description: "Learn the key differences between GitHub Actions and GitHub Apps and choose the right automation tool.",
   generator: "v0.app",
   icons: {
     icon: [

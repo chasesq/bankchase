@@ -5,26 +5,25 @@
 
 /* Light Mode (Default) */
 :root {
-  /* Premium Fintech Theme - Light Variant */
   --background: #ffffff;
-  --foreground: #0f1a2a;
-  --card: #f8f9fa;
-  --card-foreground: #0f1a2a;
+  --foreground: #1f2328;
+  --card: #f6f8fa;
+  --card-foreground: #1f2328;
   --popover: #ffffff;
-  --popover-foreground: #0f1a2a;
-  --primary: #0a6fb8;
+  --popover-foreground: #1f2328;
+  --primary: #0969da;
   --primary-foreground: #ffffff;
-  --secondary: #f0f1f3;
-  --secondary-foreground: #0f1a2a;
-  --muted: #9ca3af;
-  --muted-foreground: #6b7280;
-  --accent: #f97316;
+  --secondary: #eaeef2;
+  --secondary-foreground: #1f2328;
+  --muted: #f6f8fa;
+  --muted-foreground: #59636e;
+  --accent: #8250df;
   --accent-foreground: #ffffff;
-  --destructive: #ef4444;
+  --destructive: #cf222e;
   --destructive-foreground: #ffffff;
-  --border: #e5e7eb;
+  --border: #d0d7de;
   --input: #ffffff;
-  --ring: #0a6fb8;
+  --ring: #0969da;
   --chart-1: #0a6fb8;
   --chart-2: #f97316;
   --chart-3: #06b6d4;
