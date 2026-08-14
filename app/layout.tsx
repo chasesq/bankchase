@@ -45,7 +45,16 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <head></head>
+      <head>
+        {(process.env.NODE_ENV === "development" || process.env.VERCEL_ENV === "preview") && (
+          // eslint-disable-next-line @next/next/no-sync-scripts
+          <script
+            data-recording-token={process.env.NEXT_PUBLIC_METICULOUS_RECORDING_TOKEN}
+            data-is-production-environment="false"
+            src="https://snippet.meticulous.ai/v1/meticulous.js"
+          />
+        )}
+      </head>
       <body className={`font-sans antialiased`}>
         <LoadingProgressBar />
         <NavigationProvider>
@@ -60,15 +69,6 @@ export default function RootLayout({
             </StatsigWrapper>
           </ThemeProvider>
         </NavigationProvider>
-        {(process.env.NODE_ENV === "development" || process.env.VERCEL_ENV === "preview") && (
-          <Script
-            id="meticulous-recording"
-            src="https://snippet.meticulous.ai/v1/meticulous.js"
-            strategy="afterInteractive"
-            data-recording-token={process.env.METICULOUS_RECORDING_TOKEN}
-            data-is-production-environment="false"
-          />
-        )}
         <Script id="chatbase-widget" strategy="lazyOnload">
           {`(function(){if(!window.chatbase||window.chatbase("getState")!=="initialized"){window.chatbase=(...arguments)=>{if(!window.chatbase.q){window.chatbase.q=[]}window.chatbase.q.push(arguments)};window.chatbase=new Proxy(window.chatbase,{get(target,prop){if(prop==="q"){return target.q}return(...args)=>target(prop,...args)}})}const onLoad=function(){const script=document.createElement("script");script.src="https://www.chatbase.co/embed.min.js";script.id="${process.env.NEXT_PUBLIC_CHATBOT_ID}";script.domain="www.chatbase.co";document.body.appendChild(script)};if(document.readyState==="complete"){onLoad()}else{window.addEventListener("load",onLoad)}})();`}
         </Script>
