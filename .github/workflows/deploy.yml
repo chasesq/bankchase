@@ -4,13 +4,40 @@ on:
   push:
     branches: [main]
 
+env:
+  NODE_ENV: production
+  OCTOPUS_SERVER: ${{ secrets.OCTOPUS_SERVER }}
+  OCTOPUS_APIKEY: ${{ secrets.OCTOPUS_APIKEY }}
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    environment:
+      name: production
     steps:
       - uses: actions/checkout@v4
-      - run: npm ci
-      - run: npm run build
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Build application
+        run: npm run build
+      
       - name: Install Octopus CLI
         uses: OctopusDeploy/install-octopus-cli-action@v4.1.0
-      - run: npm run deploy
+      
+      - name: Deploy to Octopus Deploy
+        run: npm run deploy
+        env:
+          OCTOPUS_PROJECT: ${{ secrets.OCTOPUS_PROJECT }}
+          OCTOPUS_RELEASE_VERSION: ${{ github.sha }}
+      
+      - name: Report deployment status
+        if: always()
+        run: echo "Deployment completed with status ${{ job.status }}"
