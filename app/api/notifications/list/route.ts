@@ -9,47 +9,31 @@ async function getUser() {
 
 export async function GET(request: NextRequest) {
   try {
-    const searchParams = request.nextUrl.searchParams
-    const userId = searchParams.get("userId")
-    const unreadOnly = searchParams.get("unreadOnly") === "true"
-
-    if (!userId) {
-      return NextResponse.json(
-        { error: "userId is required" },
-        { status: 400 }
-      )
-    }
-
-    // Get notifications for user
-    const filters = [eq(notification.userId, userId)]
-    if (unreadOnly) filters.push(eq(notification.isRead, false))
-
-    const query = db
-      .select()
-      .from(notification)
-      .where(and(...filters))
-
-    const notifications = await query
-      .orderBy(desc(notification.createdAt))
-      .limit(50)
-
-    return NextResponse.json({
-      success: true,
-      notifications,
-      count: notifications.length,
-      unread: notifications.filter(n => !n.isRead).length,
-    })
     const { supabase, user, error: authError } = await getUser()
     if (authError || !user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    const requestedUserId = request.nextUrl.searchParams.get("userId")
-    if (requestedUserId && requestedUserId !== user.id) return NextResponse.json({ error: "Forbidden" }, { status: 403 })
 
-    let query = supabase.from("notifications").select("*").eq("user_id", user.id).order("created_at", { ascending: false }).limit(50)
+    const requestedUserId = request.nextUrl.searchParams.get("userId")
+    if (requestedUserId && requestedUserId !== user.id) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+    }
+
+    let query = supabase
+      .from("notifications")
+      .select("*")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false })
+      .limit(50)
     if (request.nextUrl.searchParams.get("unreadOnly") === "true") query = query.eq("is_read", false)
+
     const { data: notifications, error } = await query
     if (error) throw error
     const rows = notifications ?? []
-    return NextResponse.json({ success: true, notifications: rows, count: rows.length, unread: rows.filter((item) => !item.is_read).length })
+    return NextResponse.json({
+      success: true,
+      notifications: rows,
+      count: rows.length,
+      unread: rows.filter((item) => !item.is_read).length,
+    })
   } catch (error) {
     console.error("[v0] Failed to fetch notifications:", error)
     return NextResponse.json({ error: "Failed to fetch notifications" }, { status: 500 })

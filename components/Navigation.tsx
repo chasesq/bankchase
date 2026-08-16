@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Menu, X, LogOut, LayoutDashboard, Wallet, Send, User } from 'lucide-react';
+import { Menu, X, LogOut, LayoutDashboard, Wallet, Send, User, Bell, Target } from 'lucide-react';
 
 export function Navigation() {
   const [isOpen, setIsOpen] = useState(false);
@@ -22,6 +22,8 @@ export function Navigation() {
     { label: 'Accounts', href: '/accounts', icon: Wallet },
     { label: 'Cards', href: '/cards', icon: Wallet },
     { label: 'Transfers', href: '/transfers', icon: Send },
+    { label: 'Alerts', href: '/notifications', icon: Bell },
+    { label: 'Savings', href: '/savings', icon: Target },
     { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
     { label: 'Settings', href: '/settings', icon: User },
   ];
