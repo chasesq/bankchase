@@ -1,0 +1,1 @@
+﻿This Vercel error means the Vercel account used for the deployment is not connected to a GitHub account; this is a Vercel project/account configuration issue, not a repository code problem. Please connect the GitHub account to Vercel and link the project to this repository (or share the Vercel deployment logs/project settings) and re-trigger the deployment.
