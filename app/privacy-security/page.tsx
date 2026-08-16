@@ -94,6 +94,18 @@ export default function PrivacySecurityPage() {
           </div>
         </Card>
 
+        <Card className="bg-amber-50 border-amber-200 shadow-none mb-8 p-5">
+          <div className="flex items-start gap-3">
+            <AlertCircle className="w-5 h-5 text-amber-700 mt-0.5 flex-shrink-0" />
+            <div>
+              <h3 className="font-semibold text-amber-900">Login alerts, scam texts, and payment safety</h3>
+              <p className="text-sm text-amber-900 mt-1">
+                You can enroll to receive account alerts by email, text, or in-app notification. Scam messages often use urgent language or a link to trick you into logging in or sending money. Never click links in unexpected texts, verify the sender through the official BankChase app or website, and be cautious with social media ads or payment requests. If you send money through Zelle, confirm that the recipient is enrolled and that the payment is going to the right person.
+              </p>
+            </div>
+          </div>
+        </Card>
+
         {/* Main Settings Tabs */}
         <Tabs defaultValue="authentication" className="space-y-6">
           <TabsList className="bg-background border shadow-sm w-full justify-start overflow-x-auto">
