@@ -3,8 +3,15 @@ import { attachDatabasePool } from '@vercel/functions';
 
 // MongoDB is optional - only required at runtime if MongoDB features are used
 
-// MongoDB is optional - only create client if URI is provided
-const mongoUri = process.env.MONGODB_URI;
+// Support the project variables used by Vercel and local development.
+// `sd_MONGODB_URI` may be mapped to `process.env.MONGODB_CONNECTION_STRING`
+// by the deployment environment, but the runtime must always read the actual
+// connection string value rather than the expression as a literal string.
+const mongoUri =
+  process.env.MONGODB_CONNECTION_STRING ??
+  process.env.MONGODB_URI ??
+  process.env.sd_MONGODB_URI ??
+  process.env.ws_MONGODB_URI;
 
 const options: MongoClientOptions = {
   appName: 'bankchase.app',
@@ -33,7 +40,9 @@ let mongoConnected = false;
  */
 export async function getMongoClient(): Promise<MongoClient> {
   if (!client) {
-    throw new Error('MongoDB not configured. Set MONGODB_URI environment variable.');
+    throw new Error(
+      'MongoDB not configured. Set MONGODB_CONNECTION_STRING, MONGODB_URI, sd_MONGODB_URI, or ws_MONGODB_URI.',
+    );
   }
   
   if (!mongoConnected) {
