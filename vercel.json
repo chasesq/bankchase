@@ -1,12 +1,1 @@
-{
-  "services": {
-    "frontend": {
-      "entrypoint": ".",
-      "routePrefix": "/"
-    },
-    "backend": {
-      "entrypoint": "backend/main.py",
-      "routePrefix": "/api/v2"
-    }
-  }
-}
+{}
