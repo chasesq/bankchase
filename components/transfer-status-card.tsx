@@ -34,14 +34,14 @@ export default function TransferStatusCard({
     textColor: string
   }> = {
     pending: {
-      icon: '⏳',
+      icon: '…',
       label: 'Pending',
       color: 'yellow',
       bgColor: 'bg-yellow-50',
       textColor: 'text-yellow-800'
     },
     processing: {
-      icon: '⚙️',
+      icon: '•',
       label: 'Processing',
       color: 'blue',
       bgColor: 'bg-background',
@@ -100,6 +100,18 @@ export default function TransferStatusCard({
             <p className="text-xs text-muted-foreground">{transfer.receiverBank}</p>
           )}
         </div>
+
+        {transfer.status === 'pending' && (
+          <div className="rounded border border-border bg-background p-3 text-sm text-muted-foreground">
+            The recipient may need to enroll with the same email address or mobile number. If they do not enroll, cancel this pending transfer rather than sending it again.
+          </div>
+        )}
+
+        {transfer.status === 'completed' && (
+          <div className="rounded border border-border bg-background p-3 text-sm text-muted-foreground">
+            If the recipient cannot find a completed payment, ask them to check the account connected to their enrolled contact information and contact their bank or credit union.
+          </div>
+        )}
 
         {/* Failure Reason */}
         {transfer.status === 'failed' && transfer.failureReason && (
