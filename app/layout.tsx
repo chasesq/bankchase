@@ -6,6 +6,7 @@ import { Analytics } from "@vercel/analytics/next"
 import { SpeedInsights } from "@vercel/speed-insights/next"
 import { Toaster } from "@/components/ui/toaster"
 import { BankingProvider } from "@/lib/banking-context"
+import { AuthProvider } from "@/lib/auth-context"
 import { ThemeProvider } from "@/components/theme-provider"
 import { LoadingProgressBar } from "@/components/loading-progress-bar"
 import StatsigWrapper from "./statsig-provider"
@@ -51,12 +52,14 @@ export default function RootLayout({
         <NavigationProvider>
           <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
             <StatsigWrapper>
-              <BankingProvider>
-                {children}
-                <Toaster />
-                <Analytics />
-                <SpeedInsights />
-              </BankingProvider>
+              <AuthProvider>
+                <BankingProvider>
+                  {children}
+                  <Toaster />
+                  <Analytics />
+                  <SpeedInsights />
+                </BankingProvider>
+              </AuthProvider>
             </StatsigWrapper>
           </ThemeProvider>
         </NavigationProvider>

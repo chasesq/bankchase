@@ -37,7 +37,7 @@ interface Card {
 
 function CardsContent() {
   const { isLoaded, userProfile } = useBanking();
-  const userId = userProfile.id;
+  const userId = userProfile?.id;
   const [cards, setCards] = useState<Card[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -199,12 +199,10 @@ function CardsContent() {
             <h1 className="text-4xl font-bold text-foreground mb-2">Cards</h1>
             <p className="text-muted-foreground">Manage your digital and physical cards</p>
           </div>
-          <Link href="/cards/issue">
-            <button className="flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:opacity-90 transition">
+            <Link href="/cards/issue" className="flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:opacity-90 transition">
               <Plus className="w-4 h-4" />
               Issue Card
-            </button>
-          </Link>
+            </Link>
         </div>
 
         {/* Error Alert */}
@@ -230,10 +228,8 @@ function CardsContent() {
           <div className="text-center py-16">
             <CreditCard className="w-16 h-16 mx-auto text-muted-foreground mb-4 opacity-30" />
             <p className="text-muted-foreground mb-4">No cards yet</p>
-            <Link href="/cards/issue">
-              <button className="bg-primary text-primary-foreground px-6 py-2 rounded-lg hover:opacity-90 transition">
-                Issue Your First Card
-              </button>
+            <Link href="/cards/issue" className="inline-flex bg-primary text-primary-foreground px-6 py-2 rounded-lg hover:opacity-90 transition">
+              Issue Your First Card
             </Link>
           </div>
         ) : (
@@ -357,11 +353,9 @@ function CardsContent() {
 
                   {/* Transfer Button */}
                   {card.status === 'active' && (
-                    <Link href={`/transfer?cardId=${card.id}`}>
-                      <button className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg text-sm font-medium transition flex items-center justify-center gap-2">
-                        <Send className="w-4 h-4" />
-                        Transfer Money
-                      </button>
+                    <Link href={`/transfer?cardId=${card.id}`} className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg text-sm font-medium transition flex items-center justify-center gap-2">
+                      <Send className="w-4 h-4" />
+                      Transfer Money
                     </Link>
                   )}
                 </div>

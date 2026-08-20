@@ -72,6 +72,26 @@ export default function HelpPage() {
       question: 'How do I link an external bank account?',
       answer: 'Go to Settings > External Accounts and follow the verification process with your external bank credentials.',
     },
+    {
+      id: 'zelle-pending',
+      question: 'I sent money and the recipient has not received it. What should I do?',
+      answer: 'First check the transfer status. If it is pending, the recipient may not have enrolled the email address or mobile number used for the payment. Ask them to enroll using that same contact information; once enrolled, the payment can be delivered. A pending payment may be canceled from the transfer details. If the payment shows completed, confirm the recipient information and have the recipient contact their bank or credit union for help.',
+    },
+    {
+      id: 'zelle-enrollment',
+      question: 'Why is my payment still pending?',
+      answer: 'Payments can remain pending when the recipient has not enrolled the email address or U.S. mobile number used for the payment. Confirm the recipient details and ask them to enroll with the same information. If they do not enroll, cancel the pending payment from its details when that option is available.',
+    },
+    {
+      id: 'zelle-completed',
+      question: 'What if the transfer says completed but the recipient cannot find it?',
+      answer: 'A completed transfer cannot normally be canceled. Ask the recipient to check the bank account connected to the enrolled email address or mobile number, then contact their bank or credit union. Do not send the payment again until the original transfer has been located.',
+    },
+    {
+      id: 'zelle-safety',
+      question: 'Can I cancel a payment or report a problem?',
+      answer: 'Cancel only payments that are still pending and have not been enrolled by the recipient. For suspected fraud, an incorrect recipient, or an unauthorized payment, contact us and your bank immediately using the number on your bank card or official statement.',
+    },
   ]
 
   const filteredFaqs = mockFaqs.filter(
@@ -158,6 +178,17 @@ export default function HelpPage() {
                 />
               </div>
             </Card>
+            <p className="mb-6 text-sm text-muted-foreground">
+              For additional Zelle guidance, visit the{' '}
+              <a
+                href="https://www.zelle.com/faq/i-sent-money-someone-and-they-never-received-it-what-should-i-do"
+                target="_blank"
+                rel="noreferrer"
+                className="font-medium text-primary underline underline-offset-4"
+              >
+                official recipient-not-received FAQ
+              </a>.
+            </p>
 
             <div className="space-y-3">
               {filteredFaqs.map((faq) => (
