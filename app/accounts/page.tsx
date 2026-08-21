@@ -2,7 +2,6 @@
 
 import { useAccounts } from '@/hooks/useAccounts';
 import { useTransactions } from '@/hooks/useTransactions';
-import { useDemoBalance } from '@/hooks/useDemoFunds';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { Navigation } from '@/components/Navigation';
 import { ArrowUpRight, ArrowDownLeft, TrendingUp, Wallet } from 'lucide-react';
@@ -12,7 +11,6 @@ import Link from 'next/link';
 function AccountsContent() {
   const { accounts, totalBalance, isLoading } = useAccounts();
   const { transactions } = useTransactions(undefined, 10);
-  const { balance: demoBalance } = useDemoBalance();
 
   return (
     <main className="min-h-screen bg-background pb-24 md:pb-8">
@@ -89,24 +87,6 @@ function AccountsContent() {
             )}
           </div>
         </div>
-
-        {/* Demo Balance Section */}
-        {demoBalance > 0 && (
-          <div className="mb-8">
-            <h3 className="text-2xl font-bold text-foreground mb-4">Demo Funds</h3>
-            <div className="bg-background dark:bg-blue-950 border border-blue-200 dark:border-blue-900 rounded-xl p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-blue-700 dark:text-blue-300 mb-1">Available Demo Balance</p>
-                  <p className="text-3xl font-bold text-blue-900 dark:text-blue-100">
-                    ${demoBalance.toFixed(2)}
-                  </p>
-                </div>
-                <div className="text-4xl opacity-20">💰</div>
-              </div>
-            </div>
-          </div>
-        )}
 
         {/* Recent Transactions */}
         <div>
