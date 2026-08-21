@@ -63,7 +63,9 @@ function mapUser(user: SupabaseUser): User {
     city: metadata.city,
     state: metadata.state,
     zipCode: metadata.zipCode,
-    role: user.app_metadata?.role,
+    role: ['admin', 'editor', 'viewer'].includes(user.app_metadata?.role)
+      ? (user.app_metadata.role as User['role'])
+      : undefined,
   }
 }
 
@@ -75,14 +77,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     let mounted = true
-    void supabase.auth.getSession().then(({ data }) => {
+    void supabase.auth.getSession().then(({ data }: { data: { session: { user: SupabaseUser; access_token: string } | null } }) => {
       if (!mounted) return
       setUser(data.session?.user ? mapUser(data.session.user) : null)
       setToken(data.session?.access_token ?? null)
       setLoading(false)
     })
 
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: listener } = supabase.auth.onAuthStateChange((_event: string, session: { user: SupabaseUser; access_token: string } | null) => {
       if (!mounted) return
       setUser(session?.user ? mapUser(session.user) : null)
       setToken(session?.access_token ?? null)
