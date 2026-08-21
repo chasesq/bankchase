@@ -95,24 +95,24 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // Build base query with filters
-    let baseQuery = supabase
+    // Build a head-only count query with the same filters.
+    let countQuery = supabase
       .from('transactions')
-      .select('*')
+      .select('*', { count: 'exact', head: true })
       .eq('user_id', user.id)
 
     // Apply status filter
     if (statusFilter && ['completed', 'processing', 'failed', 'pending'].includes(statusFilter)) {
-      baseQuery = baseQuery.eq('status', statusFilter)
+      countQuery = countQuery.eq('status', statusFilter)
     }
 
     // Apply type filter
     if (typeFilter && ['transfer', 'deposit', 'payment', 'withdrawal', 'bank_transfer'].includes(typeFilter)) {
-      baseQuery = baseQuery.eq('type', typeFilter)
+      countQuery = countQuery.eq('type', typeFilter)
     }
 
-    // Get total count with the same filters
-    const { count: totalCount, error: countError } = await baseQuery.count('exact')
+    // Get total count with the same filters.
+    const { count: totalCount, error: countError } = await countQuery
 
     if (countError) {
       console.error('[v0] Failed to get count:', countError)

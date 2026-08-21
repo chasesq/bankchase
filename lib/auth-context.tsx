@@ -1,6 +1,8 @@
 'use client'
 
-import React, { createContext, useContext, useEffect, useState } from 'react'
+import { createContext, useContext, useEffect, useMemo, useState } from 'react'
+import { createClient } from '@/lib/supabase/client'
+import type { User as SupabaseUser } from '@supabase/supabase-js'
 
 export interface User {
   id: string
@@ -9,18 +11,13 @@ export interface User {
   firstName?: string
   lastName?: string
   phone?: string
-  ssn?: string
   dateOfBirth?: string
   address?: string
   city?: string
   state?: string
   zipCode?: string
   role?: 'admin' | 'editor' | 'viewer'
-  permissions?: Array<{
-    role: string
-    action: string
-    resource: string
-  }>
+  permissions?: Array<{ role: string; action: string; resource: string }>
 }
 
 interface AuthContextType {
@@ -34,7 +31,7 @@ interface AuthContextType {
   verifyToken: () => Promise<void>
 }
 
-interface RegisterData {
+export interface RegisterData {
   username: string
   email: string
   password: string
@@ -50,6 +47,25 @@ interface RegisterData {
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
+const supabase = createClient()
+
+function mapUser(user: SupabaseUser): User {
+  const metadata = user.user_metadata ?? {}
+  return {
+    id: user.id,
+    username: String(metadata.username ?? user.email ?? ''),
+    email: user.email ?? '',
+    firstName: metadata.firstName,
+    lastName: metadata.lastName,
+    phone: user.phone ?? metadata.phone,
+    dateOfBirth: metadata.dateOfBirth,
+    address: metadata.address,
+    city: metadata.city,
+    state: metadata.state,
+    zipCode: metadata.zipCode,
+    role: user.app_metadata?.role,
+  }
+}
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
@@ -57,197 +73,93 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  // Initialize from localStorage and verify token
   useEffect(() => {
-    const initAuth = async () => {
-      try {
-        const storedToken = localStorage.getItem('auth_token')
-        const storedUser = localStorage.getItem('auth_user')
+    let mounted = true
+    void supabase.auth.getSession().then(({ data }) => {
+      if (!mounted) return
+      setUser(data.session?.user ? mapUser(data.session.user) : null)
+      setToken(data.session?.access_token ?? null)
+      setLoading(false)
+    })
 
-        if (storedToken && storedUser) {
-          setToken(storedToken)
-          setUser(JSON.parse(storedUser))
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!mounted) return
+      setUser(session?.user ? mapUser(session.user) : null)
+      setToken(session?.access_token ?? null)
+      setLoading(false)
+    })
 
-          // Verify token is still valid (but don't fail if verification fails)
-          try {
-            await verifyTokenHelper(storedToken)
-          } catch (verifyErr) {
-            // Token verification failed, but we'll stay logged in with cached data
-            console.warn('Token verification failed, using cached data:', verifyErr)
-          }
-        }
-      } catch (err) {
-        console.error('Auth initialization error:', err)
-        localStorage.removeItem('auth_token')
-        localStorage.removeItem('auth_user')
-        setUser(null)
-        setToken(null)
-      } finally {
-        setLoading(false)
-      }
+    return () => {
+      mounted = false
+      listener.subscription.unsubscribe()
     }
-
-    initAuth()
   }, [])
 
-  const verifyTokenHelper = async (tokenToVerify: string) => {
-    try {
-      const response = await fetch('/api/auth/verify', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${tokenToVerify}`,
-          'Content-Type': 'application/json',
-        },
-      })
-
-      if (!response.ok) {
-        throw new Error('Token verification failed')
-      }
-
-      const data = await response.json()
-      setUser(data.user)
-      setToken(tokenToVerify)
-    } catch (err) {
-      console.error('Token verification error:', err)
-      localStorage.removeItem('auth_token')
-      localStorage.removeItem('auth_user')
-      setUser(null)
-      setToken(null)
-      throw err
-    }
-  }
-
   const login = async (username: string, password: string) => {
-    try {
-      setLoading(true)
-      setError(null)
-
-      // Input validation
-      if (!username || !password) {
-        throw new Error('Username and password are required')
-      }
-
-      if (username.trim().length === 0 || password.trim().length === 0) {
-        throw new Error('Username and password cannot be empty')
-      }
-
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: username.trim(), password }),
-      })
-
-      if (!response.ok) {
-        const data = await response.json()
-        throw new Error(data.error || 'Invalid username or password')
-      }
-
-      const data = await response.json()
-
-      if (!data.token || !data.user) {
-        throw new Error('Invalid authentication response from server')
-      }
-
-      // Store token and user in localStorage
-      localStorage.setItem('auth_token', data.token)
-      localStorage.setItem('auth_user', JSON.stringify(data.user))
-
-      // Update state
-      setToken(data.token)
-      setUser(data.user)
-      setError(null)
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Login failed. Please try again.'
-      setError(errorMessage)
-      throw err
-    } finally {
+    setLoading(true)
+    setError(null)
+    const email = username.trim()
+    if (!email || !password.trim()) {
+      const message = 'Email and password are required'
+      setError(message)
       setLoading(false)
+      throw new Error(message)
+    }
+    const { error: authError } = await supabase.auth.signInWithPassword({ email, password })
+    setLoading(false)
+    if (authError) {
+      const message = authError.message.toLowerCase().includes('confirm')
+        ? 'Please confirm your email before signing in.'
+        : 'Invalid email or password.'
+      setError(message)
+      throw new Error(message)
     }
   }
 
   const register = async (userData: RegisterData) => {
-    try {
-      setLoading(true)
-      setError(null)
-
-      const response = await fetch('/api/auth/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(userData),
-      })
-
-      if (!response.ok) {
-        const data = await response.json()
-        throw new Error(data.error || 'Registration failed')
-      }
-
-      const data = await response.json()
-
-      if (!data.token || !data.user) {
-        throw new Error('Invalid registration response from server')
-      }
-
-      // Store token and user in localStorage
-      localStorage.setItem('auth_token', data.token)
-      localStorage.setItem('auth_user', JSON.stringify(data.user))
-
-      // Update state
-      setToken(data.token)
-      setUser(data.user)
-      setError(null)
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Registration failed'
-      setError(errorMessage)
-      throw err
-    } finally {
-      setLoading(false)
+    setLoading(true)
+    setError(null)
+    const { error: authError } = await supabase.auth.signUp({
+      email: userData.email.trim(),
+      password: userData.password,
+      options: {
+        emailRedirectTo: process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL ?? `${window.location.origin}/auth/callback`,
+        data: {
+          username: userData.username,
+          firstName: userData.firstName,
+          lastName: userData.lastName,
+          phone: userData.phone,
+          dateOfBirth: userData.dateOfBirth,
+          address: userData.address,
+          city: userData.city,
+          state: userData.state,
+          zipCode: userData.zipCode,
+        },
+      },
+    })
+    setLoading(false)
+    if (authError) {
+      const message = authError.message.toLowerCase().includes('password') ? authError.message : 'Registration could not be completed.'
+      setError(message)
+      throw new Error(message)
     }
   }
 
   const logout = () => {
-    localStorage.removeItem('auth_token')
-    localStorage.removeItem('auth_user')
-    setUser(null)
-    setToken(null)
-    setError(null)
+    void supabase.auth.signOut()
   }
 
   const verifyToken = async () => {
-    if (!token) {
-      throw new Error('No token available')
-    }
-
-    try {
-      await verifyTokenHelper(token)
-    } catch (err) {
-      setUser(null)
-      setToken(null)
-      throw err
-    }
+    const { data, error: authError } = await supabase.auth.getUser()
+    if (authError || !data.user) throw new Error('Authentication required')
   }
 
-  return (
-    <AuthContext.Provider
-      value={{
-        user,
-        token,
-        loading,
-        error,
-        login,
-        register,
-        logout,
-        verifyToken,
-      }}
-    >
-      {children}
-    </AuthContext.Provider>
-  )
+  const value = useMemo(() => ({ user, token, loading, error, login, register, logout, verifyToken }), [user, token, loading, error])
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }
 
 export function useAuth() {
   const context = useContext(AuthContext)
-  if (context === undefined) {
-    throw new Error('useAuth must be used within AuthProvider')
-  }
+  if (!context) throw new Error('useAuth must be used within AuthProvider')
   return context
 }
