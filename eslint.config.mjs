@@ -10,6 +10,7 @@ export default defineConfig([
       'react-hooks/immutability': 'off',
       'react-hooks/exhaustive-deps': 'warn',
       'react-hooks/purity': 'off',
+      'react-hooks/preserve-manual-memoization': 'off',
       'react/no-unescaped-entities': 'off',
     },
   })),

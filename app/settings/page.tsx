@@ -43,8 +43,7 @@ interface AppSettings {
 }
 
 function SettingsContent() {
-  const { isLoaded, userProfile } = useBanking()
-  const userId = userProfile.id
+  const { isLoaded } = useBanking()
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -81,12 +80,12 @@ function SettingsContent() {
 
   // Fetch user settings
   useEffect(() => {
-    if (!userId || !isLoaded) return
+    if (!isLoaded) return
 
     const fetchSettings = async () => {
       try {
         setLoading(true)
-        const response = await fetch(`/api/user/settings?userId=${userId}`)
+        const response = await fetch('/api/user/settings')
         if (response.ok) {
           const data = await response.json()
           setSettings(data.settings || settings)
@@ -99,7 +98,7 @@ function SettingsContent() {
     }
 
     fetchSettings()
-  }, [userId, isLoaded])
+  }, [isLoaded])
 
   const handleNotificationToggle = (key: keyof NotificationSettings) => {
     setSettings((prev) => ({
@@ -162,14 +161,12 @@ function SettingsContent() {
   }
 
   const handleSave = async () => {
-    if (!userId) return
-
     setSaving(true)
     try {
       const response = await fetch('/api/user/settings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId, settings }),
+        body: JSON.stringify({ settings }),
       })
 
       if (!response.ok) throw new Error('Failed to save settings')

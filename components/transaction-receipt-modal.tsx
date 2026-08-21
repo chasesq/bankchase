@@ -79,11 +79,11 @@ export function TransactionReceiptModal({
   const generateReceiptText = () => {
     return `
 ═══════════════════════════════════════════
-           CHASE BANK TRANSACTION RECEIPT
+           BANKCHASE DIGITAL RECEIPT
 ═══════════════════════════════════════════
 
-Account Holder: ${userProfile?.name || "Lin Huang"}
-Account Email: ${userProfile?.email || "linhuang011@gmail.com"}
+Account Holder: ${userProfile?.name || "Account holder"}
+Account Email: ${userProfile?.email || "your account email"}
 Date: ${formatDate(transaction.date)}
 
 ───────────────────────────────────────────
@@ -109,8 +109,8 @@ ${transaction.routingNumber ? `Routing: ${transaction.routingNumber}` : ""}
 
 ═══════════════════════════════════════════
         This is your official receipt.
-     JPMorgan Chase Bank, N.A. Member FDIC
-         Questions? Call 1-800-935-9935
+     BankChase digital transaction record
+         Keep this receipt for your records
 ═══════════════════════════════════════════
     `
   }
@@ -140,7 +140,7 @@ ${transaction.routingNumber ? `Routing: ${transaction.routingNumber}` : ""}
 </head>
 <body>
   <div class="header">
-    <div class="logo">CHASE</div>
+    <div class="logo">BANKCHASE</div>
     <div>Transaction Receipt</div>
   </div>
   <div class="content">
@@ -153,11 +153,11 @@ ${transaction.routingNumber ? `Routing: ${transaction.routingNumber}` : ""}
     <div style="margin-top: 20px;">
       <div class="detail-row">
         <span class="detail-label">Account Holder</span>
-        <span class="detail-value">${userProfile?.name || "Lin Huang"}</span>
+        <span class="detail-value">${userProfile?.name || "Account holder"}</span>
       </div>
       <div class="detail-row">
         <span class="detail-label">Email</span>
-        <span class="detail-value">${userProfile?.email || "linhuang011@gmail.com"}</span>
+        <span class="detail-value">${userProfile?.email || "your account email"}</span>
       </div>
       <div class="detail-row">
         <span class="detail-label">Description</span>
@@ -196,8 +196,8 @@ ${transaction.routingNumber ? `Routing: ${transaction.routingNumber}` : ""}
     </div>
   </div>
   <div class="footer">
-    <p>JPMorgan Chase Bank, N.A. Member FDIC</p>
-    <p>Questions? Call 1-800-935-9935</p>
+    <p>BankChase digital transaction record</p>
+    <p>Keep this receipt for your records</p>
   </div>
 </body>
 </html>
@@ -208,7 +208,7 @@ ${transaction.routingNumber ? `Routing: ${transaction.routingNumber}` : ""}
     const receiptText = generateReceiptText()
     const element = document.createElement("a")
     element.setAttribute("href", "data:text/plain;charset=utf-8," + encodeURIComponent(receiptText))
-    element.setAttribute("download", `chase-receipt-${transaction.reference}.txt`)
+    element.setAttribute("download", `bankchase-receipt-${transaction.reference}.txt`)
     element.style.display = "none"
     document.body.appendChild(element)
     element.click()
@@ -230,10 +230,10 @@ ${transaction.routingNumber ? `Routing: ${transaction.routingNumber}` : ""}
   }
 
   const handleShare = async () => {
-    const shareText = `Chase Receipt: ${transaction.description} - $${transaction.amount.toFixed(2)} - Ref: ${transaction.reference}`
+    const shareText = `BankChase digital receipt: ${transaction.description} - $${transaction.amount.toFixed(2)} - Ref: ${transaction.reference}`
     if (navigator.share) {
       try {
-        await navigator.share({ title: "Chase Transaction Receipt", text: shareText })
+        await navigator.share({ title: "BankChase Digital Receipt", text: shareText })
       } catch {
         navigator.clipboard.writeText(shareText)
         toast({ title: "Copied to Clipboard", description: "Receipt details copied." })
@@ -251,15 +251,15 @@ ${transaction.routingNumber ? `Routing: ${transaction.routingNumber}` : ""}
   const handleSendEmail = () => {
     setEmailSending(true)
     setTimeout(() => {
-      const subject = encodeURIComponent(`Chase Receipt - ${transaction.reference}`)
+      const subject = encodeURIComponent(`BankChase Digital Receipt - ${transaction.reference}`)
       const body = encodeURIComponent(generateReceiptText())
-      window.open(`mailto:${emailTo || userProfile?.email || "linhuang011@gmail.com"}?subject=${subject}&body=${body}`)
+      window.open(`mailto:${emailTo || userProfile?.email || "your account email"}?subject=${subject}&body=${body}`)
       setEmailSending(false)
       setShowEmailForm(false)
       setEmailTo("")
       toast({
         title: "Email Client Opened",
-        description: `Receipt ready to send to ${emailTo || userProfile?.email || "linhuang011@gmail.com"}`,
+        description: `Receipt ready to send to ${emailTo || userProfile?.email || "your account email"}`,
       })
     }, 500)
   }
@@ -333,7 +333,7 @@ ${transaction.routingNumber ? `Routing: ${transaction.routingNumber}` : ""}
 
   const handleSendSMS = () => {
     const message = encodeURIComponent(
-      `Chase Receipt: ${transaction.description} - $${transaction.amount.toFixed(2)} - Ref: ${transaction.reference}`,
+      `BankChase Digital Receipt: ${transaction.description} - ${transaction.amount.toFixed(2)} - Ref: ${transaction.reference}`,
     )
     window.open(`sms:?body=${message}`)
     toast({ title: "SMS App Opened", description: "Receipt ready to send via text message." })
@@ -387,12 +387,12 @@ ${transaction.routingNumber ? `Routing: ${transaction.routingNumber}` : ""}
           <div className="space-y-4 bg-muted/50 rounded-lg p-4">
             <div>
               <p className="text-xs text-muted-foreground">Account Holder</p>
-              <p className="font-medium">{userProfile?.name || "Lin Huang"}</p>
+              <p className="font-medium">{userProfile?.name || "Account holder"}</p>
             </div>
 
             <div>
               <p className="text-xs text-muted-foreground">Email</p>
-              <p className="font-medium">{userProfile?.email || "linhuang011@gmail.com"}</p>
+              <p className="font-medium">{userProfile?.email || "your account email"}</p>
             </div>
 
             <div>
@@ -471,7 +471,7 @@ ${transaction.routingNumber ? `Routing: ${transaction.routingNumber}` : ""}
               <Label className="text-sm">Send receipt to email:</Label>
               <Input
                 type="email"
-                placeholder={userProfile?.email || "linhuang011@gmail.com"}
+                placeholder={userProfile?.email || "your account email"}
                 value={emailTo}
                 onChange={(e) => setEmailTo(e.target.value)}
               />

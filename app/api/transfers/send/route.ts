@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { v4 as uuidv4 } from 'uuid'
 import { createClient } from '@/lib/supabase/server'
 import axios from 'axios'
+import { NotificationService } from '@/lib/notification-service'
 
 /**
  * POST /api/transfers/send
@@ -22,7 +23,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { fromAccountId, toAccountNumber, toBankCode, amount, narration, recipientName, transferType } = body
+    const { fromAccountId, toAccountNumber, toBankCode, amount, narration, recipientName, recipientEmail, recipientMobile, transferType } = body
 
     // Validate required fields
     if (!fromAccountId || !toAccountNumber || !toBankCode || !amount || !recipientName) {
@@ -43,6 +44,13 @@ export async function POST(request: NextRequest) {
         { success: false, error: 'Amount must be a positive number' },
         { status: 400 }
       )
+    }
+
+    if (recipientEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(recipientEmail)) {
+      return NextResponse.json({ success: false, error: 'Recipient email is invalid' }, { status: 400 })
+    }
+    if (recipientMobile && !/^\+?[1-9]\d{7,14}$/.test(recipientMobile.replace(/[\s()-]/g, ''))) {
+      return NextResponse.json({ success: false, error: 'Recipient mobile number is invalid' }, { status: 400 })
     }
 
     if (parsedAmount > 10000000) {
@@ -101,7 +109,10 @@ export async function POST(request: NextRequest) {
               bankCode: toBankCode,
               recipientName,
               amount: parsedAmount,
-              narration
+              narration,
+              recipientEmail,
+              recipientMobile,
+              transferType
             })
           }
         )
@@ -134,7 +145,10 @@ export async function POST(request: NextRequest) {
           toBankCode,
           amount: parsedAmount,
           recipientName,
-          narration
+          narration,
+          recipientEmail,
+          recipientMobile,
+          transferType
         })
       }
     )
@@ -154,6 +168,19 @@ export async function POST(request: NextRequest) {
     }
 
     console.log('[v0] Transfer send successful:', realtimeData.transaction)
+
+    const reference = realtimeData.transaction?.transactionId || uuidv4()
+    await NotificationService.publishNotification({
+      id: uuidv4(),
+      userId: user.id,
+      type: 'transfer',
+      channel: 'in_app',
+      title: transferType === 'zelle' ? 'Zelle-style payment sent' : 'Transfer submitted',
+      message: `Your ${transferType || 'bank'} transfer to ${recipientName} for ${parsedAmount.toFixed(2)} is ${realtimeData.status || 'processing'}.`,
+      data: { reference, transferType, recipientEmail, recipientMobile, amount: parsedAmount, delivery: { inApp: true, email: Boolean(recipientEmail && process.env.RESEND_API_KEY), sms: Boolean(recipientMobile && process.env.TERMII_API_KEY) } },
+      read: false,
+      createdAt: new Date(),
+    })
 
     // Return 200 with transfer completion status
     return NextResponse.json(

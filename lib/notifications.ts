@@ -1,5 +1,5 @@
 export type NotificationType = 'transfer' | 'deposit' | 'withdrawal' | 'alert' | 'fraud' | 'low_balance'
-export type NotificationChannel = 'email' | 'sms' | 'slack' | 'discord' | 'teams' | 'webhook'
+export type NotificationChannel = 'in_app' | 'email' | 'sms' | 'slack' | 'discord' | 'teams' | 'webhook'
 export type WebhookEventType = 'transaction.completed' | 'transaction.failed' | 'balance.low' | 'fraud.detected' | 'account.updated'
 
 export interface Notification {
