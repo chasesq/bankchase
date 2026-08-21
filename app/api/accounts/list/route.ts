@@ -3,24 +3,11 @@ import { createClient } from "@/lib/supabase/server"
 
 export async function GET(request: NextRequest) {
   try {
-    const searchParams = request.nextUrl.searchParams
-    const userId = searchParams.get("userId")
-
-    if (!userId) {
-      return NextResponse.json(
-        { error: "userId is required" },
-        { status: 400 }
-      )
-    }
-
     const supabase = await createClient()
     const { data: { user }, error: authError } = await supabase.auth.getUser()
 
     if (authError || !user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    }
-    if (user.id !== userId) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 })
     }
 
     const { data: accounts, error } = await supabase
@@ -50,7 +37,6 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
     const {
-      userId,
       accountName,
       accountNumber,
       routingNumber,
@@ -59,7 +45,7 @@ export async function POST(request: NextRequest) {
       balance = "0.00",
     } = body
 
-    if (!userId || !accountName || !accountNumber || !routingNumber || !bankName) {
+    if (!accountName || !accountNumber || !routingNumber || !bankName) {
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400 }
@@ -71,9 +57,6 @@ export async function POST(request: NextRequest) {
 
     if (authError || !user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    }
-    if (user.id !== userId) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 })
     }
 
     const { count, error: countError } = await supabase
