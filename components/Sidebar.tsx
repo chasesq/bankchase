@@ -1,7 +1,9 @@
 'use client'
 
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
+import { useAuth } from '@/lib/auth-context'
+import { useState } from 'react'
 
 const navItems = [
   { name: 'Accounts', href: '/accounts', icon: '🏦' },
@@ -13,6 +15,21 @@ const navItems = [
 
 export default function Sidebar() {
   const pathname = usePathname()
+  const router = useRouter()
+  const { logout } = useAuth()
+  const [signingOut, setSigningOut] = useState(false)
+
+  const handleSignOut = async () => {
+    if (signingOut) return
+    setSigningOut(true)
+    try {
+      await logout()
+      router.replace('/sign-in')
+      router.refresh()
+    } catch {
+      setSigningOut(false)
+    }
+  }
 
   return (
     <div className="hidden md:flex w-72 flex-col bg-background border-r border-border h-screen p-6 fixed left-0 top-0 overflow-y-auto">
@@ -43,8 +60,8 @@ export default function Sidebar() {
       </nav>
 
       <div className="pt-6 border-t border-border">
-        <button className="w-full px-5 py-3 rounded-2xl text-sm font-medium bg-red-50 text-red-600 hover:bg-red-100 transition">
-          Sign Out
+        <button onClick={handleSignOut} disabled={signingOut} className="w-full px-5 py-3 rounded-2xl text-sm font-medium bg-red-50 text-red-600 hover:bg-red-100 transition disabled:opacity-60">
+          {signingOut ? 'Signing Out…' : 'Sign Out'}
         </button>
       </div>
     </div>

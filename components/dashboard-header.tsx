@@ -2,6 +2,7 @@
 
 import type React from "react"
 import Image from "next/image"
+import { useRouter } from "next/navigation"
 
 import { MessageSquare, Bell, Search, Camera } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -12,12 +13,16 @@ import { Input } from "@/components/ui/input"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { useBanking } from "@/lib/banking-context"
 import { useToast } from "@/hooks/use-toast"
+import { useAuth } from "@/lib/auth-context"
 
 export function DashboardHeader() {
   const [messagesOpen, setMessagesOpen] = useState(false)
   const [notificationsOpen, setNotificationsOpen] = useState(false)
   const [profileOpen, setProfileOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
+  const [signingOut, setSigningOut] = useState(false)
+  const router = useRouter()
+  const { logout } = useAuth()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const { toast } = useToast()
   const {
@@ -53,6 +58,20 @@ export function DashboardHeader() {
     if (diffMins < 60) return `${diffMins}m ago`
     if (diffHours < 24) return `${diffHours}h ago`
     return `${diffDays}d ago`
+  }
+
+  const handleSignOut = async () => {
+    if (signingOut) return
+    setSigningOut(true)
+    try {
+      await logout()
+      setProfileOpen(false)
+      router.replace('/sign-in')
+      router.refresh()
+    } catch {
+      setSigningOut(false)
+      toast({ title: 'Sign out failed', description: 'Please try again.', variant: 'destructive' })
+    }
   }
 
   const handleProfilePictureUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -348,8 +367,8 @@ export function DashboardHeader() {
               <Button variant="outline" className="w-full justify-start h-12 bg-transparent">
                 Help & Support
               </Button>
-              <Button variant="outline" className="w-full justify-start h-12 text-destructive bg-transparent">
-                Sign Out
+              <Button variant="outline" className="w-full justify-start h-12 text-destructive bg-transparent" onClick={handleSignOut} disabled={signingOut}>
+                {signingOut ? 'Signing Out…' : 'Sign Out'}
               </Button>
             </div>
           </div>

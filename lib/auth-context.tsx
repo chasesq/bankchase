@@ -27,7 +27,7 @@ interface AuthContextType {
   error: string | null
   login: (username: string, password: string) => Promise<void>
   register: (userData: RegisterData) => Promise<void>
-  logout: () => void
+  logout: () => Promise<void>
   verifyToken: () => Promise<void>
 }
 
@@ -158,9 +158,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
-  const logout = () => {
+  const logout = async () => {
     const supabase = getSupabase()
-    if (supabase) void supabase.auth.signOut()
+    if (!supabase) throw new Error('Authentication is unavailable')
+    const { error: signOutError } = await supabase.auth.signOut()
+    if (signOutError) {
+      setError('Unable to sign out. Please try again.')
+      throw signOutError
+    }
+    setUser(null)
+    setToken(null)
+    setError(null)
   }
 
   const verifyToken = async () => {
