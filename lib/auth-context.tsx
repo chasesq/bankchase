@@ -47,7 +47,11 @@ export interface RegisterData {
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
-const supabase = createClient()
+
+function getSupabase() {
+  if (typeof window === 'undefined') return null
+  return createClient()
+}
 
 function mapUser(user: SupabaseUser): User {
   const metadata = user.user_metadata ?? {}
@@ -77,6 +81,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     let mounted = true
+    const supabase = getSupabase()
+    if (!supabase) return
+
     void supabase.auth.getSession().then(({ data }: { data: { session: { user: SupabaseUser; access_token: string } | null } }) => {
       if (!mounted) return
       setUser(data.session?.user ? mapUser(data.session.user) : null)
@@ -107,6 +114,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setLoading(false)
       throw new Error(message)
     }
+    const supabase = getSupabase()
+    if (!supabase) throw new Error('Authentication is unavailable')
     const { error: authError } = await supabase.auth.signInWithPassword({ email, password })
     setLoading(false)
     if (authError) {
@@ -121,6 +130,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const register = async (userData: RegisterData) => {
     setLoading(true)
     setError(null)
+    const supabase = getSupabase()
+    if (!supabase) throw new Error('Authentication is unavailable')
     const { error: authError } = await supabase.auth.signUp({
       email: userData.email.trim(),
       password: userData.password,
@@ -148,10 +159,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   const logout = () => {
-    void supabase.auth.signOut()
+    const supabase = getSupabase()
+    if (supabase) void supabase.auth.signOut()
   }
 
   const verifyToken = async () => {
+    const supabase = getSupabase()
+    if (!supabase) throw new Error('Authentication is unavailable')
     const { data, error: authError } = await supabase.auth.getUser()
     if (authError || !data.user) throw new Error('Authentication required')
   }
