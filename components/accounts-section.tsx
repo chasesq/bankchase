@@ -11,6 +11,8 @@ interface AccountsSectionProps {
   onLinkExternal: () => void
   onSeeAllTransactions: () => void
   onReceiptOpen: (transactionId: string) => void
+  onRefresh?: () => void
+  refreshing?: boolean
 }
 
 export function AccountsSection({
@@ -18,10 +20,12 @@ export function AccountsSection({
   onLinkExternal,
   onSeeAllTransactions,
   onReceiptOpen,
+  onRefresh,
+  refreshing = false,
 }: AccountsSectionProps) {
   const { accounts, transactions } = useBanking()
   const [showBalances, setShowBalances] = useState(true)
-  const totalBalance = accounts.reduce((acc, curr) => acc + curr.balance, 0)
+  const totalBalance = accounts.reduce((acc, curr) => acc + Number(curr.balance ?? 0), 0)
 
   // Get recent transactions for display (sorted by date)
   const recentTransactions = [...transactions]
@@ -67,15 +71,22 @@ export function AccountsSection({
     <section className="space-y-4">
       <div className="flex items-center justify-between px-1">
         <h2 className="text-lg font-bold text-[#0a4fa6]">Accounts</h2>
-        <Button
-          variant="ghost"
-          size="sm"
-          className="text-[#0a4fa6] gap-1"
-          onClick={() => setShowBalances(!showBalances)}
-        >
+        <div className="flex items-center gap-2">
+          {onRefresh && (
+            <Button variant="ghost" size="sm" className="text-[#0a4fa6]" onClick={onRefresh} disabled={refreshing}>
+              {refreshing ? 'Refreshing…' : 'Refresh'}
+            </Button>
+          )}
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-[#0a4fa6] gap-1"
+            onClick={() => setShowBalances(!showBalances)}
+          >
           {showBalances ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-          {showBalances ? "Hide" : "Show"}
-        </Button>
+            {showBalances ? "Hide" : "Show"}
+          </Button>
+        </div>
       </div>
 
       <Card className="chase-card-shadow border-0 overflow-hidden">

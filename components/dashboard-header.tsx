@@ -120,8 +120,8 @@ export function DashboardHeader() {
           </div>
 
           <div className="flex items-center gap-2">
-            <Image src="/images/chase-logo.png" alt="Chase" width={36} height={36} className="rounded" />
-            <span className="text-primary-foreground text-xl font-bold tracking-wide">CHASE</span>
+            <Image src="/images/bankchase-logo.png" alt="BankChase" width={36} height={36} className="rounded" />
+            <span className="text-primary-foreground text-xl font-bold tracking-wide">BANKCHASE</span>
           </div>
 
           <Button
