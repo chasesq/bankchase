@@ -13,9 +13,14 @@ interface ProtectedRouteProps {
   requiredRole?: string[];
 }
 
+const fetcher = (url: string) => fetch(url).then((response) => {
+  if (!response.ok) throw new Error('Session request failed')
+  return response.json()
+})
+
 export function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) {
   const router = useRouter();
-  const { data, error, isLoading } = useSWR<SessionResponse>('/api/auth/session');
+  const { data, error, isLoading } = useSWR<SessionResponse>('/api/auth/session', fetcher);
   const role = typeof data?.user?.app_metadata?.role === 'string' ? data.user.app_metadata.role : undefined;
   const hasRequiredRole = !requiredRole?.length || (role ? requiredRole.includes(role) : false);
 

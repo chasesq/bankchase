@@ -28,11 +28,13 @@ import { DisputeTransactionDrawer } from "@/components/dispute-transaction-drawe
 import { useBanking } from "@/lib/banking-context"
 import Image from "next/image"
 import { AccountOpeningModal } from "@/components/account-opening-modal"
+import { ProtectedRoute } from "@/components/ProtectedRoute"
+import { useAuth } from "@/lib/auth-context"
 
-export default function BankingDashboard() {
+function BankingDashboard() {
   const router = useRouter()
   const [mounted, setMounted] = useState(false)
-  const user = { id: "demo-user" } // Default user for demo
+  const { user: authUser } = useAuth()
   
   useEffect(() => {
     setMounted(true)
@@ -60,8 +62,9 @@ export default function BankingDashboard() {
   const { userProfile, addNotification, addActivity, addLoginHistory } = useBanking()
 
   const getUserFirstName = useCallback(() => {
-    return "User"
-  }, [])
+    const name = userProfile?.name || authUser?.email?.split('@')[0]
+    return name ? name.split(' ')[0] : 'there'
+  }, [authUser?.email, userProfile?.name])
 
   useEffect(() => {
     const deviceInfo = navigator.userAgent.includes("Mobile") ? "Mobile Device" : "Desktop Browser"
@@ -85,7 +88,7 @@ export default function BankingDashboard() {
 
     const welcomeTimer = setTimeout(() => {
       toast({
-        title: `Welcome back, User!`,
+        title: `Welcome back, ${getUserFirstName()}!`,
         description: "Your accounts are up to date.",
         duration: 3000,
       })
@@ -94,7 +97,7 @@ export default function BankingDashboard() {
     return () => {
       clearTimeout(welcomeTimer)
     }
-  }, [addActivity, addLoginHistory, toast])
+  }, [addActivity, addLoginHistory, getUserFirstName, toast])
 
   const handleLogout = async () => {
     if (addActivity) {
@@ -241,5 +244,13 @@ export default function BankingDashboard() {
       {/* Account Opening Modal */}
       <AccountOpeningModal isOpen={accountOpeningOpen} onClose={() => setAccountOpeningOpen(false)} />
     </div>
+  )
+}
+
+export default function ProtectedBankingDashboard() {
+  return (
+    <ProtectedRoute>
+      <BankingDashboard />
+    </ProtectedRoute>
   )
 }

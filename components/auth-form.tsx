@@ -39,7 +39,7 @@ export function AuthForm({ mode }: { mode: 'sign-in' | 'sign-up' }) {
         router.push('/')
         router.refresh()
       }
-    } catch (err) {
+    } catch {
       setError('An unexpected error occurred')
       setLoading(false)
     }
@@ -101,7 +101,6 @@ export function AuthForm({ mode }: { mode: 'sign-in' | 'sign-up' }) {
               {error}
             </p>
           )}
-
           <Button type="submit" disabled={loading} className="w-full">
             {loading
               ? 'Please wait...'
@@ -110,6 +109,16 @@ export function AuthForm({ mode }: { mode: 'sign-in' | 'sign-up' }) {
                 : 'Sign in'}
           </Button>
         </form>
+
+        <div className="mt-6 border-t border-border pt-4 text-center">
+          <p className="text-xs text-muted-foreground">
+            Need Chase&apos;s official sign-in or enrollment page?
+          </p>
+          <div className="mt-2 flex justify-center gap-3 text-xs">
+            <a href="https://www.chase.com/" target="_blank" rel="noreferrer" className="text-primary underline-offset-4 hover:underline">Chase.com</a>
+            <a href="https://www.chase.com/digital/online-banking" target="_blank" rel="noreferrer" className="text-primary underline-offset-4 hover:underline">Chase enrollment</a>
+          </div>
+        </div>
 
         <p className="text-sm text-muted-foreground text-center mt-6">
           {isSignUp ? 'Already have an account? ' : "Don't have an account? "}
