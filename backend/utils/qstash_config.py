@@ -82,12 +82,6 @@ async def schedule_job(
         return None
     
     try:
-        job_data = {
-            "job_name": job_name,
-            "cron": cron_expression,
-            "payload": payload
-        }
-        
         # QStash scheduling would be done here
         # For now, return a mock ID
         return f"job_{job_name}_{__import__('uuid').uuid4().hex[:8]}"
