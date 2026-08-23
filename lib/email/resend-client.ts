@@ -1,11 +1,23 @@
 import { Resend } from 'resend'
+import { instrumentResend } from '@kubiks/otel-resend'
+
+let cachedResendClient: ReturnType<typeof instrumentResend> | null = null
 
 function getResendClient() {
+  if (cachedResendClient) {
+    return cachedResendClient
+  }
+
   const apiKey = process.env.RESEND_API_KEY
   if (!apiKey) {
     throw new Error('RESEND_API_KEY is not configured. Set it in your environment variables.')
   }
-  return new Resend(apiKey)
+
+  // Create and instrument the Resend client
+  const resend = new Resend(apiKey)
+  cachedResendClient = instrumentResend(resend)
+  
+  return cachedResendClient
 }
 
 export async function sendOnboardingEmail({
