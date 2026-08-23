@@ -1,19 +1,48 @@
 import { sendOnboardingEmail, sendWorkflowCompletionEmail, sendCustomEmail } from '@/lib/email/resend-client'
 import { NextRequest, NextResponse } from 'next/server'
+import { z } from 'zod'
+
+const emailSchema = z.string().trim().email().max(320)
+const emailListSchema = z.union([emailSchema, z.array(emailSchema).max(20)]).optional()
+const requestSchema = z.object({
+  type: z.enum(['onboarding', 'completion', 'custom']),
+  email: emailSchema.optional(),
+  name: z.string().trim().min(1).max(120).optional(),
+  workflowRunId: z.string().trim().min(1).max(200).optional(),
+  subject: z.string().trim().min(1).max(200).optional(),
+  html: z.string().max(200_000).optional(),
+  text: z.string().max(100_000).optional(),
+  cc: emailListSchema,
+  bcc: emailListSchema,
+  replyTo: emailSchema.optional(),
+}).refine((value) => value.html || value.text || value.type !== 'custom', {
+  message: 'Custom emails require html or text content',
+  path: ['html'],
+})
+
+function getSafeError(error: unknown) {
+  return error instanceof Error && error.message.startsWith('RESEND_API_KEY')
+    ? 'Email delivery is not configured. Set RESEND_API_KEY to a real Resend API key.'
+    : error instanceof Error ? error.message : 'Internal server error'
+}
+
+function jsonError(message: string, status: number) {
+  return NextResponse.json({ success: false, error: message }, { status })
+}
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json()
-    const { type, email, name, workflowRunId, subject, html, text, cc, bcc, replyTo } = body
-    const recipient = typeof email === 'string' && email.trim()
-      ? email.trim()
-      : process.env.RESEND_TEST_TO?.trim()
+    const parsed = requestSchema.safeParse(await request.json())
+    if (!parsed.success) {
+      return jsonError(parsed.error.issues[0]?.message ?? 'Invalid email request', 400)
+    }
 
-    if (!type || !recipient) {
-      return NextResponse.json(
-        { success: false, error: 'Missing required fields: type, email' },
-        { status: 400 }
-      )
+    const { type, email, name, workflowRunId, subject, html, text, cc, bcc, replyTo } = parsed.data
+    const configuredRecipient = process.env.RESEND_TEST_TO?.trim()
+    const recipient = email ?? configuredRecipient
+
+    if (!recipient) {
+      return jsonError('Provide an email recipient or configure RESEND_TEST_TO.', 400)
     }
 
     let result
