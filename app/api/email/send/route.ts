@@ -1,12 +1,15 @@
-import { sendOnboardingEmail, sendWorkflowCompletionEmail, sendCustomEmail } from '@/lib/email/mock-email-service'
+import { sendOnboardingEmail, sendWorkflowCompletionEmail, sendCustomEmail } from '@/lib/email/resend-client'
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
     const { type, email, name, workflowRunId, subject, html, text, cc, bcc, replyTo } = body
+    const recipient = typeof email === 'string' && email.trim()
+      ? email.trim()
+      : process.env.RESEND_TEST_TO?.trim()
 
-    if (!type || !email) {
+    if (!type || !recipient) {
       return NextResponse.json(
         { success: false, error: 'Missing required fields: type, email' },
         { status: 400 }
@@ -22,7 +25,7 @@ export async function POST(request: NextRequest) {
           { status: 400 }
         )
       }
-      result = await sendOnboardingEmail({ email, name })
+      result = await sendOnboardingEmail({ email: recipient, name })
     } else if (type === 'completion') {
       if (!name || !workflowRunId) {
         return NextResponse.json(
@@ -31,7 +34,7 @@ export async function POST(request: NextRequest) {
         )
       }
       result = await sendWorkflowCompletionEmail({
-        email,
+        email: recipient,
         name,
         workflowRunId,
       })
@@ -44,7 +47,7 @@ export async function POST(request: NextRequest) {
       }
       
       result = await sendCustomEmail({
-        to: email,
+        to: recipient,
         subject,
         html,
         text,
