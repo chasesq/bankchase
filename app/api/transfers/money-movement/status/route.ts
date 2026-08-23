@@ -111,15 +111,9 @@ export async function GET(request: NextRequest) {
       baseQuery = baseQuery.eq('type', typeFilter)
     }
 
-    // Get total count
-    const { count: totalCount } = await supabase
-      .from('transactions')
-      .select('*', { count: 'exact', head: true })
-      .eq('user_id', user.id)
-
-    const total = totalCount ?? 0
     // Get total count with the same filters
     const { count: totalCount, error: countError } = await baseQuery.count('exact')
+    const total = totalCount ?? 0
 
     if (countError) {
       console.error('[v0] Failed to get count:', countError)
@@ -184,8 +178,6 @@ export async function GET(request: NextRequest) {
           offset,
           total,
           hasMore: offset + limit < total
-          total: totalCount || 0,
-          hasMore: offset + limit < (totalCount || 0)
         },
         summary: {
           totalTransactions: transactions.length,
@@ -202,7 +194,6 @@ export async function GET(request: NextRequest) {
         },
         _links: {
           next: offset + limit < total
-          next: offset + limit < (totalCount || 0)
             ? `/api/transfers/money-movement/status?limit=${limit}&offset=${offset + limit}${statusFilter ? `&status=${statusFilter}` : ''}${typeFilter ? `&type=${typeFilter}` : ''}`
             : null,
           prev: offset > 0
