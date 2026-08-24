@@ -128,6 +128,9 @@ importers:
       '@upstash/redis':
         specifier: ^1.38.0
         version: 1.38.0
+      '@upstash/vector':
+        specifier: ^1.2.3
+        version: 1.2.3
       '@upstash/workflow':
         specifier: ^1.3.1
         version: 1.3.3(zod@3.25.76)
@@ -3870,6 +3873,9 @@ packages:
 
   '@upstash/redis@1.38.0':
     resolution: {integrity: sha512-wu+dZBptlLy0+MCUEoHmzrY/TnmgDey3+c7EbIGwrLqAvkP8yi5MWZHYGIFtAygmL4Bkz2TdFu+eU0vFPncIcg==}
+
+  '@upstash/vector@1.2.3':
+    resolution: {integrity: sha512-yXsWKeuHNYyH72BcSZd3bV5ZD5MybAoTvKxkMaeV2UzuGfNzbHBVh5eO+ysTWTFAf8I9XcOueF4tZfAGjCa4Iw==}
 
   '@upstash/workflow@1.3.3':
     resolution: {integrity: sha512-iXMYJ/LXgz6MfOtTQm9lh0hfLbYkpna6ZJgehz2SWOU6PFd7MaLx6k3nkBXAhol7JIbG4kpR3rJxSAuCnswQiQ==}
@@ -11891,6 +11897,8 @@ snapshots:
     dependencies:
       uncrypto: 0.1.3
 
+  '@upstash/vector@1.2.3': {}
+
   '@upstash/workflow@1.3.3(zod@3.25.76)':
     dependencies:
       '@upstash/qstash': 2.11.3
@@ -13656,7 +13664,7 @@ snapshots:
 
   ext-list@2.2.2:
     dependencies:
-      mime-db: 1.52.0
+      mime-db: 1.54.0
 
   ext-name@5.0.0:
     dependencies:
