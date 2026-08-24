@@ -111,8 +111,22 @@ export async function GET(request: NextRequest) {
       baseQuery = baseQuery.eq('type', typeFilter)
     }
 
-    // Get total count with the same filters
-    const { count: totalCount, error: countError } = await baseQuery.count('exact')
+    // Count queries must request the count through select options rather than
+    // calling count() on the filter builder (which is not part of its typed API).
+    let countQuery = supabase
+      .from('transactions')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', user.id)
+
+    if (statusFilter && ['completed', 'processing', 'failed', 'pending'].includes(statusFilter)) {
+      countQuery = countQuery.eq('status', statusFilter)
+    }
+
+    if (typeFilter && ['transfer', 'deposit', 'payment', 'withdrawal', 'bank_transfer'].includes(typeFilter)) {
+      countQuery = countQuery.eq('type', typeFilter)
+    }
+
+    const { count: totalCount, error: countError } = await countQuery
 
     if (countError) {
       console.error('[v0] Failed to get count:', countError)
