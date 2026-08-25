@@ -23,7 +23,8 @@ export async function updateSession(request: NextRequest) {
     return supabaseResponse
   }
 
-  const supabase = createServerClient(supabaseUrl, supabaseKey, {
+  try {
+    const supabase = createServerClient(supabaseUrl, supabaseKey, {
       cookieOptions: { secure: process.env.NODE_ENV === 'production' },
       cookies: {
         getAll() {
@@ -37,9 +38,12 @@ export async function updateSession(request: NextRequest) {
           })
         },
       },
-    },
-  )
+    })
 
-  await supabase.auth.getUser()
+    await supabase.auth.getUser()
+  } catch (error) {
+    console.warn('[Supabase] Session refresh skipped:', error)
+  }
+
   return supabaseResponse
 }
