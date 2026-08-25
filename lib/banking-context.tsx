@@ -1850,7 +1850,7 @@ export function BankingProvider({ children }: { children: React.ReactNode }) {
     localStorage.removeItem("chase_last_sync_time") // Clear last sync time
     setUserProfile({
       id: "user1",
-      name: "Lin Huang",
+name: "Lin",
       email: "linhuang011@gmail.com",
       phone: "(555) 888-9999",
       address: "123 Main Street, New York, NY 10001", // Updated address
