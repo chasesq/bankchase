@@ -2,10 +2,15 @@ import { Resend } from 'resend'
 
 function getResendClient() {
   const apiKey = process.env.RESEND_API_KEY
-  if (!apiKey) {
-    throw new Error('RESEND_API_KEY is not configured. Set it in your environment variables.')
+  if (!apiKey || apiKey === 're_xxxxxxxxx') {
+    throw new Error('RESEND_API_KEY is not configured. Replace re_xxxxxxxxx with your real Resend API key.')
   }
   return new Resend(apiKey)
+}
+
+function getSender() {
+  const domain = process.env.RESEND_EMAIL_DOMAIN?.trim()
+  return domain ? `onboarding@${domain}` : 'onboarding@resend.dev'
 }
 
 export async function sendOnboardingEmail({
@@ -18,7 +23,7 @@ export async function sendOnboardingEmail({
   try {
     const resend = getResendClient()
     const result = await resend.emails.send({
-      from: 'onboarding@bankchase.app',
+      from: getSender(),
       to: email,
       subject: 'Welcome to BankChase AI Suite',
       html: generateOnboardingEmailHTML(name),
@@ -46,7 +51,7 @@ export async function sendWorkflowCompletionEmail({
   try {
     const resend = getResendClient()
     const result = await resend.emails.send({
-      from: 'onboarding@bankchase.app',
+      from: getSender(),
       to: email,
       subject: 'Your AI Suite Setup is Complete',
       html: generateCompletionEmailHTML(name, workflowRunId),
@@ -55,6 +60,50 @@ export async function sendWorkflowCompletionEmail({
     return { success: true, messageId: result.data?.id }
   } catch (error) {
     console.error('[Resend] Failed to send completion email:', error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to send email',
+    }
+  }
+}
+
+export async function sendCustomEmail({
+  to,
+  subject,
+  html,
+  text,
+  cc,
+  bcc,
+  replyTo,
+}: {
+  to: string | string[]
+  subject: string
+  html?: string
+  text?: string
+  cc?: string | string[]
+  bcc?: string | string[]
+  replyTo?: string
+}) {
+  try {
+    const resend = getResendClient()
+    const result = await resend.emails.send({
+      from: getSender(),
+      to,
+      subject,
+      html: html || undefined,
+      text: text || undefined,
+      cc,
+      bcc,
+      replyTo,
+    })
+
+    if (result.error) {
+      return { success: false, error: result.error.message }
+    }
+
+    return { success: true, messageId: result.data?.id }
+  } catch (error) {
+    console.error('[Resend] Failed to send custom email:', error)
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Failed to send email',

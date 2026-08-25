@@ -4,10 +4,32 @@ import { NextResponse, type NextRequest } from 'next/server'
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request })
 
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
+  const supabaseUrl =
+    process.env.NEXT_PUBLIC_SUPABASE_URL ??
+    process.env.NEXT_PUBLIC_SRT_SUPABASE_URL ??
+    process.env.SUPABASE_URL ??
+    process.env.SRT_SUPABASE_URL
+  const supabaseKey =
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ??
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ??
+    process.env.NEXT_PUBLIC_SRT_SUPABASE_PUBLISHABLE_KEY ??
+    process.env.NEXT_PUBLIC_SRT_SUPABASE_ANON_KEY ??
+    process.env.SUPABASE_PUBLISHABLE_KEY ??
+    process.env.SUPABASE_ANON_KEY ??
+    process.env.SRT_SUPABASE_PUBLISHABLE_KEY ??
+    process.env.SRT_SUPABASE_ANON_KEY
+
+  const normalizedUrl = supabaseUrl?.trim()
+  const normalizedKey = supabaseKey?.trim()
+
+  // Preview builds can start before optional project variables are injected.
+  // Do not construct an SSR client until both values are real and usable.
+  if (!normalizedUrl || !normalizedKey || !normalizedUrl.startsWith('http')) {
+    return supabaseResponse
+  }
+
+  try {
+    const supabase = createServerClient(normalizedUrl, normalizedKey, {
       cookieOptions: { secure: process.env.NODE_ENV === 'production' },
       cookies: {
         getAll() {
@@ -21,9 +43,12 @@ export async function updateSession(request: NextRequest) {
           })
         },
       },
-    },
-  )
+    })
 
-  await supabase.auth.getUser()
+    await supabase.auth.getUser()
+  } catch (error) {
+    console.warn('[Supabase] Session refresh skipped:', error)
+  }
+
   return supabaseResponse
 }
