@@ -91,6 +91,22 @@ curl http://localhost:3000/api/search/transactions
 
 Required integrations are environment-dependent. At minimum, configure the database/auth variables used by the selected deployment, plus `UPSTASH_VECTOR_REST_URL`, `UPSTASH_VECTOR_REST_TOKEN`, `QSTASH_URL`, and `QSTASH_TOKEN` for search and durable workflows.
 
+## CircleCI continuous integration
+
+The repository includes `.circleci/config.yml` for CircleCI validation. It runs frontend dependency installation, ESLint, TypeScript checks, Jest tests, the Next.js production build, Python lint/type checks/tests, and a Docker smoke build. The Docker job is restricted to `main` and `release/*` branches; the other checks run on every push.
+
+To use the CircleCI VS Code extension, open this repository as a workspace and keep the configuration at `.circleci/config.yml`. Authenticate the extension with a CircleCI personal API token to inspect and manage pipelines. Configure provider credentials and deployment secrets in CircleCI project environment variables rather than committing them to YAML.
+
+For local parity, run:
+
+```bash
+pnpm install --frozen-lockfile
+pnpm lint
+pnpm exec tsc --noEmit
+pnpm test -- --ci
+pnpm build
+```
+
 ## Production checklist
 
 - Run `pnpm build`, `pnpm lint`, and the relevant test suites.
