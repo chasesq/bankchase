@@ -19,12 +19,17 @@ export async function updateSession(request: NextRequest) {
     process.env.SRT_SUPABASE_PUBLISHABLE_KEY ??
     process.env.SRT_SUPABASE_ANON_KEY
 
-  if (!supabaseUrl || !supabaseKey) {
+  const normalizedUrl = supabaseUrl?.trim()
+  const normalizedKey = supabaseKey?.trim()
+
+  // Preview builds can start before optional project variables are injected.
+  // Do not construct an SSR client until both values are real and usable.
+  if (!normalizedUrl || !normalizedKey || !normalizedUrl.startsWith('http')) {
     return supabaseResponse
   }
 
   try {
-    const supabase = createServerClient(supabaseUrl, supabaseKey, {
+    const supabase = createServerClient(normalizedUrl, normalizedKey, {
       cookieOptions: { secure: process.env.NODE_ENV === 'production' },
       cookies: {
         getAll() {
