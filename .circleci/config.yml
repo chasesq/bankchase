@@ -229,7 +229,7 @@ jobs:
       - store_test_results:
           path: test-results
 
-  # ── 9. Docker image build (build-only, no push) ──────────
+  # ── 9. Docker image build (build-only, no push) ─────────────
   build-docker:
     docker:
       - image: cimg/base:stable
@@ -257,6 +257,27 @@ jobs:
               uvicorn main:app --host 0.0.0.0 --port 8000 &
             sleep 5
             docker stop bankchase-smoke || true
+
+  # ── 10. CircleCI release plan ──────────────────────────────
+  deploy-release:
+    <<: *node_executor
+    steps:
+      - checkout
+      - run:
+          name: Plan a deploy
+          command: |
+            set -e
+            circleci run release plan deploy \
+              --environment-name="prod" \
+              --component-name="bankchase" \
+              --target-version="${CIRCLE_SHA1}"
+      - run:
+          name: Mark planned deploy successful
+          command: circleci run release update deploy --status=SUCCESS
+      - run:
+          name: Mark planned deploy failed
+          command: circleci run release update deploy --status=FAILED
+          when: on_fail
 
 # ─────────────────────────────────────────────────────────────
 #  Workflows
@@ -303,4 +324,13 @@ workflows:
             branches:
               only:
                 - main
-                - /release\/.*/
+                - /release\/.*
+
+      - deploy-release:
+          requires:
+            - build-docker
+          filters:
+            branches:
+              only:
+                - main
+                - /release\/.*
