@@ -4,8 +4,8 @@ version: 2.1
 #  Orbs
 # ─────────────────────────────────────────────────────────────
 orbs:
-  node: circleci/node@6
-  python: circleci/python@2
+  node: circleci/node@7.2.1
+  python: circleci/python@4.0.0
 
 # ─────────────────────────────────────────────────────────────
 #  Reusable anchors
@@ -70,9 +70,8 @@ jobs:
     steps:
       - checkout
       - *restore_pnpm
-      - run:
-          name: Install pnpm
-          command: npm install -g pnpm
+      - node/install-pnpm:
+          version: 10.12.4
       - run:
           name: Install dependencies
           command: pnpm install --frozen-lockfile
@@ -89,6 +88,8 @@ jobs:
       - checkout
       - attach_workspace:
           at: .
+      - node/install-pnpm:
+          version: 10.12.4
       - run:
           name: Run ESLint
           command: pnpm run lint
@@ -100,6 +101,8 @@ jobs:
       - checkout
       - attach_workspace:
           at: .
+      - node/install-pnpm:
+          version: 10.12.4
       - run:
           name: TypeScript type check
           # next build already type-checks; run tsc directly for faster feedback
@@ -113,12 +116,19 @@ jobs:
       - checkout
       - attach_workspace:
           at: .
+      - node/install-pnpm:
+          version: 10.12.4
       - run:
           name: Run Jest tests (split)
           command: |
+            set -e
             TEST_FILES=$(circleci tests glob "__tests__/**/*.test.ts" | \
               circleci tests split --split-by=timings)
-            pnpm exec jest $TEST_FILES \
+            if [ -z "${TEST_FILES}" ]; then
+              echo "No frontend Jest tests found; skipping."
+              exit 0
+            fi
+            pnpm exec jest ${TEST_FILES} \
               --ci \
               --runInBand \
               --forceExit \
@@ -138,6 +148,8 @@ jobs:
       - checkout
       - attach_workspace:
           at: .
+      - node/install-pnpm:
+          version: 10.12.4
       - *restore_next_build
       - run:
           name: Next.js build
@@ -221,11 +233,15 @@ jobs:
             SECRET_KEY: ci-test-secret-key
             ENVIRONMENT: test
           command: |
+            if [ ! -d tests ]; then
+              echo "No backend tests directory found; skipping."
+              exit 0
+            fi
+            mkdir -p ../test-results/backend
             pytest tests/ -v \
               --tb=short \
               --junitxml=../test-results/backend/results.xml \
-              -q || true
-            # `|| true`: keeps pipeline green if no tests/ dir yet
+              -q
       - store_test_results:
           path: test-results
 
