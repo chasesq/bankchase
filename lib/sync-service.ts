@@ -1,6 +1,13 @@
 import { createClient } from "@/lib/supabase/client"
 
 const STORAGE_KEY = "chase_banking_data"
+
+function isCloudSyncConfigured(): boolean {
+  return Boolean(
+    process.env.NEXT_PUBLIC_SUPABASE_URL &&
+      (process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY),
+  )
+}
 const SYNC_KEY = "chase_banking_last_sync"
 
 export interface SyncStatus {
@@ -53,7 +60,7 @@ export function setLastSyncTime(time: string): void {
 export async function syncToCloud(email: string, data: any): Promise<boolean> {
   try {
     // Skip if running on server side
-    if (typeof window === "undefined") {
+    if (typeof window === "undefined" || !isCloudSyncConfigured()) {
       return false
     }
 
@@ -99,7 +106,7 @@ export async function syncToCloud(email: string, data: any): Promise<boolean> {
 export async function fetchFromCloud(email: string): Promise<any | null> {
   try {
     // Skip if running on server side
-    if (typeof window === "undefined") {
+    if (typeof window === "undefined" || !isCloudSyncConfigured()) {
       return null
     }
 
