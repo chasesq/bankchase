@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/client"
+import { createClient, hasSupabaseConfig } from "@/lib/supabase/client"
 
 const STORAGE_KEY = "chase_banking_data"
 
@@ -9,6 +9,7 @@ function isCloudSyncConfigured(): boolean {
   )
 }
 const SYNC_KEY = "chase_banking_last_sync"
+let cloudSyncUnavailable = false
 
 export interface SyncStatus {
   lastSynced: string | null
@@ -60,11 +61,12 @@ export function setLastSyncTime(time: string): void {
 export async function syncToCloud(email: string, data: any): Promise<boolean> {
   try {
     // Skip if running on server side
-    if (typeof window === "undefined" || !isCloudSyncConfigured()) {
+    if (typeof window === "undefined" || cloudSyncUnavailable || !isCloudSyncConfigured() || !hasSupabaseConfig()) {
       return false
     }
 
     const supabase = createClient()
+    if (!supabase) return false
 
     // Check if record exists
     const { data: existing } = await supabase
@@ -97,7 +99,7 @@ export async function syncToCloud(email: string, data: any): Promise<boolean> {
     if (error?.message?.includes("Could not find the table")) {
       return false
     }
-    console.error("Failed to sync to cloud:", error)
+    cloudSyncUnavailable = true
     return false
   }
 }
@@ -106,11 +108,12 @@ export async function syncToCloud(email: string, data: any): Promise<boolean> {
 export async function fetchFromCloud(email: string): Promise<any | null> {
   try {
     // Skip if running on server side
-    if (typeof window === "undefined" || !isCloudSyncConfigured()) {
+    if (typeof window === "undefined" || cloudSyncUnavailable || !isCloudSyncConfigured() || !hasSupabaseConfig()) {
       return null
     }
 
     const supabase = createClient()
+    if (!supabase) return null
 
     const { data, error } = await supabase
       .from("banking_data")
@@ -132,7 +135,7 @@ export async function fetchFromCloud(email: string): Promise<any | null> {
     if (error?.message?.includes("Could not find the table")) {
       return null
     }
-    console.error("Failed to fetch from cloud:", error)
+    cloudSyncUnavailable = true
     return null
   }
 }
