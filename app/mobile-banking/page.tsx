@@ -77,6 +77,8 @@ function MobileBankingContent() {
           <h1 className="max-w-3xl text-balance text-4xl font-semibold tracking-tight sm:text-5xl lg:text-6xl">Your money, secure and ready wherever life takes you.</h1>
           <p className="max-w-2xl text-pretty text-lg leading-8 text-muted-foreground">Use BankChase on the web or in your mobile browser to check balances, send money, manage cards, and receive timely account alerts.</p>
           <div className="flex flex-wrap gap-3">
+            <Button asChild size="lg"><Link href="/sign-in">Sign in securely</Link></Button>
+            <Button asChild size="lg" variant="outline"><Link href="/sign-up">Sign up</Link></Button>
             <Button asChild size="lg"><Link href="/send-money"><Send data-icon="inline-start" />Send money</Link></Button>
             <Button asChild size="lg" variant="outline"><Link href="/login-alerts"><Bell data-icon="inline-start" />Manage alerts</Link></Button>
           </div>

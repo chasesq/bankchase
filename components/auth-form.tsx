@@ -36,7 +36,7 @@ export function AuthForm({ mode }: { mode: 'sign-in' | 'sign-up' }) {
       }
 
       if (response.data?.user) {
-        router.push('/')
+        router.push(isSignUp ? `/verification?email=${encodeURIComponent(email)}` : '/')
         router.refresh()
       }
     } catch {
