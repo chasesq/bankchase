@@ -27,15 +27,29 @@ export function NewUserOnboarding() {
   const [contact, setContact] = useState("")
   const inactiveCard = creditCards.find((card) => !card.activated)
 
-  const closeFlow = () => { setActiveFlow(null); setPin(""); setContact("") }
+  const closeFlow = () => {
+    setActiveFlow(null)
+    setPin("")
+    setContact("")
+  }
+
   const completeFlow = () => {
     if (activeFlow === "card") {
-      if (!inactiveCard) { toast({ title: "All cards are active", description: "No debit card needs activation." }); return }
-      if (!/^\d{4}$/.test(pin)) { toast({ title: "Enter a 4-digit PIN", description: "Your PIN must contain four numbers." , variant: "destructive" }); return }
+      if (!inactiveCard) {
+        toast({ title: "All cards are active", description: "No debit card needs activation." })
+        return
+      }
+      if (!/^\d{4}$/.test(pin)) {
+        toast({ title: "Enter a 4-digit PIN", description: "Your PIN must contain four numbers.", variant: "destructive" })
+        return
+      }
       activateCard(inactiveCard.id)
       addActivity({ action: `Activated debit card ending in ${inactiveCard.lastFour}`, device: "Current Device", location: "Current Session" })
     } else if (activeFlow === "zelle") {
-      if (!contact.trim()) { toast({ title: "Enter an email or mobile number", description: "Use the contact information you want to enroll.", variant: "destructive" }); return }
+      if (!contact.trim()) {
+        toast({ title: "Enter an email or mobile number", description: "Use the contact information you want to enroll.", variant: "destructive" })
+        return
+      }
       addZelleContact({ name: "My Zelle profile", email: contact.includes("@") ? contact.trim() : undefined, phone: contact.includes("@") ? undefined : contact.trim() })
       addActivity({ action: "Enrolled in Zelle", device: "Current Device", location: "Current Session" })
     } else if (activeFlow === "deposit") {
@@ -59,11 +73,31 @@ export function NewUserOnboarding() {
   return (
     <section aria-labelledby="getting-started-title" className="flex flex-col gap-4">
       <Card className="border-primary/20 bg-primary/[0.03] shadow-sm">
-        <CardHeader className="gap-2 pb-3"><div className="flex items-center gap-3"><div className="flex size-10 items-center justify-center rounded-full bg-primary/10 text-primary"><WalletCards aria-hidden="true" /></div><div><CardTitle id="getting-started-title" className="text-lg">Get started with Chase</CardTitle><CardDescription>Your new account is open and ready to fund.</CardDescription></div></div></CardHeader>
-        <CardContent className="flex flex-col gap-3"><div className="flex items-center justify-between rounded-lg bg-card px-3 py-3"><div><p className="font-medium">Available balance</p><p className="text-sm text-muted-foreground">Total across new accounts</p></div><p className="text-xl font-semibold tabular-nums">$0.00</p></div><Separator /><div className="flex flex-col gap-2">{setupItems.map((item) => { const Icon = item.icon; return <div key={item.key} className="flex items-center gap-3 rounded-lg bg-card px-3 py-3"><Icon className="text-primary" aria-hidden="true" /><div className="min-w-0 flex-1"><p className="font-medium">{item.title}</p><p className="text-sm leading-6 text-muted-foreground">{item.description}</p></div><Button variant="ghost" size="icon" aria-label={item.title} onClick={() => setActiveFlow(item.key)}><ArrowRight data-icon="inline-end" aria-hidden="true" /></Button></div> })}</div><Button className="w-full" onClick={() => setActiveFlow("money")}>Add money</Button></CardContent>
+        <CardHeader className="gap-2 pb-3">
+          <div className="flex items-center gap-3">
+            <div className="flex size-10 items-center justify-center rounded-full bg-primary/10 text-primary"><WalletCards aria-hidden="true" /></div>
+            <div><CardTitle id="getting-started-title" className="text-lg">Get started with Chase</CardTitle><CardDescription>Your new account is open and ready to fund.</CardDescription></div>
+          </div>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-3">
+          <div className="flex items-center justify-between rounded-lg bg-card px-3 py-3"><div><p className="font-medium">Available balance</p><p className="text-sm text-muted-foreground">Total across new accounts</p></div><p className="text-xl font-semibold tabular-nums">$0.00</p></div>
+          <Separator />
+          <div className="flex flex-col gap-2">{setupItems.map((item) => { const Icon = item.icon; return <div key={item.key} className="flex items-center gap-3 rounded-lg bg-card px-3 py-3"><Icon className="text-primary" aria-hidden="true" /><div className="min-w-0 flex-1"><p className="font-medium">{item.title}</p><p className="text-sm leading-6 text-muted-foreground">{item.description}</p></div><Button variant="ghost" size="icon" aria-label={item.title} onClick={() => setActiveFlow(item.key)}><ArrowRight data-icon="inline-end" aria-hidden="true" /></Button></div> })}</div>
+          <Button className="w-full" onClick={() => setActiveFlow("money")}>Add money</Button>
+        </CardContent>
       </Card>
       <Card><CardContent className="flex items-center gap-3 p-4"><CheckCircle2 className="text-primary" aria-hidden="true" /><div className="min-w-0 flex-1"><p className="font-medium">Paperless statements</p><p className="text-sm leading-6 text-muted-foreground">Receive account notices securely online.</p></div><Button variant="outline" size="sm" onClick={() => setActiveFlow("paperless")}>Set up</Button></CardContent></Card>
-      <Dialog open={activeFlow !== null} onOpenChange={(open) => !open && closeFlow()}><DialogContent><DialogHeader><DialogTitle>{activeFlow ? flowCopy[activeFlow][0] : ""}</DialogTitle><DialogDescription>{activeFlow ? flowCopy[activeFlow][1] : ""}</DialogDescription></DialogHeader>{activeFlow === "card" && <div className="flex flex-col gap-2"><Label htmlFor="debit-pin">Choose a 4-digit PIN</Label><Input id="debit-pin" inputMode="numeric" maxLength={4} type="password" value={pin} onChange={(event) => setPin(event.target.value.replace(/\D/g, ""))} /></div>}{activeFlow === "zelle" && <div className="flex flex-col gap-2"><Label htmlFor="zelle-contact">Email or U.S. mobile number</Label><Input id="zelle-contact" autoComplete="email" value={contact} onChange={(event) => setContact(event.target.value)} /></div>}{activeFlow === "deposit" && <div className="rounded-lg bg-muted p-4 text-sm leading-6">Use your checking account routing and account numbers from the account details screen. Never share your online banking password with an employer.</div>}{(activeFlow === "money" || activeFlow === "paperless") && <div className="rounded-lg bg-muted p-4 text-sm leading-6">This secure setup is available in your account tools and will stay synced across the Chase app and website.</div>}<DialogFooter><Button variant="outline" onClick={closeFlow}>Not now</Button><Button onClick={completeFlow}>{activeFlow === "money" ? "Open account tools" : "Complete setup"}</Button></DialogFooter></DialogContent></Dialog>
+      <Dialog open={activeFlow !== null} onOpenChange={(open) => !open && closeFlow()}>
+        <DialogContent><DialogHeader><DialogTitle>{activeFlow ? flowCopy[activeFlow][0] : ""}</DialogTitle><DialogDescription>{activeFlow ? flowCopy[activeFlow][1] : ""}</DialogDescription></DialogHeader>
+          {activeFlow === "card" && <div className="flex flex-col gap-2"><Label htmlFor="debit-pin">Choose a 4-digit PIN</Label><Input id="debit-pin" inputMode="numeric" maxLength={4} type="password" value={pin} onChange={(event) => setPin(event.target.value.replace(/\D/g, ""))} /></div>}
+          {activeFlow === "zelle" && <div className="flex flex-col gap-2"><Label htmlFor="zelle-contact">Email or U.S. mobile number</Label><Input id="zelle-contact" autoComplete="email" value={contact} onChange={(event) => setContact(event.target.value)} /></div>}
+          {activeFlow === "deposit" && <div className="rounded-lg bg-muted p-4 text-sm leading-6">Use your checking account routing and account numbers from the account details screen. Never share your online banking password with an employer.</div>}
+          {(activeFlow === "money" || activeFlow === "paperless") && <div className="rounded-lg bg-muted p-4 text-sm leading-6">This secure setup is available in your account tools and will stay synced across the Chase app and website.</div>}
+          <DialogFooter><Button variant="outline" onClick={closeFlow}>Not now</Button><Button onClick={completeFlow}>{activeFlow === "money" ? "Open account tools" : "Complete setup"}</Button></DialogFooter>
+        </DialogContent>
+      </Dialog>
     </section>
   )
 }
+
+export default NewUserOnboarding
