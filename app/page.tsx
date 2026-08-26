@@ -1,7 +1,6 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
-import { useRouter } from "next/navigation"
 import { DashboardHeader } from "@/components/dashboard-header"
 import { QuickActions } from "@/components/quick-actions"
 import { AccountsSection } from "@/components/accounts-section"
@@ -28,11 +27,10 @@ import { DisputeTransactionDrawer } from "@/components/dispute-transaction-drawe
 import { useBanking } from "@/lib/banking-context"
 import Image from "next/image"
 import { AccountOpeningModal } from "@/components/account-opening-modal"
+import { NewUserOnboarding } from "@/components/new-user-onboarding"
 
 export default function BankingDashboard() {
-  const router = useRouter()
   const [mounted, setMounted] = useState(false)
-  const user = { id: "demo-user" } // Default user for demo
   
   useEffect(() => {
     setMounted(true)
@@ -60,8 +58,8 @@ export default function BankingDashboard() {
   const { userProfile, addNotification, addActivity, addLoginHistory } = useBanking()
 
   const getUserFirstName = useCallback(() => {
-    return "User"
-  }, [])
+    return userProfile.name.split(" ")[0] || "User"
+  }, [userProfile.name])
 
   useEffect(() => {
     const deviceInfo = navigator.userAgent.includes("Mobile") ? "Mobile Device" : "Desktop Browser"
@@ -154,6 +152,7 @@ export default function BankingDashboard() {
               onAddAccount={() => setAddAccountOpen(true)}
               onTransfer={() => setTransferOpen(true)}
             />
+            <NewUserOnboarding />
             <AccountsSection
               onViewAccount={() => setAccountDetailsOpen(true)}
               onLinkExternal={() => setLinkExternalOpen(true)}
