@@ -75,7 +75,7 @@ async function sendTwilioAlert(
 ): Promise<{ success: boolean; messageId?: string; error?: string }> {
   const accountSid = process.env.TWILIO_ACCOUNT_SID
   const authToken = process.env.TWILIO_AUTH_TOKEN
-  const fromNumber = process.env.TWILIO_PHONE_NUMBER
+  const fromNumber = process.env.TWILIO_FROM_PHONE || process.env.TWILIO_PHONE_NUMBER
 
   if (!accountSid || !authToken || !fromNumber) {
     return {

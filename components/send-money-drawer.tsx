@@ -179,23 +179,23 @@ export function SendMoneyDrawer({ open, onOpenChange, onReceiptOpen }: SendMoney
         accountFrom: account.name,
       })
 
-      // Send SMS alert
+      // Deliver the same transfer alert to the recipient's verified phone and email.
       try {
-        await fetch("/api/sms/alert", {
+        await fetch("/api/notifications/transaction", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            phoneNumber: "(555) 888-9999",
-            alertType: "debit",
-            data: {
-              amount: sendAmount,
-              description: `Zelle to ${selectedContact?.name || recipient}`,
-              balance: account.balance - sendAmount,
-            },
+            phoneNumber: selectedContact?.phone,
+            email: selectedContact?.email,
+            amount: sendAmount,
+            currency: "USD",
+            status: "completed",
+            recipientName: selectedContact?.name || recipient,
+            reference: transaction.reference,
           }),
         })
       } catch {
-        // SMS alert is optional
+        // Alert delivery must not undo a completed transfer.
       }
 
       addNotification({
