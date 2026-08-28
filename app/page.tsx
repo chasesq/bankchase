@@ -83,17 +83,6 @@ export default function BankingDashboard() {
       })
     }
 
-    const welcomeTimer = setTimeout(() => {
-      toast({
-        title: `Welcome back, User!`,
-        description: "Your accounts are up to date.",
-        duration: 3000,
-      })
-    }, 1500)
-
-    return () => {
-      clearTimeout(welcomeTimer)
-    }
   }, [addActivity, addLoginHistory, toast])
 
   const handleLogout = async () => {
