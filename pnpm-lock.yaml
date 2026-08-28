@@ -243,8 +243,8 @@ importers:
         specifier: ^2.0.0
         version: 2.0.0
       stripe:
-        specifier: ^22.3.0
-        version: 22.3.2(@types/node@22.20.1)
+        specifier: ^22.6.0
+        version: 22.6.0(@types/node@22.20.1)
       swr:
         specifier: ^2.2.5
         version: 2.4.2(react@19.2.8)
@@ -7609,8 +7609,8 @@ packages:
     resolution: {integrity: sha512-6fPc+R4ihwqP6N/aIv2f1gMH8lOVtWQHoqC4yK6oSDVVocumAsfCqjkXnqiYMhmMwS/mEHLp7Vehlt3ql6lEig==}
     engines: {node: '>=8'}
 
-  stripe@22.3.2:
-    resolution: {integrity: sha512-O13QOvgEIQvDlTy6Ubb5kB980wpbhmoZNsgCXKILjCMZS67f+bW+6w99k3gnSi/N1lkryoj1WYdpGT5Wc5edjg==}
+  stripe@22.6.0:
+    resolution: {integrity: sha512-Ezk+WYEEwX2DLxFrKfb6coznlCMZvCaCYMNPXNHFSZkBIEzF5Hgm7RLb38q/0h9Ol5jsUJGJRorvhzAvckgfhw==}
     engines: {node: '>=18'}
     peerDependencies:
       '@types/node': '>=18'
@@ -13656,7 +13656,7 @@ snapshots:
 
   ext-list@2.2.2:
     dependencies:
-      mime-db: 1.52.0
+      mime-db: 1.54.0
 
   ext-name@5.0.0:
     dependencies:
@@ -16198,7 +16198,7 @@ snapshots:
 
   strip-json-comments@3.1.1: {}
 
-  stripe@22.3.2(@types/node@22.20.1):
+  stripe@22.6.0(@types/node@22.20.1):
     optionalDependencies:
       '@types/node': 22.20.1
 

@@ -1,12 +1,7 @@
-import Stripe from 'stripe'
 import { redis } from '@/lib/redis'
+import { getStripe } from '@/lib/stripe'
 
-// Initialize Stripe only if API key is available
-const stripe = process.env.STRIPE_SECRET_KEY 
-  ? new Stripe(process.env.STRIPE_SECRET_KEY, {
-      apiVersion: '2026-06-24.dahlia',
-    })
-  : null
+const stripe = process.env.STRIPE_SECRET_KEY ? getStripe() : null
 
 export interface PaymentData {
   amount: number
