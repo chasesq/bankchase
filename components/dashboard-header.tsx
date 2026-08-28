@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { useBanking } from "@/lib/banking-context"
 import { useToast } from "@/hooks/use-toast"
+import { useAuth } from "@/lib/auth-context"
 
 export function DashboardHeader() {
   const [messagesOpen, setMessagesOpen] = useState(false)
@@ -20,6 +21,7 @@ export function DashboardHeader() {
   const [searchQuery, setSearchQuery] = useState("")
   const fileInputRef = useRef<HTMLInputElement>(null)
   const { toast } = useToast()
+  const { logout } = useAuth()
   const {
     userProfile,
     notifications,
@@ -348,7 +350,14 @@ export function DashboardHeader() {
               <Button variant="outline" className="w-full justify-start h-12 bg-transparent">
                 Help & Support
               </Button>
-              <Button variant="outline" className="w-full justify-start h-12 text-destructive bg-transparent">
+              <Button
+                variant="outline"
+                className="w-full justify-start h-12 text-destructive bg-transparent"
+                onClick={async () => {
+                  await logout()
+                  setProfileOpen(false)
+                }}
+              >
                 Sign Out
               </Button>
             </div>

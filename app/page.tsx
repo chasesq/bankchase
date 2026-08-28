@@ -1,7 +1,6 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
-import { useRouter } from "next/navigation"
 import { DashboardHeader } from "@/components/dashboard-header"
 import { QuickActions } from "@/components/quick-actions"
 import { AccountsSection } from "@/components/accounts-section"
@@ -28,11 +27,11 @@ import { DisputeTransactionDrawer } from "@/components/dispute-transaction-drawe
 import { useBanking } from "@/lib/banking-context"
 import Image from "next/image"
 import { AccountOpeningModal } from "@/components/account-opening-modal"
+import { NewUserOnboarding } from "@/components/new-user-onboarding"
+import { useAuth } from "@/lib/auth-context"
 
 export default function BankingDashboard() {
-  const router = useRouter()
   const [mounted, setMounted] = useState(false)
-  const user = { id: "demo-user" } // Default user for demo
   
   useEffect(() => {
     setMounted(true)
@@ -58,10 +57,11 @@ export default function BankingDashboard() {
   const { toast } = useToast()
 
   const { userProfile, addNotification, addActivity, addLoginHistory } = useBanking()
+  const { logout } = useAuth()
 
   const getUserFirstName = useCallback(() => {
-    return "User"
-  }, [])
+    return userProfile.name.split(" ")[0] || "User"
+  }, [userProfile.name])
 
   useEffect(() => {
     const deviceInfo = navigator.userAgent.includes("Mobile") ? "Mobile Device" : "Desktop Browser"
@@ -83,17 +83,6 @@ export default function BankingDashboard() {
       })
     }
 
-    const welcomeTimer = setTimeout(() => {
-      toast({
-        title: `Welcome back, User!`,
-        description: "Your accounts are up to date.",
-        duration: 3000,
-      })
-    }, 1500)
-
-    return () => {
-      clearTimeout(welcomeTimer)
-    }
   }, [addActivity, addLoginHistory, toast])
 
   const handleLogout = async () => {
@@ -106,11 +95,10 @@ export default function BankingDashboard() {
     }
     setActiveView("accounts")
     toast({
-      title: "Signed out successfully",
-      description: "You have been securely signed out.",
+      title: "Signing out",
+      description: "Your Chase session is being securely closed.",
     })
-    // Note: Clerk logout is handled via UserButton in header
-    // This function is kept for activity logging
+    await logout()
   }
 
   const handleOpenReceipt = (transactionId: string) => {
@@ -154,6 +142,7 @@ export default function BankingDashboard() {
               onAddAccount={() => setAddAccountOpen(true)}
               onTransfer={() => setTransferOpen(true)}
             />
+            <NewUserOnboarding />
             <AccountsSection
               onViewAccount={() => setAccountDetailsOpen(true)}
               onLinkExternal={() => setLinkExternalOpen(true)}

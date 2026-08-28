@@ -186,11 +186,6 @@ export function LoginPage({ onLogin }: LoginPageProps) {
         localStorage.removeItem("chase_username")
       }
 
-      toast({
-        title: "Welcome back!",
-        description: "You have successfully signed in to Chase.",
-      })
-
       // Redirect to dashboard
       router.push("/dashboard")
     } catch (err) {

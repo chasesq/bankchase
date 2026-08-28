@@ -86,16 +86,17 @@ export async function sendCustomEmail({
 }) {
   try {
     const resend = getResendClient()
-    const result = await resend.emails.send({
+    const payload = {
       from: getSender(),
       to,
       subject,
-      html: html || undefined,
-      text: text || undefined,
-      cc,
-      bcc,
-      replyTo,
-    })
+      ...(html ? { html } : {}),
+      ...(text ? { text } : {}),
+      ...(cc ? { cc } : {}),
+      ...(bcc ? { bcc } : {}),
+      ...(replyTo ? { replyTo } : {}),
+    }
+    const result = await resend.emails.send(payload as Parameters<typeof resend.emails.send>[0])
 
     if (result.error) {
       return { success: false, error: result.error.message }

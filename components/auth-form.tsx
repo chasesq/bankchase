@@ -48,16 +48,16 @@ export function AuthForm({ mode }: { mode: 'sign-in' | 'sign-up' }) {
   return (
     <main className="min-h-svh bg-background flex items-center justify-center px-4">
       <Card className="w-full max-w-sm p-6">
-        <div className="mb-6">
-          <h1 className="text-2xl font-semibold tracking-tight text-foreground">
-            {isSignUp ? 'Create an account' : 'Welcome back'}
-          </h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            {isSignUp
-              ? 'Sign up to get started'
-              : 'Sign in to your account to continue'}
-          </p>
-        </div>
+        {isSignUp && (
+          <div className="mb-6">
+            <h1 className="text-2xl font-semibold tracking-tight text-foreground">
+              Create an account
+            </h1>
+            <p className="text-sm text-muted-foreground mt-1">
+              Sign up to get started
+            </p>
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           {isSignUp && (
