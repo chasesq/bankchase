@@ -16,11 +16,18 @@ const DEMO_USER = {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { username, password } = body
+    const { username, password, token } = body
 
     if (!username || !password) {
       return NextResponse.json(
         { error: 'Username and password are required' },
+        { status: 400 }
+      )
+    }
+
+    if (token !== undefined && !/^\d{6}$/.test(String(token))) {
+      return NextResponse.json(
+        { error: 'Enter a valid 6-digit security token' },
         { status: 400 }
       )
     }
@@ -53,14 +60,14 @@ export async function POST(request: NextRequest) {
     })
 
     // Create JWT-like token
-    const token = Buffer.from(JSON.stringify({
+    const sessionToken = Buffer.from(JSON.stringify({
       id: DEMO_USER.id,
       username: DEMO_USER.username,
       email: DEMO_USER.email,
       iat: Math.floor(Date.now() / 1000),
     })).toString('base64')
 
-    cookieStore.set('auth_token', token, {
+    cookieStore.set('auth_token', sessionToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',

@@ -30,7 +30,6 @@ export function AuthForm({ mode }: { mode: "sign-in" | "sign-up" }) {
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    if (event.nativeEvent instanceof SubmitEvent && (event.nativeEvent as SubmitEvent).submitter === null) return
     setError(null)
     if (useToken && token.trim().length < 6) {
       setError("Enter the 6-digit token from your security device.")
@@ -42,7 +41,7 @@ export function AuthForm({ mode }: { mode: "sign-in" | "sign-up" }) {
         const [firstName, ...last] = name.trim().split(/\s+/)
         await register({ username: username.trim(), email: email.trim(), password, firstName: firstName || "", lastName: last.join(" "), phone: "", ssn: "", dateOfBirth: "", address: "", city: "", state: "", zipCode: "" })
       } else {
-        await login(username.trim(), password)
+        await login(username.trim(), password, useToken ? token : undefined)
         if (remember) window.localStorage.setItem("chase_username", username.trim())
         else window.localStorage.removeItem("chase_username")
       }

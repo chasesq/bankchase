@@ -28,7 +28,7 @@ interface AuthContextType {
   token: string | null
   loading: boolean
   error: string | null
-  login: (username: string, password: string) => Promise<void>
+  login: (username: string, password: string, token?: string) => Promise<void>
   register: (userData: RegisterData) => Promise<void>
   logout: () => void
   verifyToken: () => Promise<void>
@@ -117,7 +117,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
-  const login = async (username: string, password: string) => {
+  const login = async (username: string, password: string, token?: string) => {
     try {
       setLoading(true)
       setError(null)
@@ -134,7 +134,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: username.trim(), password }),
+        body: JSON.stringify({ username: username.trim(), password, token: token?.trim() || undefined }),
       })
 
       if (!response.ok) {
