@@ -20,6 +20,9 @@ importers:
       '@descope/nextjs-sdk':
         specifier: ^0.15.70
         version: 0.15.70(@reduxjs/toolkit@2.12.0(react@19.2.8))(@types/react@19.2.17)(immer@11.1.18)(next@16.2.0(@babel/core@7.29.7)(@opentelemetry/api@1.9.1)(@playwright/test@1.62.0)(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(react@19.2.8)(redux-thunk@3.1.0(redux@5.0.1))(redux@5.0.1)
+      '@fingerprint/react':
+        specifier: ^3.1.0
+        version: 3.1.0(react@19.2.8)
       '@hookform/resolvers':
         specifier: ^3.10.0
         version: 3.10.0(react-hook-form@7.82.0(react@19.2.8))
@@ -1111,6 +1114,14 @@ packages:
   '@eslint/plugin-kit@0.4.1':
     resolution: {integrity: sha512-43/qtrDUokr7LJqoF2c3+RInu/t4zfrpYdoSDfYyhg52rwLV6TnOvdG4fXm7IkSB3wErkcmJS9iEhjVtOSEjjA==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
+
+  '@fingerprint/agent@4.1.4':
+    resolution: {integrity: sha512-6yH9AbUIS/1AOj4SL6UeOFFDMGqAAsvKm0wEyO6MK+dffjeN4g3eEYMJDhHJFegVuNkHXTJ+WcKtLgPGvZBW+A==}
+
+  '@fingerprint/react@3.1.0':
+    resolution: {integrity: sha512-oGOuNXVVqL/pickBnk+fzkcyHe79NSA5tX54vE8j0+TlxpgQNDgzXhU24am1Yi+qlOuf/MwCuMPfppFzPTXrTg==}
+    peerDependencies:
+      react: '>=18 <20'
 
   '@fingerprintjs/fingerprintjs-pro@3.11.6':
     resolution: {integrity: sha512-ohN4lorSzV0fzs8fELWuO3bvMMfzF5qyQSOWBvqwGaq6yPP+XSRJOeFdFFiwAqFWYJDEoDOlQluGfa0Rfk7mAQ==}
@@ -9258,6 +9269,13 @@ snapshots:
     dependencies:
       '@eslint/core': 0.17.0
       levn: 0.4.1
+
+  '@fingerprint/agent@4.1.4': {}
+
+  '@fingerprint/react@3.1.0(react@19.2.8)':
+    dependencies:
+      '@fingerprint/agent': 4.1.4
+      react: 19.2.8
 
   '@fingerprintjs/fingerprintjs-pro@3.11.6':
     dependencies:

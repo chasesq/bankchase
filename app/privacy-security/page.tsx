@@ -4,7 +4,7 @@
 import { ProtectedRoute } from '@/components/ProtectedRoute'
 import { Navigation } from '@/components/Navigation'
 import { useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -40,6 +40,10 @@ export default function PrivacySecurityPage() {
   const [backupCodesVisible, setBackupCodesVisible] = useState(false)
   const [codesCopied, setCodesCopied] = useState(false)
   const backupCodes = ['R7K4-M2QP', 'N9TX-6VLA', 'C3HZ-8WFD', 'P5GB-1YRS', 'Q8MN-4KVC']
+
+  useEffect(() => {
+    if (!isLoading && !userId) router.replace('/')
+  }, [isLoading, router, userId])
 
   const copyBackupCodes = async () => {
     await navigator.clipboard.writeText(backupCodes.join('\n'))

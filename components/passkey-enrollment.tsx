@@ -2,7 +2,9 @@
 
 import { useEffect, useState } from 'react'
 import { Descope } from '@descope/nextjs-sdk'
+import { useVisitorData } from '@fingerprint/react'
 import { AlertCircle, CheckCircle, Fingerprint, Loader2 } from 'lucide-react'
+import { useAuth } from '@/lib/auth-context'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -11,17 +13,24 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 const flowId = process.env.NEXT_PUBLIC_DESCOPE_PASSKEY_FLOW_ID || 'passkey-enrollment'
 
 export function PasskeyEnrollment() {
+  const { user } = useAuth()
+  const { getData: getVisitorData } = useVisitorData({
+    immediate: false,
+    linkedId: user?.id,
+    tag: { userAction: 'passkey_enrollment' },
+  })
   const [supported, setSupported] = useState<boolean | null>(null)
   const [enabled, setEnabled] = useState(false)
   const [open, setOpen] = useState(false)
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
   const [message, setMessage] = useState('')
+  const [visitorId, setVisitorId] = useState<string | null>(null)
 
   useEffect(() => {
     setSupported(typeof window !== 'undefined' && !!window.PublicKeyCredential)
   }, [])
 
-  const startEnrollment = () => {
+  const startEnrollment = async () => {
     if (!supported) {
       setStatus('error')
       setMessage('This browser or device does not support passkeys. Try a current version of Safari, Chrome, or Edge on a device with fingerprint or face unlock enabled.')
@@ -33,6 +42,13 @@ export function PasskeyEnrollment() {
       return
     }
     setStatus('loading')
+    setMessage('Checking this device, then opening the secure fingerprint prompt.')
+    try {
+      const visitor = await getVisitorData()
+      if (visitor.visitor_id) setVisitorId(visitor.visitor_id)
+    } catch {
+      // Fingerprint is a fraud signal, not a hard dependency for passkey enrollment.
+    }
     setMessage('Complete the fingerprint or face prompt in the Descope window.')
     setOpen(true)
   }
