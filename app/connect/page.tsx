@@ -18,6 +18,7 @@ export default function ConnectPage() {
       const result = await response.json()
       if (!response.ok) throw new Error(result.error)
       setAccountId(result.id)
+      window.sessionStorage.setItem('bankchase_connect_account', result.id)
       setMessage('Account created. Continue onboarding to finish verification.')
     } catch (error) {
       setMessage(error instanceof Error ? error.message : 'Unable to create account.')

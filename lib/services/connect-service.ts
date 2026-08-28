@@ -26,16 +26,23 @@ export async function createConnectAccount(input: CreateConnectAccountInput) {
 }
 
 export async function createOnboardingLink(accountId: string, refreshUrl: string, returnUrl: string) {
-  const stripe = getStripe()
-  return (stripe as any).accountLinks.create({
+  if (!/^acct_[A-Za-z0-9]+$/.test(accountId)) throw new Error('Invalid Stripe account ID.')
+  const refresh = new URL(refreshUrl)
+  const returnTo = new URL(returnUrl)
+  if (!['http:', 'https:'].includes(refresh.protocol) || !['http:', 'https:'].includes(returnTo.protocol)) {
+    throw new Error('Onboarding URLs must use HTTP or HTTPS.')
+  }
+
+  return getStripe().accountLinks.create({
     account: accountId,
-    refresh_url: refreshUrl,
-    return_url: returnUrl,
+    refresh_url: refresh.toString(),
+    return_url: returnTo.toString(),
     type: 'account_onboarding',
   })
 }
 
 export async function retrieveConnectAccount(accountId: string) {
+  if (!/^acct_[A-Za-z0-9]+$/.test(accountId)) throw new Error('Invalid Stripe account ID.')
   const account = await getStripe().accounts.retrieve(accountId)
   return { id: account.id, status: accountStatus(account), detailsSubmitted: account.details_submitted, chargesEnabled: account.charges_enabled, payoutsEnabled: account.payouts_enabled, requirements: account.requirements }
 }
