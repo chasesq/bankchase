@@ -109,7 +109,7 @@
     "resend": "^6.16.0",
     "sonner": "^1.7.4",
     "speakeasy": "^2.0.0",
-    "stripe": "^22.3.0",
+    "stripe": "^22.6.0",
     "swr": "^2.2.5",
     "tailwind-merge": "^2.5.5",
     "tailwindcss-animate": "^1.0.7",
