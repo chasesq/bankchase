@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation'
 import { ProtectedRoute } from '@/components/ProtectedRoute'
 import { Navigation } from '@/components/Navigation'
 import { useBanking } from '@/lib/banking-context'
-import { ArrowLeft, Shield, Lock, Eye, AlertCircle, Smartphone, FileText } from 'lucide-react'
+import { ArrowLeft, Shield, Lock, Eye, AlertCircle, Smartphone, FileText, Copy, Check, Download } from 'lucide-react'
 import { Card } from '@/components/ui/card'
 
 export default function SecurityPage() {
@@ -23,22 +23,31 @@ export default function SecurityPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [twoFactorStep, setTwoFactorStep] = useState<'method' | 'verify'>('method')
   const [twoFactorMethod, setTwoFactorMethod] = useState('sms')
+  const [backupCodesVisible, setBackupCodesVisible] = useState(false)
+  const [codesCopied, setCodesCopied] = useState(false)
+  const backupCodes = ['R7K4-M2QP', 'N9TX-6VLA', 'C3HZ-8WFD', 'P5GB-1YRS', 'Q8MN-4KVC']
+  const copyBackupCodes = async () => {
+    await navigator.clipboard.writeText(backupCodes.join('\\n'))
+    setCodesCopied(true)
+    window.setTimeout(() => setCodesCopied(false), 1800)
+  }
+  const downloadBackupCodes = () => {
+    const blob = new Blob([`Chase backup codes\\n\\n${backupCodes.join('\\n')}\\n\\nKeep these codes private.`], { type: 'text/plain' })
+    const url = URL.createObjectURL(blob)
+    const anchor = document.createElement('a')
+    anchor.href = url
+    anchor.download = 'chase-backup-codes.txt'
+    anchor.click()
+    URL.revokeObjectURL(url)
+  }
   const [privacySettings, setPrivacySettings] = useState({
     profileVisibility: 'private',
     showActivity: false,
     allowMessages: true,
   })
 
-  if (!isLoaded) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-card">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-      </div>
-    )
-  }
-
   if (!userId) {
-    router.push('/login')
+    router.replace('/login')
     return null
   }
 
@@ -218,9 +227,29 @@ export default function SecurityPage() {
                 <p className="text-muted-foreground mb-4">
                   Save your backup codes in a secure place. You can use them to access your account if you lose access to your 2FA device.
                 </p>
-                <button className="px-6 py-2 bg-primary text-background rounded-lg hover:bg-primary transition">
-                  View Backup Codes
-                </button>
+                {!backupCodesVisible ? (
+                  <button onClick={() => setBackupCodesVisible(true)} className="px-6 py-2 bg-primary text-background rounded-lg hover:bg-primary transition">
+                    View Backup Codes
+                  </button>
+                ) : (
+                  <div className="flex flex-col gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 rounded-lg border border-orange-200 bg-orange-50 p-4 font-mono text-sm text-foreground">
+                      {backupCodes.map((code) => <span key={code}>{code}</span>)}
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      <button onClick={copyBackupCodes} className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-background">
+                        {codesCopied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                        {codesCopied ? 'Copied' : 'Copy Codes'}
+                      </button>
+                      <button onClick={downloadBackupCodes} className="flex items-center gap-2 rounded-lg bg-muted px-4 py-2 text-foreground">
+                        <Download className="w-4 h-4" /> Download
+                      </button>
+                      <button onClick={() => setBackupCodesVisible(false)} className="rounded-lg border border-border px-4 py-2 text-foreground">
+                        Hide
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </Card>

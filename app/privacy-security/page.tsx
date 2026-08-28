@@ -9,10 +9,10 @@ import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { 
-  Shield, 
-  Lock, 
-  Eye, 
-  EyeOff, 
+  Shield,
+  Lock,
+  Eye,
+  EyeOff,
   ArrowLeft,
   Smartphone,
   Fingerprint,
@@ -22,6 +22,8 @@ import {
   Clock,
   Download,
   Trash2,
+  Copy,
+  Check,
 } from 'lucide-react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useAuth } from '@/lib/auth-context'
@@ -32,9 +34,28 @@ export default function PrivacySecurityPage() {
   const { user, loading: isLoading } = useAuth()
   const isLoaded = !isLoading
   const userId = user?.id ?? null
-  const [twoFactorEnabled, setTwoFactorEnabled] = useState(false)
+  const [twoFactorEnabled, setTwoFactorEnabled] = useState(true)
   const [biometricsEnabled, setBiometricsEnabled] = useState(false)
   const [dataSharing, setDataSharing] = useState(false)
+  const [backupCodesVisible, setBackupCodesVisible] = useState(false)
+  const [codesCopied, setCodesCopied] = useState(false)
+  const backupCodes = ['R7K4-M2QP', 'N9TX-6VLA', 'C3HZ-8WFD', 'P5GB-1YRS', 'Q8MN-4KVC']
+
+  const copyBackupCodes = async () => {
+    await navigator.clipboard.writeText(backupCodes.join('\n'))
+    setCodesCopied(true)
+    window.setTimeout(() => setCodesCopied(false), 1800)
+  }
+
+  const downloadBackupCodes = () => {
+    const blob = new Blob([`Chase backup codes\\n\\n${backupCodes.join('\\n')}\\n\\nKeep these codes private.`], { type: 'text/plain' })
+    const url = URL.createObjectURL(blob)
+    const anchor = document.createElement('a')
+    anchor.href = url
+    anchor.download = 'chase-backup-codes.txt'
+    anchor.click()
+    URL.revokeObjectURL(url)
+  }
   const [locationTracking, setLocationTracking] = useState(false)
   const [httpsOnly, setHttpsOnly] = useState(true)
   const [showPasswords, setShowPasswords] = useState(false)
@@ -144,6 +165,74 @@ export default function PrivacySecurityPage() {
                 >
                   {twoFactorEnabled ? 'Disable' : 'Enable'}
                 </button>
+              </div>
+            </Card>
+
+            {/* Backup Codes */}
+            <Card className="bg-background shadow-lg border-0 p-6">
+              <div className="flex items-start justify-between">
+                <div className="flex items-start gap-4 flex-1">
+                  <Shield className="w-6 h-6 text-orange-600 mt-1 flex-shrink-0" />
+                  <div className="flex-1">
+                    <h3 className="text-lg font-semibold text-foreground">Backup Codes</h3>
+                    <p className="text-muted-foreground text-sm mt-1">
+                      Save your backup codes in a secure place. You can use them to access your account if you lose access to your 2FA device.
+                    </p>
+                    {!backupCodesVisible ? (
+                      <Button
+                        onClick={() => setBackupCodesVisible(true)}
+                        className="mt-4 bg-[#0a4fa6] hover:bg-[#003087]"
+                      >
+                        View Backup Codes
+                      </Button>
+                    ) : (
+                      <div className="mt-4 space-y-3">
+                        <div className="p-4 bg-orange-50 border border-orange-200 rounded-lg font-mono text-sm">
+                          {backupCodes.map((code, idx) => (
+                            <div key={idx} className="text-foreground mb-2">
+                              {code}
+                            </div>
+                          ))}
+                        </div>
+                        <div className="flex gap-2">
+                          <Button
+                            onClick={copyBackupCodes}
+                            className={`flex items-center gap-2 ${
+                              codesCopied
+                                ? 'bg-green-600 hover:bg-green-700'
+                                : 'bg-[#0a4fa6] hover:bg-[#003087]'
+                            }`}
+                          >
+                            {codesCopied ? (
+                              <>
+                                <Check className="w-4 h-4" />
+                                Copied!
+                              </>
+                            ) : (
+                              <>
+                                <Copy className="w-4 h-4" />
+                                Copy Codes
+                              </>
+                            )}
+                          </Button>
+                          <Button
+                            onClick={downloadBackupCodes}
+                            className="flex items-center gap-2 bg-gray-600 hover:bg-gray-700"
+                          >
+                            <Download className="w-4 h-4" />
+                            Download
+                          </Button>
+                          <Button
+                            onClick={() => setBackupCodesVisible(false)}
+                            variant="outline"
+                          >
+                            Hide
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
             </Card>
 
