@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
+import { useRouter } from "next/navigation"
 import { DashboardHeader } from "@/components/dashboard-header"
 import { QuickActions } from "@/components/quick-actions"
 import { AccountsSection } from "@/components/accounts-section"
@@ -54,9 +55,14 @@ export default function BankingDashboard() {
   const [disputeTransactionId, setDisputeTransactionId] = useState<string | null>(null)
   const [accountOpeningOpen, setAccountOpeningOpen] = useState(false)
   const { toast } = useToast()
+  const router = useRouter()
 
   const { userProfile, addNotification, addActivity, addLoginHistory } = useBanking()
-  const { logout } = useAuth()
+  const { user, loading: authLoading, logout } = useAuth()
+
+  useEffect(() => {
+    if (!authLoading && !user) router.replace("/login")
+  }, [authLoading, user, router])
 
   const getUserFirstName = useCallback(() => {
     return userProfile.name.split(" ")[0] || "User"
