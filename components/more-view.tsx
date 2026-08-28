@@ -365,13 +365,10 @@ export function MoreView({ onLogout }: MoreViewProps) {
     Education: <FileText className="h-5 w-5" />,
   }
 
-  const handleLogout = () => {
-    localStorage.removeItem("chase_logged_in")
-    localStorage.removeItem("chase_username")
-
+  const handleLogout = async () => {
     toast({
-      title: "Signed Out",
-      description: "You have been successfully signed out of Chase.",
+      title: "Signing out",
+      description: "Your Chase session is being securely closed.",
     })
 
     addActivity({
@@ -381,9 +378,7 @@ export function MoreView({ onLogout }: MoreViewProps) {
     })
 
     if (onLogout) {
-      setTimeout(() => {
-        onLogout()
-      }, 500)
+      await onLogout()
     }
   }
 

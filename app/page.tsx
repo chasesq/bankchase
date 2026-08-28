@@ -28,6 +28,7 @@ import { useBanking } from "@/lib/banking-context"
 import Image from "next/image"
 import { AccountOpeningModal } from "@/components/account-opening-modal"
 import { NewUserOnboarding } from "@/components/new-user-onboarding"
+import { useAuth } from "@/lib/auth-context"
 
 export default function BankingDashboard() {
   const [mounted, setMounted] = useState(false)
@@ -56,6 +57,7 @@ export default function BankingDashboard() {
   const { toast } = useToast()
 
   const { userProfile, addNotification, addActivity, addLoginHistory } = useBanking()
+  const { logout } = useAuth()
 
   const getUserFirstName = useCallback(() => {
     return userProfile.name.split(" ")[0] || "User"
@@ -104,11 +106,10 @@ export default function BankingDashboard() {
     }
     setActiveView("accounts")
     toast({
-      title: "Signed out successfully",
-      description: "You have been securely signed out.",
+      title: "Signing out",
+      description: "Your Chase session is being securely closed.",
     })
-    // Note: Clerk logout is handled via UserButton in header
-    // This function is kept for activity logging
+    await logout()
   }
 
   const handleOpenReceipt = (transactionId: string) => {
