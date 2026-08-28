@@ -9,6 +9,7 @@ import { BankingProvider } from "@/lib/banking-context"
 import { AuthProvider } from "@/lib/auth-context"
 import { ThemeProvider } from "@/components/theme-provider"
 import { LoadingProgressBar } from "@/components/loading-progress-bar"
+import { DeviceIntelligenceProvider } from "@/components/fingerprint-provider"
 import StatsigWrapper from "./statsig-provider"
 import { NavigationProvider } from "./navigation-provider"
 import "./globals.css"
@@ -53,12 +54,14 @@ export default function RootLayout({
           <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
             <StatsigWrapper>
               <AuthProvider>
-                <BankingProvider>
-                  {children}
-                  <Toaster />
-                  <Analytics />
-                  <SpeedInsights />
-                </BankingProvider>
+                <DeviceIntelligenceProvider>
+                  <BankingProvider>
+                    {children}
+                    <Toaster />
+                    <Analytics />
+                    <SpeedInsights />
+                  </BankingProvider>
+                </DeviceIntelligenceProvider>
               </AuthProvider>
             </StatsigWrapper>
           </ThemeProvider>
