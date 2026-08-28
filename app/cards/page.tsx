@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-;
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { Navigation } from '@/components/Navigation';
 import { useBanking } from '@/lib/banking-context';
@@ -70,14 +69,18 @@ function CardsContent() {
   }, [userId, isLoaded]);
 
   useEffect(() => {
-    fetchCards();
-    const interval = setInterval(fetchCards, 5000); // Real-time updates every 5 seconds
-    return () => clearInterval(interval);
-  }, [fetchCards]);
+    if (!userId || !isLoaded) return;
+
+    void fetchCards();
+    const interval = window.setInterval(() => void fetchCards(), 5000);
+    return () => window.clearInterval(interval);
+  }, [fetchCards, isLoaded, userId]);
 
   const handleActivateCard = (card: Card) => {
     if (card.status !== 'pending_activation') return;
     setSelectedCard(card);
+    setActivationData({ lastFourDigits: card.lastFour });
+    setError(null);
     setShowActivationModal(true);
   };
 

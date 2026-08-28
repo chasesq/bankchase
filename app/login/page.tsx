@@ -1,7 +1,5 @@
-"use client"
-
-import { LoginPage } from "@/components/login-page"
+import { AuthForm } from "@/components/auth-form"
 
 export default function LoginRoute() {
-  return <LoginPage onLogin={() => undefined} />
+  return <AuthForm mode="sign-in" />
 }
