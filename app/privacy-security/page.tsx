@@ -27,6 +27,7 @@ import {
 } from 'lucide-react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useAuth } from '@/lib/auth-context'
+import { PasskeyEnrollment } from '@/components/passkey-enrollment'
 
 export default function PrivacySecurityPage() {
   
@@ -35,7 +36,6 @@ export default function PrivacySecurityPage() {
   const isLoaded = !isLoading
   const userId = user?.id ?? null
   const [twoFactorEnabled, setTwoFactorEnabled] = useState(true)
-  const [biometricsEnabled, setBiometricsEnabled] = useState(false)
   const [dataSharing, setDataSharing] = useState(false)
   const [backupCodesVisible, setBackupCodesVisible] = useState(false)
   const [codesCopied, setCodesCopied] = useState(false)
@@ -237,34 +237,7 @@ export default function PrivacySecurityPage() {
             </Card>
 
             {/* Biometric Authentication */}
-            <Card className="bg-background shadow-lg border-0 p-6">
-              <div className="flex items-start justify-between">
-                <div className="flex items-start gap-4 flex-1">
-                  <Fingerprint className="w-6 h-6 text-[#0a4fa6] mt-1 flex-shrink-0" />
-                  <div className="flex-1">
-                    <h3 className="text-lg font-semibold text-foreground">Biometric Authentication</h3>
-                    <p className="text-muted-foreground text-sm mt-1">
-                      Use your fingerprint or face recognition to quickly and securely access your account.
-                    </p>
-                    <div className="mt-3">
-                      <Badge className={biometricsEnabled ? 'bg-green-100 text-green-800 border-0' : 'bg-background text-foreground border-0'}>
-                        {biometricsEnabled ? 'Enabled' : 'Disabled'}
-                      </Badge>
-                    </div>
-                  </div>
-                </div>
-                <button
-                  onClick={() => setBiometricsEnabled(!biometricsEnabled)}
-                  className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                    biometricsEnabled
-                      ? 'bg-red-100 text-red-700 hover:bg-red-200'
-                      : 'bg-card text-blue-700 hover:bg-blue-200'
-                  }`}
-                >
-                  {biometricsEnabled ? 'Disable' : 'Enable'}
-                </button>
-              </div>
-            </Card>
+            <PasskeyEnrollment />
 
             {/* Password Management */}
             <Card className="bg-background shadow-lg border-0 p-6">
