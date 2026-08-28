@@ -59,7 +59,6 @@ export function AuthForm({ mode }: { mode: "sign-in" | "sign-up" }) {
     <main className="min-h-svh bg-[#0868b8] text-[#172033]">
       <div className="mx-auto flex min-h-svh w-full max-w-6xl flex-col px-5 pb-8 sm:px-10">
         <header className="flex items-center justify-between py-5 text-white">
-          <span className="rounded-full bg-[#c8102e] px-6 py-2 text-xl font-bold tracking-tight shadow-sm" aria-label="Chase">●</span>
           <div className="flex items-center gap-2 text-sm font-medium"><ShieldCheck className="size-5" /> Secure sign in</div>
         </header>
         <div className="flex flex-1 flex-col items-center justify-center gap-12 py-10 sm:gap-16">
