@@ -5,10 +5,11 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
     const accountId = String(body.accountId ?? '')
+    const type = body.type === 'account_update' ? 'account_update' : 'account_onboarding'
     const origin = new URL(request.url).origin
     const refreshUrl = String(body.refreshUrl ?? `${origin}/connect/onboarding?refresh=1`)
     const returnUrl = String(body.returnUrl ?? `${origin}/connect/onboarding?complete=1`)
-    const link = await createOnboardingLink(accountId, refreshUrl, returnUrl)
+    const link = await createOnboardingLink(accountId, refreshUrl, returnUrl, type)
     return NextResponse.json({ success: true, url: link.url, expiresAt: link.expires_at })
   } catch (error) {
     return NextResponse.json({ success: false, error: stripeErrorMessage(error) }, { status: 400 })

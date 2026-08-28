@@ -25,7 +25,7 @@ export async function createConnectAccount(input: CreateConnectAccountInput) {
   return { id: account.id, status: accountStatus(account), account }
 }
 
-export async function createOnboardingLink(accountId: string, refreshUrl: string, returnUrl: string) {
+export async function createOnboardingLink(accountId: string, refreshUrl: string, returnUrl: string, type: 'account_onboarding' | 'account_update' = 'account_onboarding') {
   if (!/^acct_[A-Za-z0-9]+$/.test(accountId)) throw new Error('Invalid Stripe account ID.')
   const refresh = new URL(refreshUrl)
   const returnTo = new URL(returnUrl)
