@@ -62,9 +62,9 @@ export function AuthForm({ mode }: { mode: "sign-in" | "sign-up" }) {
           <div className="flex items-center gap-2 text-sm font-medium"><ShieldCheck className="size-5" /> Secure sign in</div>
         </header>
         <div className="flex flex-1 flex-col items-center justify-center gap-12 py-10 sm:gap-16">
-          <div className="flex items-center gap-3 text-white">
-            <span className="text-4xl font-semibold tracking-[0.12em]">CHASE</span>
-            <Image src="/images/chase-logo.png" alt="Chase" width={48} height={48} className="rounded-md brightness-0 invert" priority />
+          <div className="flex items-center gap-2 text-white" aria-label="Chase">
+            <span className="font-mono text-4xl font-semibold tracking-[0.08em]">CHASE</span>
+            <Image src="/images/chase-logo.png" alt="Chase logo" width={52} height={52} className="shrink-0" priority />
           </div>
           <section className="w-full max-w-xl rounded-md border border-[#aeb4bb] bg-white shadow-[0_3px_12px_rgba(0,0,0,.22)]">
             <div className="p-6 sm:p-9">
