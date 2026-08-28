@@ -76,8 +76,11 @@ async function sendTwilioAlert(
   const accountSid = process.env.TWILIO_ACCOUNT_SID
   const authToken = process.env.TWILIO_AUTH_TOKEN
   const fromNumber = process.env.TWILIO_FROM_PHONE || process.env.TWILIO_PHONE_NUMBER
+  // Messaging Services are preferred because Twilio selects the sender from the service pool.
+  // The fallback keeps existing phone-number based setups working.
+  const messagingServiceSid = process.env.TWILIO_MESSAGING_SERVICE_SID || 'MG695da0b8cf946024ca978c8ad5b20e41'
 
-  if (!accountSid || !authToken || !fromNumber) {
+  if (!accountSid || !authToken || (!fromNumber && !messagingServiceSid)) {
     return {
       success: false,
       error: 'Twilio credentials not configured'
@@ -85,13 +88,17 @@ async function sendTwilioAlert(
   }
 
   try {
-    const url = `https://api.twilio.com/2010-04-01/Accounts/${accountSid}/Messages.json`
+    const url = `https://api.twilio.com/2010-04-01/Accounts/${encodeURIComponent(accountSid)}/Messages.json`
 
     const auth = Buffer.from(`${accountSid}:${authToken}`).toString('base64')
 
     const params = new URLSearchParams()
     params.append('To', phoneNumber)
-    params.append('From', fromNumber)
+    if (messagingServiceSid) {
+      params.append('MessagingServiceSid', messagingServiceSid)
+    } else if (fromNumber) {
+      params.append('From', fromNumber)
+    }
     params.append('Body', message)
 
     const response = await fetch(url, {
