@@ -28,9 +28,8 @@ import { AccountOpeningModal } from "@/components/account-opening-modal"
 import { NewUserOnboarding } from "@/components/new-user-onboarding"
 import { AuthForm } from "@/components/auth-form"
 import { useAuth } from "@/lib/auth-context"
-import { Settings2, Sun, Moon, LayoutGrid, GripVertical } from "lucide-react"
+import { Settings2, Sun, Moon } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { MercuryDemoCustomizer } from "@/components/mercury-demo-customizer"
 
 export default function BankingDashboard() {
   const [activeView, setActiveView] = useState("accounts")
@@ -49,7 +48,6 @@ export default function BankingDashboard() {
   const [disputeOpen, setDisputeOpen] = useState(false)
   const [disputeTransactionId, setDisputeTransactionId] = useState<string | null>(null)
   const [accountOpeningOpen, setAccountOpeningOpen] = useState(false)
-  const [demoOpen, setDemoOpen] = useState(false)
   const [customizeOpen, setCustomizeOpen] = useState(false)
   const [theme, setTheme] = useState<'light' | 'dark'>('light')
   const [density, setDensity] = useState<'comfortable' | 'compact'>('comfortable')
@@ -201,7 +199,7 @@ export default function BankingDashboard() {
       <main className="px-4 pt-5">
         <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
           <div><p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">Mercury demo</p><p className="text-sm text-muted-foreground">Make this dashboard work your way.</p></div>
-          <div className="flex flex-wrap gap-2"><Button variant="outline" size="sm" onClick={() => setCustomizeOpen((open) => !open)}><Settings2 data-icon="inline-start" />Customize dashboard</Button><Button size="sm" onClick={() => setDemoOpen(true)}>Explore the Mercury Demo</Button></div>
+          <div className="flex flex-wrap gap-2"><Button variant="outline" size="sm" onClick={() => setCustomizeOpen((open) => !open)}><Settings2 data-icon="inline-start" />Customize dashboard</Button></div>
         </div>
         {customizeOpen && <section aria-label="Dashboard customization" className="mb-5 rounded-2xl border bg-card p-4 shadow-sm"><div className="flex flex-wrap items-center justify-between gap-4"><div><h2 className="font-semibold">Customize your account dashboard</h2><p className="text-sm text-muted-foreground">Choose what you see and how it feels.</p></div><Button variant="ghost" size="sm" onClick={resetDashboardPreferences}>Reset defaults</Button></div><div className="mt-4 grid gap-4 sm:grid-cols-3"><div className="flex flex-col gap-2"><span className="text-sm font-medium">Appearance</span><div className="flex gap-2"><Button size="sm" variant={theme === 'light' ? 'default' : 'outline'} onClick={() => setTheme('light')}><Sun data-icon="inline-start" />Light</Button><Button size="sm" variant={theme === 'dark' ? 'default' : 'outline'} onClick={() => setTheme('dark')}><Moon data-icon="inline-start" />Dark</Button></div></div><div className="flex flex-col gap-2"><span className="text-sm font-medium">Density</span><div className="flex gap-2"><Button size="sm" variant={density === 'comfortable' ? 'default' : 'outline'} onClick={() => setDensity('comfortable')}>Comfortable</Button><Button size="sm" variant={density === 'compact' ? 'default' : 'outline'} onClick={() => setDensity('compact')}>Compact</Button></div></div><div className="flex flex-col gap-2"><span className="text-sm font-medium">Visible cards</span><div className="flex flex-wrap gap-2">{(['accounts', 'activity', 'credit'] as const).map((card) => <Button key={card} size="sm" variant={visibleCards[card] ? 'default' : 'outline'} onClick={() => setVisibleCards((current) => ({ ...current, [card]: !current[card] }))}>{card === 'accounts' ? 'Accounts' : card === 'activity' ? 'Activity' : 'Credit'}</Button>)}</div></div></div></section>}
         <div className="mb-5">
@@ -255,7 +253,6 @@ export default function BankingDashboard() {
 
       {/* Account Opening Modal */}
       <AccountOpeningModal isOpen={accountOpeningOpen} onClose={() => setAccountOpeningOpen(false)} />
-      <MercuryDemoCustomizer open={demoOpen} onOpenChange={setDemoOpen} />
     </div>
   )
 }
