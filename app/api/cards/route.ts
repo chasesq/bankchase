@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { createClient } from '@/lib/supabase/server'
 import {
   issueCard,
   getCard,
@@ -20,8 +21,12 @@ import {
 // POST - Card operations
 export async function POST(request: NextRequest) {
   try {
+    const supabase = await createClient()
+    const { data: { user }, error } = await supabase.auth.getUser()
+    if (error || !user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     const body = await request.json()
     const { action, ...data } = body
+    data.userId = user.id
 
     switch (action) {
       case 'issue': {
@@ -229,6 +234,9 @@ export async function POST(request: NextRequest) {
 // GET - Get card(s) or transactions
 export async function GET(request: NextRequest) {
   try {
+    const supabase = await createClient()
+    const { data: { user }, error } = await supabase.auth.getUser()
+    if (error || !user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     const { searchParams } = new URL(request.url)
     const cardId = searchParams.get('cardId')
     const userId = searchParams.get('userId')

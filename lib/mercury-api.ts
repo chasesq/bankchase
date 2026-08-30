@@ -5,6 +5,9 @@ import { createClient } from "@/lib/supabase/server"
 const MERCURY_API_BASE = "https://api.mercury.com/api/v1"
 const MERCURY_VAULT_BASE = "https://vault-api.mercury.com/api/v1"
 
+const mercuryToken = () =>
+  process.env.MERCURY_API_KEY ?? process.env.MERCURY_API_TOKEN ?? process.env.MERCURY_ACCESS_TOKEN
+
 type MercuryRequestOptions = RequestInit & { vault?: boolean }
 
 export class MercuryApiError extends Error {
@@ -20,13 +23,13 @@ export class MercuryApiError extends Error {
 }
 
 function getToken() {
-  const token = process.env.MERCURY_API_TOKEN ?? process.env.MERCURY_ACCESS_TOKEN
+  const token = mercuryToken()
   if (!token) throw new MercuryApiError("Mercury is not connected", 503)
   return token
 }
 
 export function isMercuryConfigured() {
-  return Boolean(process.env.MERCURY_API_TOKEN ?? process.env.MERCURY_ACCESS_TOKEN)
+  return Boolean(mercuryToken())
 }
 
 export async function requireMercuryUser() {
@@ -111,6 +114,39 @@ export type MercurySafe = {
   signedByOwnerAt?: string | null
   investor: { signatoryName: string; signatoryEmail: string; legalEntityName: string; investorType: string }
   organization: { legalEntityName: string; signatoryEmail: string; signatoryName: string; signatoryTitle: string }
+}
+
+export type MercuryAccount = {
+  id: string
+  name?: string
+  kind?: string
+  type?: string
+  accountNumber?: string
+  routingNumber?: string
+  availableBalance?: number
+  currentBalance?: number
+  balance?: number
+  status?: string
+}
+
+export type MercuryStatement = {
+  id: string
+  accountId?: string
+  startDate?: string
+  endDate?: string
+  statementDate?: string
+  endingBalance?: number
+  downloadUrl?: string
+  pdfUrl?: string
+  csvUrl?: string
+}
+
+export async function listAccounts(query = "") {
+  return mercuryRequest<{ accounts: MercuryAccount[]; page?: { nextPage?: string; previousPage?: string } }>(`/accounts${query}`)
+}
+
+export async function listStatements(accountId: string, query = "") {
+  return mercuryRequest<{ statements: MercuryStatement[]; page?: { nextPage?: string; previousPage?: string } }>(`/account/${encodeURIComponent(accountId)}/statements${query}`)
 }
 
 export async function listCategories(query = "") {
