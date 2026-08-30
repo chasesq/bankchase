@@ -16,8 +16,9 @@ type AccountType = 'checking' | 'savings' | 'credit' | 'investment'
 export function AccountOpeningModal({ isOpen, onClose }: AccountOpeningModalProps) {
   const [step, setStep] = useState<'type' | 'details' | 'confirm'>('type')
   const [selectedType, setSelectedType] = useState<AccountType>('checking')
+  const [isSubmitting, setIsSubmitting] = useState(false)
   const { toast } = useToast()
-  const { accounts, addAccount } = useBanking()
+  const { addAccount } = useBanking()
 
   if (!isOpen) return null
 
@@ -57,16 +58,17 @@ export function AccountOpeningModal({ isOpen, onClose }: AccountOpeningModalProp
   ]
 
   const handleOpenAccount = async () => {
+    if (isSubmitting) return
+    setIsSubmitting(true)
     try {
-      // Simulate account opening process
-      const newAccount = {
+      const accountName = accountTypes.find((account) => account.id === selectedType)?.name ?? 'New account'
+      addAccount({
+        name: accountName,
         type: selectedType,
-        openedAt: new Date().toISOString(),
-        status: 'pending',
-      }
-
-      // In a real scenario, this would call an API
-      // For now, we'll just show a success message
+        balance: 0,
+        accountNumber: `pending-${Date.now().toString(36)}`,
+        routingNumber: 'pending',
+      })
       toast({
         title: 'Account Opening Initiated',
         description: `Your ${accountTypes.find(a => a.id === selectedType)?.name} application has been submitted. We'll review it shortly.`,
@@ -77,9 +79,11 @@ export function AccountOpeningModal({ isOpen, onClose }: AccountOpeningModalProp
     } catch (error) {
       toast({
         title: 'Error',
-        description: 'Failed to open account. Please try again.',
+        description: error instanceof Error ? error.message : 'Failed to open account. Please try again.',
         variant: 'destructive',
       })
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
@@ -210,9 +214,10 @@ export function AccountOpeningModal({ isOpen, onClose }: AccountOpeningModalProp
               else if (step === 'details') setStep('confirm')
               else handleOpenAccount()
             }}
-            className="px-6 py-2"
-          >
-            {step === 'confirm' ? 'Submit Application' : 'Continue'}
+    className="px-6 py-2"
+    disabled={isSubmitting}
+  >
+  {isSubmitting ? 'Submitting...' : step === 'confirm' ? 'Submit Application' : 'Continue'}
           </Button>
         </div>
       </div>
