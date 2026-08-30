@@ -112,7 +112,11 @@ export default function BankingDashboard() {
     return "Good evening"
   }
 
-  if (authLoading || !user) {
+  if (authLoading) {
+    return null
+  }
+
+  if (!user) {
     return <AuthForm mode="sign-in" />
   }
 
