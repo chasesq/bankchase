@@ -49,7 +49,7 @@ export default function LoginAlertsPage() {
         <div className="mx-auto max-w-4xl px-5 py-14 text-center md:py-20">
           <p className="mb-4 text-sm font-semibold uppercase tracking-[0.18em] text-primary">Stay informed</p>
           <h1 className="text-balance text-4xl font-semibold tracking-tight md:text-6xl">Account alerts</h1>
-          <p className="mx-auto mt-6 max-w-2xl text-pretty text-lg leading-8 text-muted-foreground">Enroll and receive alerts about your account, transactions and security so you can help keep your money safe.</p>
+          <p className="mx-auto mt-6 max-w-2xl text-pretty text-lg leading-8 text-muted-foreground">Learn how to manage real-time balance, transaction, deposit, and security alerts from your account settings.</p>
         </div>
       </section>
 
@@ -69,7 +69,13 @@ export default function LoginAlertsPage() {
           <div>
             <p className="text-sm font-semibold uppercase tracking-[0.18em] text-primary">How it works</p>
             <h2 className="mt-3 text-3xl font-semibold tracking-tight">Choose what matters to you.</h2>
-            <p className="mt-4 leading-7 text-muted-foreground">Set up alerts for the activity you care about, then select where you want them delivered.</p>
+            <p className="mt-4 leading-7 text-muted-foreground">Open your profile, choose Settings, then select Notifications. Pick a category, turn on the alert, choose Push, Email, or Text, and save your changes.</p>
+            <ol className="mt-7 flex flex-col gap-3 text-sm leading-6 text-muted-foreground" aria-label="Alert setup steps">
+              <li><strong className="text-foreground">1. Open Settings.</strong> Sign in and select your profile icon, then choose Settings.</li>
+              <li><strong className="text-foreground">2. Choose an alert category.</strong> Review balances, transactions, deposits, and security activity.</li>
+              <li><strong className="text-foreground">3. Select delivery methods.</strong> Enable Push Notification, Email, or Text for each alert.</li>
+              <li><strong className="text-foreground">4. Save and test.</strong> Return to Notifications to confirm your preferences are enabled.</li>
+            </ol>
             <div className="mt-7 flex flex-wrap gap-3 text-sm font-medium">
               <span className="inline-flex items-center gap-2 border border-border px-3 py-2"><Mail size={16} className="text-primary" /> Email</span>
               <span className="inline-flex items-center gap-2 border border-border px-3 py-2"><MessageSquare size={16} className="text-primary" /> Text</span>

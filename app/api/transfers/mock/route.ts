@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { nanoid } from 'nanoid'
+import { deliverTransferAlerts } from '@/lib/transfer-alerts'
 
 // In-memory store for demo - persists across requests
 const mockStore: any = {
@@ -52,27 +53,26 @@ export async function POST(request: NextRequest) {
       senderAccountId,
       receiverAccountId,
       recipientEmail,
+      recipientPhone,
       recipientName,
       amount,
       description,
       transferType,
     } = body
 
-    // Validate required fields
-    if (!senderId || !senderAccountId || !amount || !recipientName) {
-      return NextResponse.json(
-        { error: 'Missing required fields' },
-        { status: 400 }
-      )
+    // Validate required fields and normalize form values before any balance mutation.
+    if (!senderId || !senderAccountId || amount === undefined || amount === null || !recipientName) {
+      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
     }
 
-    // Validate amount
-    if (amount <= 0) {
-      return NextResponse.json(
-        { error: 'Amount must be greater than 0' },
-        { status: 400 }
-      )
+    const numericAmount = typeof amount === 'string' ? Number(amount) : amount
+    if (!Number.isFinite(numericAmount) || numericAmount <= 0 || Math.round(numericAmount * 100) !== numericAmount * 100) {
+      return NextResponse.json({ error: 'Amount must be a valid positive amount with at most two decimals' }, { status: 400 })
     }
+
+    const normalizedTransferType = transferType === 'zelle' ? 'zelle' : receiverAccountId ? 'internal' : 'bank_transfer'
+    const fee = normalizedTransferType === 'zelle' ? 0 : 2.50
+    const totalAmount = numericAmount + fee
 
     // Get sender account
     const senderAccounts = mockStore.accounts.get(senderId) || []
@@ -85,9 +85,6 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Calculate fee
-    const fee = transferType === 'zelle' ? 0 : 2.50
-    const totalAmount = amount + fee
 
     // Check balance
     const senderBalance = parseFloat(sender.balance)
@@ -136,11 +133,12 @@ export async function POST(request: NextRequest) {
       receiverId: receiver?.userId || null,
       receiverAccountId: receiverAccountId || '',
       recipientEmail,
+      recipientPhone,
       recipientName,
-      amount: amount.toString(),
-      fee: fee.toString(),
+      amount: numericAmount.toFixed(2),
+      fee: fee.toFixed(2),
       description: description || `Transfer to ${recipientName}`,
-      transferType,
+      transferType: normalizedTransferType,
       status: 'completed',
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -148,13 +146,24 @@ export async function POST(request: NextRequest) {
 
     mockStore.transfers.set(transferId, transfer)
 
+    // Deliver recipient alerts after the wallet transfer is committed.
+    const alertDelivery = await deliverTransferAlerts({
+      recipientPhone,
+      recipientEmail,
+      recipientName,
+      amount: numericAmount,
+      transferType: normalizedTransferType,
+      status: 'completed',
+      transferId,
+    })
+
     // Create sender notification
     const senderNotif = {
       id: nanoid(),
       userId: senderId,
       type: 'transfer_sent',
       title: 'Transfer Sent',
-      message: `You sent $${amount.toFixed(2)} to ${recipientName}`,
+      message: `You sent ${numericAmount.toFixed(2)} to ${recipientName}`,
       relatedTransferId: transferId,
       isRead: false,
       createdAt: new Date(),
@@ -193,6 +202,7 @@ export async function POST(request: NextRequest) {
         senderNewBalance: sender.balance,
         receiverNewBalance: receiver?.balance || null,
         fee,
+        alertDelivery,
       },
       { status: 200 }
     )

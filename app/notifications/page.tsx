@@ -255,8 +255,12 @@ export default function NotificationsPage() {
 
         {activeTab === 'preferences' && (
           <div className="space-y-4">
-            <Card className="p-6 border-border">
-              <h3 className="text-xl font-bold mb-6">Notification Preferences</h3>
+              <Card className="p-6 border-border">
+              <h3 className="text-xl font-bold mb-2">Notification Preferences</h3>
+              <p className="mb-6 text-sm text-muted-foreground">Choose which account events to monitor. Save changes in Settings to update your account-wide delivery preferences.</p>
+              <div className="mb-5 flex justify-end">
+                <Button variant="outline" onClick={() => router.push('/settings')}>Manage alert settings</Button>
+              </div>
               <div className="space-y-4">
                 {['Transfer', 'Deposit', 'Withdrawal', 'Fraud Alert', 'Low Balance'].map((type) => (
                   <div key={type} className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
