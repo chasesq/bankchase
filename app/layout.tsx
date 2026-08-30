@@ -8,10 +8,8 @@ import { Toaster } from "@/components/ui/toaster"
 import { BankingProvider } from "@/lib/banking-context"
 import { AuthProvider } from "@/lib/auth-context"
 import { ThemeProvider } from "@/components/theme-provider"
-import { LoadingProgressBar } from "@/components/loading-progress-bar"
 import { DeviceIntelligenceProvider } from "@/components/fingerprint-provider"
 import StatsigWrapper from "./statsig-provider"
-import { NavigationProvider } from "./navigation-provider"
 import "./globals.css"
 
 const _geist = Geist({ subsets: ["latin"] })
@@ -49,9 +47,7 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <head></head>
       <body className={`font-sans antialiased`}>
-        <LoadingProgressBar />
-        <NavigationProvider>
-          <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
             <StatsigWrapper>
               <AuthProvider>
                 <DeviceIntelligenceProvider>
@@ -65,7 +61,6 @@ export default function RootLayout({
               </AuthProvider>
             </StatsigWrapper>
           </ThemeProvider>
-        </NavigationProvider>
         {(process.env.NODE_ENV === "development" || process.env.VERCEL_ENV === "preview") && (
           <Script
             id="meticulous-recording"

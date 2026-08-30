@@ -1,7 +1,6 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
-import { useRouter } from "next/navigation"
 import { DashboardHeader } from "@/components/dashboard-header"
 import { QuickActions } from "@/components/quick-actions"
 import { AccountsSection } from "@/components/accounts-section"
@@ -25,19 +24,12 @@ import { TransactionReceiptModal } from "@/components/transaction-receipt-modal"
 import { TransactionsDrawer } from "@/components/transactions-drawer"
 import { DisputeTransactionDrawer } from "@/components/dispute-transaction-drawer"
 import { useBanking } from "@/lib/banking-context"
-import Image from "next/image"
 import { AccountOpeningModal } from "@/components/account-opening-modal"
 import { NewUserOnboarding } from "@/components/new-user-onboarding"
+import { AuthForm } from "@/components/auth-form"
 import { useAuth } from "@/lib/auth-context"
 
 export default function BankingDashboard() {
-  const [mounted, setMounted] = useState(false)
-  
-  useEffect(() => {
-    setMounted(true)
-  }, [])
-
-  
   const [activeView, setActiveView] = useState("accounts")
   const [sendMoneyOpen, setSendMoneyOpen] = useState(false)
   const [depositChecksOpen, setDepositChecksOpen] = useState(false)
@@ -55,20 +47,17 @@ export default function BankingDashboard() {
   const [disputeTransactionId, setDisputeTransactionId] = useState<string | null>(null)
   const [accountOpeningOpen, setAccountOpeningOpen] = useState(false)
   const { toast } = useToast()
-  const router = useRouter()
 
   const { userProfile, addNotification, addActivity, addLoginHistory } = useBanking()
   const { user, loading: authLoading, logout } = useAuth()
-
-  useEffect(() => {
-    if (!authLoading && !user) router.replace("/login")
-  }, [authLoading, user, router])
 
   const getUserFirstName = useCallback(() => {
     return userProfile.name.split(" ")[0] || "User"
   }, [userProfile.name])
 
   useEffect(() => {
+    if (authLoading || !user) return
+
     const deviceInfo = navigator.userAgent.includes("Mobile") ? "Mobile Device" : "Desktop Browser"
 
     if (addActivity) {
@@ -88,7 +77,7 @@ export default function BankingDashboard() {
       })
     }
 
-  }, [addActivity, addLoginHistory, toast])
+  }, [addActivity, addLoginHistory, authLoading, toast, user])
 
   const handleLogout = async () => {
     if (addActivity) {
@@ -123,16 +112,12 @@ export default function BankingDashboard() {
     return "Good evening"
   }
 
-  if (!mounted) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/20 to-accent/20 dark:from-primary/10 dark:to-accent/10">
-        <div className="flex flex-col items-center gap-4">
-          <Image src="/images/chase-logo.png" alt="Chase" width={80} height={80} className="rounded-xl shadow-lg" priority loading="eager" />
-          <span className="text-2xl font-bold tracking-wide text-foreground">CHASE</span>
-          <div className="w-8 h-8 border-3 border-primary border-t-transparent rounded-full animate-spin"></div>
-        </div>
-      </div>
-    )
+  if (authLoading) {
+    return null
+  }
+
+  if (!user) {
+    return <AuthForm mode="sign-in" />
   }
 
   const renderView = () => {

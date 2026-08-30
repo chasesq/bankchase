@@ -3,12 +3,10 @@
 import { useEffect, useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
 import { Eye, EyeOff, Fingerprint, Loader2, MoreHorizontal, ShieldCheck, X } from "lucide-react"
 import { useAuth } from "@/lib/auth-context"
 
 export function AuthForm({ mode }: { mode: "sign-in" | "sign-up" }) {
-  const router = useRouter()
   const { login, register } = useAuth()
   const isSignUp = mode === "sign-up"
   const [username, setUsername] = useState("")
@@ -45,8 +43,7 @@ export function AuthForm({ mode }: { mode: "sign-in" | "sign-up" }) {
         if (remember) window.localStorage.setItem("chase_username", username.trim())
         else window.localStorage.removeItem("chase_username")
       }
-      router.push("/")
-      router.refresh()
+      window.location.replace("/")
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "We couldn't sign you in. Check your details and try again.")
     } finally {
