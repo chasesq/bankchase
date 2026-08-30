@@ -1,22 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PlaidService } from '@/lib/plaid-service';
-import { verifyToken } from '@/lib/token-verification';
+import { createClient } from '@/utils/supabase/server';
+import { getPlaidSecret } from '@/lib/plaid-connect';
 
 export async function POST(request: NextRequest) {
   try {
-    const authHeader = request.headers.get('Authorization');
-    if (!authHeader) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    const token = authHeader.replace('Bearer ', '');
-    const payload = verifyToken(token);
-
-    if (!payload) {
-      return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
-    }
-
-    const userId = (payload as any).userId || (payload as any).sub;
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    const userId = user?.id;
+    if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const plaidSecret = await getPlaidSecret(userId);
     const { publicToken, metadata } = await request.json();
 
     if (!publicToken) {
@@ -27,10 +20,10 @@ export async function POST(request: NextRequest) {
     }
 
     // Exchange public token for access token
-    const exchangeResult = await PlaidService.exchangePublicToken(publicToken);
+    const exchangeResult = await PlaidService.exchangePublicToken(publicToken, plaidSecret);
 
     // Get accounts for this item
-    const accountsResult = await PlaidService.getAccounts(exchangeResult.accessToken);
+    const accountsResult = await PlaidService.getAccounts(exchangeResult.accessToken, plaidSecret);
 
     // Save each account to database
     for (const account of accountsResult.accounts) {
@@ -58,7 +51,9 @@ export async function POST(request: NextRequest) {
     const transactionsResult = await PlaidService.getTransactions(
       exchangeResult.accessToken,
       startDate,
-      endDate
+      endDate,
+      undefined,
+      plaidSecret
     );
 
     console.log(`[v0] Retrieved ${transactionsResult.transactions.length} transactions`);
