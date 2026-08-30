@@ -1,109 +1,60 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { cookies } from 'next/headers'
+import { createClient } from '@/lib/supabase/server'
 
 function validatePassword(password: string) {
   const errors: string[] = []
   if (password.length < 8) errors.push('Password must be at least 8 characters')
-  if (!/[A-Z]/.test(password)) errors.push('Password must contain uppercase letters')
-  if (!/[0-9]/.test(password)) errors.push('Password must contain numbers')
-  return { valid: errors.length === 0, errors }
-}
-
-async function hashPassword(password: string): Promise<string> {
-  // Simple hash for demo purposes - use bcrypt in production
-  return Buffer.from(password).toString('base64')
-}
-
-function generateAccountNumber(): string {
-  return Math.random().toString().slice(2, 12)
+  if (!/[A-Z]/.test(password)) errors.push('Password must contain an uppercase letter')
+  if (!/[0-9]/.test(password)) errors.push('Password must contain a number')
+  return errors
 }
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { email, password, firstName, lastName } = body
+    const email = typeof body.email === 'string' ? body.email.trim().toLowerCase() : ''
+    const password = typeof body.password === 'string' ? body.password : ''
+    const firstName = typeof body.firstName === 'string' ? body.firstName.trim() : ''
+    const lastName = typeof body.lastName === 'string' ? body.lastName.trim() : ''
+    const username = typeof body.username === 'string' ? body.username.trim() : email.split('@')[0]
 
-    if (!email || !password) {
-      return NextResponse.json(
-        { error: 'Email and password are required' },
-        { status: 400 }
-      )
-    }
+    if (!email || !password) return NextResponse.json({ error: 'Email and password are required' }, { status: 400 })
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return NextResponse.json({ error: 'Invalid email format' }, { status: 400 })
+    const passwordErrors = validatePassword(password)
+    if (passwordErrors.length) return NextResponse.json({ error: 'Password is too weak', details: passwordErrors }, { status: 400 })
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    if (!emailRegex.test(email)) {
-      return NextResponse.json(
-        { error: 'Invalid email format' },
-        { status: 400 }
-      )
-    }
-
-    // Validate password strength
-    const passwordValidation = validatePassword(password)
-    if (!passwordValidation.valid) {
-      return NextResponse.json(
-        { error: 'Password is too weak', details: passwordValidation.errors },
-        { status: 400 }
-      )
-    }
-
-    // Hash password
-    const passwordHash = await hashPassword(password)
-
-    // Generate username from email
-    const userId = 'user-' + Math.random().toString(36).substr(2, 9)
-    const username = email.split('@')[0] + Math.random().toString(36).substr(2, 5)
-
-    const newUser = {
-      id: userId,
+    const supabase = await createClient()
+    const { data, error } = await supabase.auth.signUp({
       email,
-      username,
-      firstName: firstName || 'User',
-      lastName: lastName || '',
-      role: 'customer',
-      emailVerified: false,
-    }
-
-    // Create session cookie
-    const cookieStore = await cookies()
-    cookieStore.set('auth_user', JSON.stringify(newUser), {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 60 * 60 * 24 * 7, // 7 days
+      password,
+      options: { data: { username, firstName, lastName } },
     })
 
-    // Create a simple JWT-like token
-    const token = Buffer.from(JSON.stringify({
-      sub: newUser.id,
-      email: newUser.email,
-      username: newUser.username,
-      role: newUser.role,
-      iat: Date.now(),
-    })).toString('base64')
+    if (error) {
+      const status = /already registered|already exists/i.test(error.message) ? 409 : 400
+      return NextResponse.json({ error: error.message }, { status })
+    }
+    if (!data.user) return NextResponse.json({ error: 'Unable to create your account' }, { status: 500 })
 
-    return NextResponse.json(
-      {
-        success: true,
-        user: {
-          id: newUser.id,
-          email: newUser.email,
-          username: newUser.username,
-          firstName: newUser.firstName,
-          lastName: newUser.lastName,
-          role: 'customer',
-          emailVerified: false,
-        },
-        message: 'Registration successful.',
-        token,
-      },
-      { status: 201 }
-    )
+    const user = {
+      id: data.user.id,
+      email: data.user.email,
+      username,
+      firstName,
+      lastName,
+      role: 'customer',
+      emailVerified: Boolean(data.user.email_confirmed_at),
+    }
+
+    return NextResponse.json({
+      success: true,
+      user,
+      token: data.session?.access_token ?? null,
+      requiresEmailConfirmation: !data.session,
+      message: data.session ? 'Registration successful.' : 'Check your email to confirm your account before signing in.',
+    }, { status: data.session ? 201 : 202 })
   } catch (error) {
-    console.error('Register error:', error)
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    )
+    console.error('[v0] Register error:', error)
+    return NextResponse.json({ error: 'Unable to create your account right now' }, { status: 500 })
   }
 }

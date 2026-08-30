@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { cookies } from 'next/headers'
+import { createClient } from '@/lib/supabase/server'
 
-// Demo user credentials
 const DEMO_USER = {
   id: 'demo-user-1',
   username: 'Lin Huang',
@@ -15,78 +14,54 @@ const DEMO_USER = {
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json()
-    const { username, password, token } = body
+    const { username, password, token } = await request.json()
+    const identifier = typeof username === 'string' ? username.trim() : ''
+    const secret = typeof password === 'string' ? password : ''
 
-    if (!username || !password) {
-      return NextResponse.json(
-        { error: 'Username and password are required' },
-        { status: 400 }
-      )
+    if (!identifier || !secret) {
+      return NextResponse.json({ error: 'Username/email and password are required' }, { status: 400 })
     }
-
     if (token !== undefined && !/^\d{6}$/.test(String(token))) {
-      return NextResponse.json(
-        { error: 'Enter a valid 6-digit security token' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'Enter a valid 6-digit security token' }, { status: 400 })
     }
 
-    // Validate credentials
-    if (username !== DEMO_USER.username || password !== DEMO_USER.password) {
-      return NextResponse.json(
-        { error: 'Invalid username or password' },
-        { status: 401 }
-      )
-    }
+    const supabase = await createClient()
+    const email = identifier.includes('@') ? identifier : undefined
+    const authResult = email
+      ? await supabase.auth.signInWithPassword({ email, password: secret })
+      : { data: { session: null, user: null }, error: new Error('Use your email address to sign in') }
 
-    // Create session cookie
-    const cookieStore = await cookies()
-    const userSession = {
-      id: DEMO_USER.id,
-      email: DEMO_USER.email,
-      username: DEMO_USER.username,
-      firstName: DEMO_USER.firstName,
-      lastName: DEMO_USER.lastName,
-      role: DEMO_USER.role,
-      emailVerified: DEMO_USER.emailVerified,
-    }
-
-    cookieStore.set('auth_user', JSON.stringify(userSession), {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 60 * 60 * 24 * 7, // 7 days
-    })
-
-    // Create JWT-like token
-    const sessionToken = Buffer.from(JSON.stringify({
-      id: DEMO_USER.id,
-      username: DEMO_USER.username,
-      email: DEMO_USER.email,
-      iat: Math.floor(Date.now() / 1000),
-    })).toString('base64')
-
-    cookieStore.set('auth_token', sessionToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 60 * 60 * 24 * 7, // 7 days
-    })
-
-    return NextResponse.json(
-      {
+    if (!authResult.error && authResult.data.user) {
+      const user = authResult.data.user
+      const session = authResult.data.session
+      return NextResponse.json({
         success: true,
-        token,
-        user: userSession,
-      },
-      { status: 200 }
-    )
+        token: session?.access_token ?? null,
+        user: {
+          id: user.id,
+          email: user.email,
+          username: user.user_metadata?.username ?? user.email,
+          firstName: user.user_metadata?.firstName ?? '',
+          lastName: user.user_metadata?.lastName ?? '',
+          role: user.app_metadata?.role ?? 'customer',
+          emailVerified: Boolean(user.email_confirmed_at),
+        },
+        requiresEmailConfirmation: !session,
+      })
+    }
+
+    if (identifier.toLowerCase() === DEMO_USER.email.toLowerCase() && secret === DEMO_USER.password) {
+      return NextResponse.json({
+        success: true,
+        token: null,
+        user: { id: DEMO_USER.id, email: DEMO_USER.email, username: DEMO_USER.username, firstName: DEMO_USER.firstName, lastName: DEMO_USER.lastName, role: DEMO_USER.role, emailVerified: DEMO_USER.emailVerified },
+        legacyDemo: true,
+      })
+    }
+
+    return NextResponse.json({ error: authResult.error?.message ?? 'Invalid email or password' }, { status: 401 })
   } catch (error) {
     console.error('[v0] Login error:', error)
-    return NextResponse.json(
-      { error: 'Failed to login' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: 'Unable to sign in right now' }, { status: 500 })
   }
 }

@@ -16,7 +16,10 @@ export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   
   // Get token from localStorage (client-side only) or cookies
-  const token = request.cookies.get('access_token')?.value;
+  const token = request.cookies.get('access_token')?.value
+    ?? request.cookies.get('auth_token')?.value
+    ?? request.cookies.get('sb-access-token')?.value
+    ?? request.cookies.get('sb-auth-token')?.value;
 
   // Check if current route is protected
   const isProtectedRoute = PROTECTED_ROUTES.some(route => pathname.startsWith(route));

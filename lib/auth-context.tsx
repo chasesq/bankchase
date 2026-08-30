@@ -57,37 +57,34 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  // Initialize from localStorage and verify token
+  // Restore the server-managed Supabase session on every full page load.
   useEffect(() => {
     const initAuth = async () => {
       try {
-        const storedToken = localStorage.getItem('auth_token')
-        const storedUser = localStorage.getItem('auth_user')
-
-        if (storedToken && storedUser) {
-          setToken(storedToken)
-          setUser(JSON.parse(storedUser))
-
-          // Verify token is still valid (but don't fail if verification fails)
-          try {
-            await verifyTokenHelper(storedToken)
-          } catch (verifyErr) {
-            // Token verification failed, but we'll stay logged in with cached data
-            console.warn('Token verification failed, using cached data:', verifyErr)
+        const response = await fetch('/api/auth/session', { cache: 'no-store' })
+        if (!response.ok) return
+        const data = await response.json()
+        if (data.user) {
+          const authUser: User = {
+            id: data.user.id,
+            email: data.user.email ?? '',
+            username: data.user.user_metadata?.username ?? data.user.email ?? '',
+            firstName: data.user.user_metadata?.firstName ?? '',
+            lastName: data.user.user_metadata?.lastName ?? '',
+            role: data.user.app_metadata?.role ?? 'customer',
           }
+          setUser(authUser)
+          setToken(data.session?.access_token ?? null)
         }
       } catch (err) {
-        console.error('Auth initialization error:', err)
-        localStorage.removeItem('auth_token')
-        localStorage.removeItem('auth_user')
+        console.error('[v0] Auth initialization error:', err)
         setUser(null)
         setToken(null)
       } finally {
         setLoading(false)
       }
     }
-
-    initAuth()
+    void initAuth()
   }, [])
 
   const verifyTokenHelper = async (tokenToVerify: string) => {
@@ -144,8 +141,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       const data = await response.json()
 
-      if (!data.token || !data.user) {
-        throw new Error('Invalid authentication response from server')
+      if (!data.user || !data.token) {
+        throw new Error(data.message || 'Your account needs email confirmation before you can sign in.')
       }
 
       // Store token and user in localStorage
