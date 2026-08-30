@@ -1,6 +1,7 @@
 "use client"
 
 import { createContext, useContext, useEffect, useState } from "react"
+import type { AuthChangeEvent, Session } from "@supabase/supabase-js"
 import { createClient } from "@/lib/supabase/client"
 
 export interface User {
@@ -69,12 +70,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const supabase = createClient()
     if (!supabase) { setLoading(false); return }
-    void supabase.auth.getSession().then(({ data }) => {
-      setUser(data.session?.user ? mapUser(data.session.user) : null)
-      setToken(data.session?.access_token ?? null)
+    void supabase.auth.getSession().then((result: { data: { session: Session | null } }) => {
+      setUser(result.data.session?.user ? mapUser(result.data.session.user) : null)
+      setToken(result.data.session?.access_token ?? null)
       setLoading(false)
     })
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: listener } = supabase.auth.onAuthStateChange((_event: AuthChangeEvent, session: Session | null) => {
       setUser(session?.user ? mapUser(session.user) : null)
       setToken(session?.access_token ?? null)
     })

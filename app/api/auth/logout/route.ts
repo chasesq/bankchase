@@ -1,26 +1,14 @@
-import { cookies } from 'next/headers'
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
+import { createClient } from '@/lib/supabase/server'
 
-export async function POST(request: NextRequest) {
+export async function POST() {
   try {
-    const cookieStore = await cookies()
-    cookieStore.delete('auth_user')
-
-    // If user logged in via Auth0, also clear Auth0 session
-    const response = NextResponse.json(
-      { success: true, message: 'Logged out successfully' },
-      { status: 200 }
-    )
-
-    // Optionally redirect to Auth0 logout
-    // response.headers.set('Location', `/api/auth/logout`)
-
-    return response
+    const supabase = await createClient()
+    const { error } = await supabase.auth.signOut()
+    if (error) throw error
+    return NextResponse.json({ success: true, message: 'Logged out successfully' })
   } catch (error) {
-    console.error('Logout error:', error)
-    return NextResponse.json(
-      { error: 'Failed to logout' },
-      { status: 500 }
-    )
+    console.error('[v0] Logout error:', error)
+    return NextResponse.json({ error: 'Failed to logout' }, { status: 500 })
   }
 }
