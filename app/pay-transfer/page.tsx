@@ -20,8 +20,17 @@ export default function PayTransferPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    const amount = Number.parseFloat(formData.amount);
     if (!formData.from_account_number || !formData.to_account_number || !formData.amount) {
       toast.error('Please fill in all required fields');
+      return;
+    }
+    if (!Number.isFinite(amount) || amount <= 0) {
+      toast.error('Enter an amount greater than $0.00');
+      return;
+    }
+    if (formData.from_account_number === formData.to_account_number) {
+      toast.error('Choose a different destination account');
       return;
     }
 
@@ -31,7 +40,7 @@ export default function PayTransferPage() {
         from_account_number: formData.from_account_number,
         to_account_number: formData.to_account_number,
         to_bank_code: formData.to_bank_code,
-        amount: parseFloat(formData.amount),
+        amount,
         narration: formData.narration,
       });
 

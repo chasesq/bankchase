@@ -53,18 +53,19 @@ export function DepositChecksDrawer({ open, onOpenChange, onReceiptOpen }: Depos
   const [backImage, setBackImage] = useState<string | null>(null)
   const [isCapturing, setIsCapturing] = useState(false)
   const [flashOn, setFlashOn] = useState(false)
-  const [cameraStream, setCameraStream] = useState<MediaStream | null>(null)
+  const cameraStreamRef = useRef<MediaStream | null>(null)
   const [processingProgress, setProcessingProgress] = useState(0)
   const [depositedTransaction, setDepositedTransaction] = useState<string | null>(null)
   const [showTips, setShowTips] = useState(false)
   const [imagePreview, setImagePreview] = useState<string | null>(null)
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   const videoRef = useRef<HTMLVideoElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const { toast } = useToast()
-  const { accounts, addTransaction, updateBalance, addNotification, addActivity } = useBanking()
+  const { accounts, addTransaction, addNotification, addActivity } = useBanking()
 
   const checkingAccounts = accounts.filter(
     (a) =>
@@ -85,6 +86,7 @@ export function DepositChecksDrawer({ open, onOpenChange, onReceiptOpen }: Depos
     setDepositedTransaction(null)
     setShowTips(false)
     setImagePreview(null)
+    setIsSubmitting(false)
     stopCamera()
   }, [])
 
@@ -97,7 +99,7 @@ export function DepositChecksDrawer({ open, onOpenChange, onReceiptOpen }: Depos
           height: { ideal: 1080 },
         },
       })
-      setCameraStream(stream)
+      cameraStreamRef.current = stream
       if (videoRef.current) {
         videoRef.current.srcObject = stream
         await videoRef.current.play()
@@ -110,13 +112,15 @@ export function DepositChecksDrawer({ open, onOpenChange, onReceiptOpen }: Depos
     }
   }
 
-  const stopCamera = () => {
-    if (cameraStream) {
-      cameraStream.getTracks().forEach((track) => track.stop())
-      setCameraStream(null)
+  const stopCamera = useCallback(() => {
+    const stream = cameraStreamRef.current
+    if (stream) {
+      stream.getTracks().forEach((track) => track.stop())
+      cameraStreamRef.current = null
     }
+    if (videoRef.current) videoRef.current.srcObject = null
     setIsCapturing(false)
-  }
+  }, [])
 
   const captureImage = () => {
     if (videoRef.current && canvasRef.current) {
@@ -171,6 +175,17 @@ export function DepositChecksDrawer({ open, onOpenChange, onReceiptOpen }: Depos
   }
 
   const processDeposit = async () => {
+    if (isSubmitting) return
+    const depositAmount = Number.parseFloat(amount)
+    if (!selectedAccount || !Number.isFinite(depositAmount) || depositAmount <= 0 || depositAmount > depositLimits.perCheck) {
+      toast({ title: "Check deposit needs attention", description: "Select an account and enter a valid amount.", variant: "destructive" })
+      return
+    }
+    if (!frontImage || !backImage) {
+      toast({ title: "Both check images are required", description: "Capture or upload the front and back of the check.", variant: "destructive" })
+      return
+    }
+    setIsSubmitting(true)
     setStep("processing")
 
     const steps = [
@@ -184,12 +199,6 @@ export function DepositChecksDrawer({ open, onOpenChange, onReceiptOpen }: Depos
     for (const stepInfo of steps) {
       await new Promise((resolve) => setTimeout(resolve, 800))
       setProcessingProgress(stepInfo.progress)
-    }
-
-    const depositAmount = Number.parseFloat(amount)
-
-    if (selectedAccount) {
-      updateBalance(selectedAccount, depositAmount)
     }
 
     const transaction = addTransaction({
@@ -219,6 +228,7 @@ export function DepositChecksDrawer({ open, onOpenChange, onReceiptOpen }: Depos
     })
 
     setStep("success")
+    setIsSubmitting(false)
 
     toast({
       title: "Check Deposited Successfully",
