@@ -41,17 +41,9 @@ export function PlaidLinkButton({ onSuccess, onError }: PlaidLinkButtonProps) {
       setError(null);
 
       try {
-        const token = localStorage.getItem('auth_token');
-        if (!token) {
-          throw new Error('Not authenticated');
-        }
-
         const response = await fetch('/api/plaid/create-link-token', {
           method: 'POST',
-          headers: { 
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`,
-          },
+          headers: { 'Content-Type': 'application/json' },
         });
 
         if (!response.ok) {
@@ -79,17 +71,9 @@ export function PlaidLinkButton({ onSuccess, onError }: PlaidLinkButtonProps) {
     setStatus('idle');
 
     try {
-      const token = localStorage.getItem('auth_token');
-      if (!token) {
-        throw new Error('Not authenticated');
-      }
-
       const response = await fetch('/api/plaid/exchange-token', {
         method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           publicToken,
           metadata,

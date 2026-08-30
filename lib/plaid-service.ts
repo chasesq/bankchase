@@ -92,11 +92,11 @@ export class PlaidService {
   /**
    * Create a link token for Plaid Link initialization
    */
-  static async createLinkToken(userId: string, clientName: string = 'MyBank'): Promise<LinkTokenResponse> {
+  static async createLinkToken(userId: string, clientName: string = 'MyBank', plaidSecret: string = PLAID_SECRET || ''): Promise<LinkTokenResponse> {
     try {
       const response = await axios.post(`${BASE_URL}/link/token/create`, {
         client_id: PLAID_CLIENT_ID,
-        secret: PLAID_SECRET,
+        secret: plaidSecret,
         client_name: clientName,
         user: {
           client_user_id: userId,
@@ -122,11 +122,11 @@ export class PlaidService {
   /**
    * Exchange public token for access token
    */
-  static async exchangePublicToken(publicToken: string): Promise<ExchangeTokenResponse> {
+  static async exchangePublicToken(publicToken: string, plaidSecret: string = PLAID_SECRET || ''): Promise<ExchangeTokenResponse> {
     try {
       const response = await axios.post(`${BASE_URL}/item/public_token/exchange`, {
         client_id: PLAID_CLIENT_ID,
-        secret: PLAID_SECRET,
+        secret: plaidSecret,
         public_token: publicToken,
       });
 
@@ -141,11 +141,11 @@ export class PlaidService {
   /**
    * Get accounts and balances for a linked item
    */
-  static async getAccounts(accessToken: string): Promise<AccountsResponse> {
+  static async getAccounts(accessToken: string, plaidSecret: string = PLAID_SECRET || ''): Promise<AccountsResponse> {
     try {
       const response = await axios.post(`${BASE_URL}/accounts/get`, {
         client_id: PLAID_CLIENT_ID,
-        secret: PLAID_SECRET,
+        secret: plaidSecret,
         access_token: accessToken,
       });
 
@@ -164,12 +164,13 @@ export class PlaidService {
     accessToken: string,
     startDate: string,
     endDate: string,
-    options?: { accountIds?: string[] }
+    options?: { accountIds?: string[] },
+    plaidSecret: string = PLAID_SECRET || ''
   ): Promise<TransactionsResponse> {
     try {
       const payload: any = {
         client_id: PLAID_CLIENT_ID,
-        secret: PLAID_SECRET,
+        secret: plaidSecret,
         access_token: accessToken,
         start_date: startDate,
         end_date: endDate,

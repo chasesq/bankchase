@@ -49,21 +49,16 @@ export default function BankingDashboard() {
   const [disputeTransactionId, setDisputeTransactionId] = useState<string | null>(null)
   const [accountOpeningOpen, setAccountOpeningOpen] = useState(false)
   const [customizeOpen, setCustomizeOpen] = useState(false)
-  const [theme, setTheme] = useState<'light' | 'dark'>('light')
-  const [density, setDensity] = useState<'comfortable' | 'compact'>('comfortable')
+  const [theme, setTheme] = useState<'light' | 'dark'>(() => {
+    if (typeof window === 'undefined') return 'light'
+    try { return JSON.parse(window.localStorage.getItem('mercury-dashboard-preferences') || '{}').theme || 'light' } catch { return 'light' }
+  })
+  const [density, setDensity] = useState<'comfortable' | 'compact'>(() => {
+    if (typeof window === 'undefined') return 'comfortable'
+    try { return JSON.parse(window.localStorage.getItem('mercury-dashboard-preferences') || '{}').density || 'comfortable' } catch { return 'comfortable' }
+  })
   const [visibleCards, setVisibleCards] = useState({ accounts: true, activity: true, credit: true })
   const { toast } = useToast()
-
-  useEffect(() => {
-    const saved = window.localStorage.getItem('mercury-dashboard-preferences')
-    if (!saved) return
-    try {
-      const prefs = JSON.parse(saved)
-      if (prefs.theme) setTheme(prefs.theme)
-      if (prefs.density) setDensity(prefs.density)
-      if (prefs.visibleCards) setVisibleCards(prefs.visibleCards)
-    } catch { /* ignore invalid demo preferences */ }
-  }, [])
 
   useEffect(() => {
     window.localStorage.setItem('mercury-dashboard-preferences', JSON.stringify({ theme, density, visibleCards }))

@@ -1,23 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PlaidService } from '@/lib/plaid-service';
-import { verifyToken } from '@/lib/token-verification';
+import { createClient } from '@/utils/supabase/server';
+import { getPlaidSecret } from '@/lib/plaid-connect';
 
 export async function POST(request: NextRequest) {
   try {
-    const authHeader = request.headers.get('Authorization');
-    if (!authHeader) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    const token = authHeader.replace('Bearer ', '');
-    const payload = verifyToken(token);
-
-    if (!payload) {
-      return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
-    }
-
-    const userId = (payload as any).userId || (payload as any).sub;
-    const linkToken = await PlaidService.createLinkToken(userId);
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    const userId = user?.id;
+    if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const plaidSecret = await getPlaidSecret(userId);
+    const linkToken = await PlaidService.createLinkToken(userId, 'MyBank', plaidSecret);
 
     return NextResponse.json(linkToken);
   } catch (error: any) {
