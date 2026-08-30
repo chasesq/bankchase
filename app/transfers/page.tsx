@@ -12,7 +12,7 @@ import { useBanking } from '@/lib/banking-context';
 interface Transfer {
   id: string;
   transactionId: string;
-  status: 'completed' | 'processing' | 'pending' | 'failed';
+  status: 'completed' | 'processing' | 'pending' | 'pendingApproval' | 'failed';
   amount: number;
   currency: string;
   recipientName: string;
@@ -43,7 +43,7 @@ interface Account {
 
 function TransfersContent() {
   const { userProfile } = useBanking();
-  const userId = userProfile.id;
+  const userId = userProfile?.id;
   const isLoaded = true;
   const [transfers, setTransfers] = useState<Transfer[]>([]);
   const [accounts, setAccounts] = useState<Account[]>([]);
@@ -82,6 +82,7 @@ function TransfersContent() {
   }, [userId, isLoaded]);
 
   useEffect(() => {
+    if (!userId) return;
     fetchTransferData();
     // Refresh every 5 seconds for real-time updates
     const interval = setInterval(fetchTransferData, 5000);
@@ -117,12 +118,13 @@ function TransfersContent() {
       'completed': { bg: 'bg-green-100', text: 'text-green-800' },
       'processing': { bg: 'bg-blue-100', text: 'text-blue-800' },
       'pending': { bg: 'bg-yellow-100', text: 'text-yellow-800' },
+      'pendingApproval': { bg: 'bg-yellow-100', text: 'text-yellow-800' },
       'failed': { bg: 'bg-red-100', text: 'text-red-800' }
     };
     const badge = badges[status as keyof typeof badges] || badges.pending;
     return (
       <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${badge.bg} ${badge.text}`}>
-        {status.charAt(0).toUpperCase() + status.slice(1)}
+        {status === 'pendingApproval' ? 'Pending approval' : status.charAt(0).toUpperCase() + status.slice(1)}
       </span>
     );
   };

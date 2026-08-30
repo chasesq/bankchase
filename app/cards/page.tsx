@@ -15,6 +15,7 @@ interface Card {
   type: 'virtual' | 'physical';
   brand: string;
   lastFour: string;
+  lastFourDigits?: string;
   cardholderName: string;
   expiryMonth: string;
   expiryYear: string;
@@ -54,7 +55,7 @@ function CardsContent() {
     setError(null);
 
     try {
-      const response = await fetch(`/api/cards?userId=${userId}`);
+      const response = await fetch('/api/cards');
       if (!response.ok) {
         throw new Error('Failed to fetch cards');
       }
@@ -79,7 +80,7 @@ function CardsContent() {
   const handleActivateCard = (card: Card) => {
     if (card.status !== 'pending_activation') return;
     setSelectedCard(card);
-    setActivationData({ lastFourDigits: card.lastFour });
+    setActivationData({ lastFourDigits: card.lastFourDigits ?? card.lastFour });
     setError(null);
     setShowActivationModal(true);
   };

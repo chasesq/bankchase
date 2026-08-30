@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 
 import { ProtectedRoute } from '@/components/ProtectedRoute'
@@ -15,11 +15,9 @@ export default function SendMoneyPage() {
   const { isLoaded, userProfile } = useBanking()
   const user = userProfile
   const loading = !isLoaded
-  const [recentTransactions, setRecentTransactions] = useState<any[]>([])
-
   useEffect(() => {
     if (!loading && !user) {
-      router.push('/login')
+      router.replace('/login')
     }
   }, [user, loading, router])
 
