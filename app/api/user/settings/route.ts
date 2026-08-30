@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { createClient } from '@/lib/supabase/server'
 
 interface AppSettings {
   notifications: {
@@ -40,13 +41,10 @@ const settingsStore = new Map<string, AppSettings>()
  */
 export async function GET(request: NextRequest) {
   try {
-    const userId = 'demo-user'
-    const searchParams = request.nextUrl.searchParams
-    const paramUserId = searchParams.get('userId')
-
-    if (!userId || (paramUserId && paramUserId !== userId)) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+    const supabase = await createClient()
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    if (authError || !user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    const userId = user.id
 
     const userSettings = settingsStore.get(userId) || {
       notifications: {
@@ -100,11 +98,10 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
-    const userId = 'demo-user'
-
-    if (!userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+    const supabase = await createClient()
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    if (authError || !user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    const userId = user.id
 
     const body = await request.json()
     const { settings } = body
@@ -154,11 +151,10 @@ export async function POST(request: NextRequest) {
  */
 export async function PUT(request: NextRequest) {
   try {
-    const userId = 'demo-user'
-
-    if (!userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+    const supabase = await createClient()
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    if (authError || !user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    const userId = user.id
 
     const body = await request.json()
     const { path, value } = body
