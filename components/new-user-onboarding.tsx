@@ -25,15 +25,18 @@ export function NewUserOnboarding() {
   const [activeFlow, setActiveFlow] = useState<SetupKey | null>(null)
   const [pin, setPin] = useState("")
   const [contact, setContact] = useState("")
+  const [isSubmitting, setIsSubmitting] = useState(false)
   const inactiveCard = creditCards.find((card) => !card.activated)
 
   const closeFlow = () => {
+    setIsSubmitting(false)
     setActiveFlow(null)
     setPin("")
     setContact("")
   }
 
   const completeFlow = () => {
+    if (isSubmitting) return
     if (activeFlow === "card") {
       if (!inactiveCard) {
         toast({ title: "All cards are active", description: "No debit card needs activation." })
@@ -43,6 +46,7 @@ export function NewUserOnboarding() {
         toast({ title: "Enter a 4-digit PIN", description: "Your PIN must contain four numbers.", variant: "destructive" })
         return
       }
+      setIsSubmitting(true)
       activateCard(inactiveCard.id)
       addActivity({ action: `Activated debit card ending in ${inactiveCard.lastFour}`, device: "Current Device", location: "Current Session" })
     } else if (activeFlow === "zelle") {
@@ -50,11 +54,14 @@ export function NewUserOnboarding() {
         toast({ title: "Enter an email or mobile number", description: "Use the contact information you want to enroll.", variant: "destructive" })
         return
       }
+      setIsSubmitting(true)
       addZelleContact({ name: "My Zelle profile", email: contact.includes("@") ? contact.trim() : undefined, phone: contact.includes("@") ? undefined : contact.trim() })
       addActivity({ action: "Enrolled in Zelle", device: "Current Device", location: "Current Session" })
     } else if (activeFlow === "deposit") {
+      setIsSubmitting(true)
       addActivity({ action: "Started direct deposit setup", device: "Current Device", location: "Current Session" })
     } else if (activeFlow === "paperless") {
+      setIsSubmitting(true)
       updateAppSettings({ paperlessStatements: true })
       addActivity({ action: "Enabled paperless statements", device: "Current Device", location: "Current Session" })
     }
@@ -93,7 +100,7 @@ export function NewUserOnboarding() {
           {activeFlow === "zelle" && <div className="flex flex-col gap-2"><Label htmlFor="zelle-contact">Email or U.S. mobile number</Label><Input id="zelle-contact" autoComplete="email" value={contact} onChange={(event) => setContact(event.target.value)} /></div>}
           {activeFlow === "deposit" && <div className="rounded-lg bg-muted p-4 text-sm leading-6">Use your checking account routing and account numbers from the account details screen. Never share your online banking password with an employer.</div>}
           {(activeFlow === "money" || activeFlow === "paperless") && <div className="rounded-lg bg-muted p-4 text-sm leading-6">This secure setup is available in your account tools and will stay synced across the Chase app and website.</div>}
-          <DialogFooter><Button variant="outline" onClick={closeFlow}>Not now</Button><Button onClick={completeFlow}>{activeFlow === "money" ? "Open account tools" : "Complete setup"}</Button></DialogFooter>
+          <DialogFooter><Button variant="outline" onClick={closeFlow} disabled={isSubmitting}>Not now</Button><Button onClick={completeFlow} disabled={isSubmitting}>{isSubmitting ? "Saving..." : activeFlow === "money" ? "Open account tools" : "Complete setup"}</Button></DialogFooter>
         </DialogContent>
       </Dialog>
     </section>
