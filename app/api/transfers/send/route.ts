@@ -23,10 +23,11 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { fromAccountId, toAccountNumber, toBankCode, amount, narration, recipientName, recipientPhone, recipientEmail, transferType } = body
+    const { fromAccountId, sourceAccountId, toAccountNumber, toBankCode, amount, narration, recipientName, recipientPhone, recipientEmail, transferType, idempotencyKey } = body
+    const sourceId = sourceAccountId || fromAccountId
 
     // Validate required fields
-    if (!fromAccountId || !toAccountNumber || !toBankCode || !amount || !recipientName) {
+    if (!sourceId || !toAccountNumber || !toBankCode || !amount || !recipientName) {
       console.error('[v0] Missing required transfer fields:', { fromAccountId, toAccountNumber, toBankCode, amount, recipientName })
       return NextResponse.json(
         {
@@ -38,8 +39,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate amount
-    const parsedAmount = parseFloat(amount.toString())
-    if (isNaN(parsedAmount) || parsedAmount <= 0) {
+    const parsedAmount = Number(amount)
+    if (!Number.isFinite(parsedAmount) || parsedAmount <= 0) {
       return NextResponse.json(
         { success: false, error: 'Amount must be a positive number' },
         { status: 400 }
@@ -145,7 +146,9 @@ export async function POST(request: NextRequest) {
         },
         body: JSON.stringify({
           userId: user.id,
-          fromAccountId,
+          fromAccountId: sourceId,
+          sourceAccountId: sourceId,
+          idempotencyKey: typeof idempotencyKey === 'string' ? idempotencyKey : undefined,
           toAccountNumber,
           toBankCode,
           amount: parsedAmount,

@@ -11,10 +11,10 @@ export function Navigation() {
 
   const handleLogout = async () => {
     try {
-      router.push('/');
-    } catch (error) {
-      console.error('Logout failed:', error);
-      router.push('/');
+      await fetch('/api/auth/sign-out', { method: 'POST' });
+    } finally {
+      router.replace('/');
+      router.refresh();
     }
   };
 

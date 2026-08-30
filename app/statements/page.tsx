@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 
 import { ProtectedRoute } from '@/components/ProtectedRoute'
@@ -16,6 +16,24 @@ export default function StatementsPage() {
   const userId = user?.id ?? null
   
   const [selectedFormat, setSelectedFormat] = useState<'pdf' | 'csv'>('pdf')
+  const [statements, setStatements] = useState<Array<{ id: string; statementDate?: string; startDate?: string; endDate?: string; accountId?: string; downloadUrl?: string; pdfUrl?: string; csvUrl?: string }>>([])
+  const [statementsLoading, setStatementsLoading] = useState(false)
+  const [statementsError, setStatementsError] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (!userId) return
+    let active = true
+    setStatementsLoading(true)
+    fetch('/api/mercury/accounts')
+      .then((response) => response.ok ? response.json() : Promise.reject(new Error('Unable to load accounts')))
+      .then((payload) => Promise.all((payload.accounts ?? []).slice(0, 10).map((account: { id: string }) =>
+        fetch(`/api/mercury/accounts/${account.id}/statements`).then((response) => response.ok ? response.json() : { statements: [] })
+      )))
+      .then((payloads) => { if (active) setStatements(payloads.flatMap((payload) => payload.statements ?? [])) })
+      .catch((error) => { if (active) setStatementsError(error instanceof Error ? error.message : 'Unable to load statements') })
+      .finally(() => { if (active) setStatementsLoading(false) })
+    return () => { active = false }
+  }, [userId])
 
   if (!isLoaded) {
     return (
@@ -30,47 +48,10 @@ export default function StatementsPage() {
     return null
   }
 
-  // Mock statements data
-  const statements = [
-    {
-      id: '1',
-      month: 'December',
-      year: 2024,
-      date: '2025-01-15',
-      account: 'CHASE CHECKING - 4521',
-    },
-    {
-      id: '2',
-      month: 'November',
-      year: 2024,
-      date: '2024-12-15',
-      account: 'CHASE CHECKING - 4521',
-    },
-    {
-      id: '3',
-      month: 'October',
-      year: 2024,
-      date: '2024-11-15',
-      account: 'CHASE CHECKING - 4521',
-    },
-    {
-      id: '4',
-      month: 'September',
-      year: 2024,
-      date: '2024-10-15',
-      account: 'CHASE CHECKING - 4521',
-    },
-    {
-      id: '5',
-      month: 'August',
-      year: 2024,
-      date: '2024-09-15',
-      account: 'CHASE CHECKING - 4521',
-    },
-  ]
 
-  const handleDownload = (statementId: string) => {
-    alert(`Downloading statement in ${selectedFormat.toUpperCase()} format...`)
+  const handleDownload = (statement: (typeof statements)[number]) => {
+    const url = selectedFormat === 'csv' ? statement.csvUrl : statement.pdfUrl ?? statement.downloadUrl
+    if (url) window.open(url, '_blank', 'noopener,noreferrer')
   }
 
   return (
@@ -120,7 +101,7 @@ export default function StatementsPage() {
         {/* Statements List */}
         <div className="space-y-4">
           <h2 className="text-2xl font-bold text-foreground mb-6">Recent Statements</h2>
-          {statements.map((statement) => (
+          {statementsLoading ? <Card className="p-6 text-muted-foreground">Loading statements…</Card> : statementsError ? <Card className="p-6 text-destructive">{statementsError}</Card> : statements.length === 0 ? <Card className="p-6 text-muted-foreground">No statements available.</Card> : statements.map((statement) => (
             <Card key={statement.id} className="p-6 hover:shadow-lg transition">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
@@ -129,12 +110,12 @@ export default function StatementsPage() {
                   </div>
                   <div>
                     <h3 className="font-semibold text-foreground text-lg">
-                      {statement.month} {statement.year}
+                      {statement.statementDate ? new Date(statement.statementDate).toLocaleDateString(undefined, { month: 'long', year: 'numeric' }) : 'Account statement'}
                     </h3>
-                    <p className="text-muted-foreground text-sm">{statement.account}</p>
+                    <p className="text-muted-foreground text-sm">Account {statement.accountId ?? '—'}</p>
                     <div className="flex items-center gap-2 text-muted-foreground text-xs mt-1">
                       <Calendar className="w-3 h-3" />
-                      <span>{new Date(statement.date).toLocaleDateString()}</span>
+                      <span>{statement.endDate ? new Date(statement.endDate).toLocaleDateString() : 'Date unavailable'}</span>
                     </div>
                   </div>
                 </div>
@@ -149,7 +130,7 @@ export default function StatementsPage() {
                     <option value="csv">CSV</option>
                   </select>
                   <button
-                    onClick={() => handleDownload(statement.id)}
+                    onClick={() => handleDownload(statement)}
                     className="flex items-center gap-2 px-6 py-3 bg-primary text-background font-medium rounded-lg hover:bg-primary transition"
                   >
                     <Download className="w-4 h-4" />

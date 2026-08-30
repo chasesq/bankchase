@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { Eye, EyeOff, Fingerprint, Loader2, MoreHorizontal, ShieldCheck, X } from "lucide-react"
@@ -21,11 +21,6 @@ export function AuthForm({ mode }: { mode: "sign-in" | "sign-up" }) {
   const [error, setError] = useState<string | null>(null)
   const [notice, setNotice] = useState<"forgot" | "privacy" | "more" | null>(null)
 
-  useEffect(() => {
-    const saved = window.localStorage.getItem("chase_username")
-    if (saved && !isSignUp) setUsername(saved)
-  }, [isSignUp])
-
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setError(null)
@@ -37,13 +32,18 @@ export function AuthForm({ mode }: { mode: "sign-in" | "sign-up" }) {
     try {
       if (isSignUp) {
         const [firstName, ...last] = name.trim().split(/\s+/)
-        await register({ username: username.trim(), email: email.trim(), password, firstName: firstName || "", lastName: last.join(" "), phone: "", ssn: "", dateOfBirth: "", address: "", city: "", state: "", zipCode: "" })
+        const result = await register({ username: email.trim().split("@")[0], email: email.trim(), password, firstName: firstName || "", lastName: last.join(" "), phone: "", ssn: "", dateOfBirth: "", address: "", city: "", state: "", zipCode: "" })
+        if (result.requiresEmailConfirmation) {
+          setNotice("privacy")
+          setError(null)
+          return
+        }
       } else {
-        await login(username.trim(), password, useToken ? token : undefined)
+        await login(username.trim(), password)
         if (remember) window.localStorage.setItem("chase_username", username.trim())
         else window.localStorage.removeItem("chase_username")
       }
-      window.location.replace("/")
+      window.location.replace("/dashboard")
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "We couldn't sign you in. Check your details and try again.")
     } finally {

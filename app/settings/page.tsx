@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react'
 import { ProtectedRoute } from '@/components/ProtectedRoute'
 import { Navigation } from '@/components/Navigation'
 import { useBanking } from '@/lib/banking-context'
-import { ArrowLeft, Bell, Lock, Globe, Moon, Save, AlertCircle, Zap } from 'lucide-react'
+import { ArrowLeft, Bell, Lock, Globe, Moon, Save, AlertCircle, Zap, Building2, ShieldAlert } from 'lucide-react'
 import { toast } from 'sonner'
 import Link from 'next/link'
 
@@ -48,6 +48,10 @@ function SettingsContent() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [address, setAddress] = useState({ street: '', city: '', state: '', postalCode: '' })
+  const [addressStatus, setAddressStatus] = useState('needs_review')
+  const [addressSaving, setAddressSaving] = useState(false)
+  const [addressMessage, setAddressMessage] = useState<string | null>(null)
   const [settings, setSettings] = useState<AppSettings>({
     notifications: {
       emailNotifications: true,
@@ -78,6 +82,28 @@ function SettingsContent() {
       timezone: 'America/New_York',
     },
   })
+
+  useEffect(() => {
+    if (!userId || !isLoaded) return
+    fetch('/api/company-profile').then((response) => response.ok ? response.json() : null).then((data) => {
+      if (data?.profile?.legal_address) setAddress(data.profile.legal_address)
+      if (data?.profile?.address_status) setAddressStatus(data.profile.address_status)
+    }).catch(() => undefined)
+  }, [userId, isLoaded])
+
+  const handleAddressSave = async () => {
+    setAddressSaving(true)
+    setAddressMessage(null)
+    try {
+      const response = await fetch('/api/company-profile', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ address }) })
+      const data = await response.json()
+      if (!response.ok) throw new Error(data.error || 'Unable to update legal address')
+      setAddressStatus(data.profile.address_status)
+      setAddressMessage('Address submitted for review. Keep your formation documents ready for secure upload.')
+    } catch (error) {
+      setAddressMessage(error instanceof Error ? error.message : 'Unable to update legal address')
+    } finally { setAddressSaving(false) }
+  }
 
   // Fetch user settings
   useEffect(() => {
@@ -234,6 +260,25 @@ function SettingsContent() {
           </div>
         ) : (
           <div className="space-y-6">
+            <div className="bg-card border border-border rounded-xl p-6 md:p-8">
+              <div className="flex items-start justify-between gap-4 mb-6">
+                <div>
+                  <h2 className="text-2xl font-bold text-foreground flex items-center gap-2"><Building2 className="w-6 h-6 text-primary" />Company profile</h2>
+                  <p className="text-muted-foreground mt-1">Maintain a physical U.S. legal address to keep banking access active.</p>
+                </div>
+                <span className="text-xs rounded-full bg-muted px-3 py-1 text-muted-foreground">{addressStatus === 'pending_review' ? 'Pending review' : 'Needs review'}</span>
+              </div>
+              <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900 mb-6 flex gap-3"><ShieldAlert className="w-5 h-5 shrink-0" /><p>P.O. Boxes, virtual offices, and coworking addresses are not accepted. Only administrators can update this information.</p></div>
+              <div className="grid gap-4 md:grid-cols-2">
+                <input aria-label="Company legal street address" value={address.street} onChange={(e) => setAddress({ ...address, street: e.target.value })} placeholder="Street address" className="px-3 py-2 border border-border rounded-lg bg-background" />
+                <input aria-label="City" value={address.city} onChange={(e) => setAddress({ ...address, city: e.target.value })} placeholder="City" className="px-3 py-2 border border-border rounded-lg bg-background" />
+                <input aria-label="State" maxLength={2} value={address.state} onChange={(e) => setAddress({ ...address, state: e.target.value.toUpperCase() })} placeholder="State (e.g. NY)" className="px-3 py-2 border border-border rounded-lg bg-background" />
+                <input aria-label="ZIP code" value={address.postalCode} onChange={(e) => setAddress({ ...address, postalCode: e.target.value })} placeholder="ZIP code" className="px-3 py-2 border border-border rounded-lg bg-background" />
+              </div>
+              {addressMessage && <p className="mt-4 text-sm text-muted-foreground">{addressMessage}</p>}
+              <button onClick={handleAddressSave} disabled={addressSaving} className="mt-5 rounded-lg bg-primary px-4 py-2 text-primary-foreground disabled:opacity-50">{addressSaving ? 'Submitting…' : 'Submit address update'}</button>
+            </div>
+
             {/* Notifications Section */}
             <div className="bg-card border border-border rounded-xl p-6 md:p-8">
               <h2 className="text-2xl font-bold text-foreground mb-6 flex items-center gap-2">
