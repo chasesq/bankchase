@@ -1,69 +1,30 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Descope } from '@descope/nextjs-sdk'
-import { useVisitorData } from '@fingerprint/react'
 import { AlertCircle, CheckCircle, Fingerprint, Loader2 } from 'lucide-react'
-import { useAuth } from '@/lib/auth-context'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 
-const flowId = process.env.NEXT_PUBLIC_DESCOPE_PASSKEY_FLOW_ID || 'passkey-enrollment'
-
 export function PasskeyEnrollment() {
-  const { user } = useAuth()
-  const { getData: getVisitorData } = useVisitorData({
-    immediate: false,
-    linkedId: user?.id,
-    tag: { userAction: 'passkey_enrollment' },
-  })
   const [supported, setSupported] = useState<boolean | null>(null)
-  const [enabled, setEnabled] = useState(false)
-  const [open, setOpen] = useState(false)
+  const [enabled] = useState(false)
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
   const [message, setMessage] = useState('')
-  const [visitorId, setVisitorId] = useState<string | null>(null)
 
   useEffect(() => {
     setSupported(typeof window !== 'undefined' && !!window.PublicKeyCredential)
   }, [])
 
-  const startEnrollment = async () => {
+  const startEnrollment = () => {
     if (!supported) {
       setStatus('error')
       setMessage('This browser or device does not support passkeys. Try a current version of Safari, Chrome, or Edge on a device with fingerprint or face unlock enabled.')
       return
     }
-    if (!flowId) {
-      setStatus('error')
-      setMessage('Passkey enrollment is not configured yet. Add NEXT_PUBLIC_DESCOPE_PASSKEY_FLOW_ID after creating a Descope flow with a Passkey registration step.')
-      return
-    }
-    setStatus('loading')
-    setMessage('Checking this device, then opening the secure fingerprint prompt.')
-    try {
-      const visitor = await getVisitorData()
-      if (visitor.visitor_id) setVisitorId(visitor.visitor_id)
-    } catch {
-      // Fingerprint is a fraud signal, not a hard dependency for passkey enrollment.
-    }
-    setMessage('Complete the fingerprint or face prompt in the Descope window.')
-    setOpen(true)
-  }
-
-  const handleSuccess = () => {
-    setEnabled(true)
-    setOpen(false)
-    setStatus('success')
-    setMessage('This device is now registered for passkey sign-in.')
-  }
-
-  const handleError = (event: CustomEvent<{ errorCode: string; errorDescription: string; errorMessage?: string }>) => {
-    setOpen(false)
     setStatus('error')
-    setMessage(event.detail?.errorMessage || event.detail?.errorDescription || 'The passkey prompt was canceled or could not be completed. No changes were made.')
+    setMessage('Passkey enrollment is unavailable until the authentication provider is configured.')
   }
 
   return (
@@ -107,17 +68,11 @@ export function PasskeyEnrollment() {
           </Button>
           {enabled && <span className="text-sm text-muted-foreground">To remove this passkey, use Descope&apos;s device management in your account.</span>}
         </div>
-        {open && flowId && (
-          <div className="rounded-lg border border-border bg-muted/30 p-4">
-            <p className="mb-3 text-sm font-medium text-foreground">Secure Descope passkey setup</p>
-            <Descope flowId={flowId} onSuccess={handleSuccess} onError={handleError} />
-          </div>
-        )}
         <div className="flex flex-wrap gap-x-4 gap-y-2 text-sm">
           <a className="text-primary underline underline-offset-4" href="https://app.descope.com" target="_blank" rel="noreferrer">Open Descope Console</a>
           <a className="text-primary underline underline-offset-4" href="https://docs.descope.com/authentication-methods/passkeys" target="_blank" rel="noreferrer">Passkey setup guide</a>
         </div>
-        <p className="text-sm text-muted-foreground">Create a Descope flow named <code className="rounded bg-muted px-1 py-0.5 font-mono text-xs">passkey-enrollment</code> with Passkey registration, or set <code className="rounded bg-muted px-1 py-0.5 font-mono text-xs">NEXT_PUBLIC_DESCOPE_PASSKEY_FLOW_ID</code> to your flow ID.</p>
+        <p className="text-sm text-muted-foreground">Passkey enrollment will be available when the authentication provider is configured for this deployment.</p>
       </CardContent>
     </Card>
   )
