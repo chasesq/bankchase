@@ -77,7 +77,7 @@ export default function BankingDashboard() {
       })
     }
 
-  }, [addActivity, addLoginHistory, toast])
+  }, [addActivity, addLoginHistory, authLoading, toast, user])
 
   const handleLogout = async () => {
     if (addActivity) {
