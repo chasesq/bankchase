@@ -1,6 +1,7 @@
-'use client'
+"use client"
 
-import React, { createContext, useContext, useEffect, useState } from 'react'
+import { createContext, useContext, useEffect, useState } from "react"
+import { createClient } from "@/lib/supabase/client"
 
 export interface User {
   id: string
@@ -15,26 +16,11 @@ export interface User {
   city?: string
   state?: string
   zipCode?: string
-  role?: 'admin' | 'editor' | 'viewer'
-  permissions?: Array<{
-    role: string
-    action: string
-    resource: string
-  }>
+  role?: string
+  permissions?: Array<{ role: string; action: string; resource: string }>
 }
 
-interface AuthContextType {
-  user: User | null
-  token: string | null
-  loading: boolean
-  error: string | null
-  login: (username: string, password: string, token?: string) => Promise<void>
-  register: (userData: RegisterData) => Promise<void>
-  logout: () => void
-  verifyToken: () => Promise<void>
-}
-
-interface RegisterData {
+type RegisterData = {
   username: string
   email: string
   password: string
@@ -49,7 +35,30 @@ interface RegisterData {
   zipCode: string
 }
 
+type AuthContextType = {
+  user: User | null
+  token: string | null
+  loading: boolean
+  error: string | null
+  login: (email: string, password: string, token?: string) => Promise<void>
+  register: (data: RegisterData) => Promise<{ requiresEmailConfirmation: boolean }>
+  logout: () => Promise<void>
+  verifyToken: () => Promise<void>
+}
+
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
+
+function mapUser(user: { id: string; email?: string; user_metadata?: Record<string, unknown>; app_metadata?: Record<string, unknown> }): User {
+  const metadata = user.user_metadata ?? {}
+  return {
+    id: user.id,
+    email: user.email ?? "",
+    username: String(metadata.username ?? user.email ?? ""),
+    firstName: String(metadata.firstName ?? metadata.first_name ?? ""),
+    lastName: String(metadata.lastName ?? metadata.last_name ?? ""),
+    role: String(user.app_metadata?.role ?? "customer"),
+  }
+}
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
@@ -57,194 +66,61 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  // Restore the server-managed Supabase session on every full page load.
   useEffect(() => {
-    const initAuth = async () => {
-      try {
-        const response = await fetch('/api/auth/session', { cache: 'no-store' })
-        if (!response.ok) return
-        const data = await response.json()
-        if (data.user) {
-          const authUser: User = {
-            id: data.user.id,
-            email: data.user.email ?? '',
-            username: data.user.user_metadata?.username ?? data.user.email ?? '',
-            firstName: data.user.user_metadata?.firstName ?? '',
-            lastName: data.user.user_metadata?.lastName ?? '',
-            role: data.user.app_metadata?.role ?? 'customer',
-          }
-          setUser(authUser)
-          setToken(data.session?.access_token ?? null)
-        }
-      } catch (err) {
-        console.error('[v0] Auth initialization error:', err)
-        setUser(null)
-        setToken(null)
-      } finally {
-        setLoading(false)
-      }
-    }
-    void initAuth()
+    const supabase = createClient()
+    if (!supabase) { setLoading(false); return }
+    void supabase.auth.getSession().then(({ data }) => {
+      setUser(data.session?.user ? mapUser(data.session.user) : null)
+      setToken(data.session?.access_token ?? null)
+      setLoading(false)
+    })
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ? mapUser(session.user) : null)
+      setToken(session?.access_token ?? null)
+    })
+    return () => listener.subscription.unsubscribe()
   }, [])
 
-  const verifyTokenHelper = async (tokenToVerify: string) => {
+  const login = async (email: string, password: string) => {
+    const supabase = createClient()
+    if (!supabase) throw new Error("Authentication is not configured.")
+    if (!email.trim() || !password) throw new Error("Email and password are required.")
+    setLoading(true); setError(null)
     try {
-      const response = await fetch('/api/auth/verify', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${tokenToVerify}`,
-          'Content-Type': 'application/json',
-        },
+      const { data, error } = await supabase.auth.signInWithPassword({ email: email.trim().toLowerCase(), password })
+      if (error) {
+        const message = /email not confirmed/i.test(error.message) ? "Please confirm your email before signing in." : /invalid login credentials/i.test(error.message) ? "Invalid email or password." : "We couldn't sign you in right now. Please try again."
+        throw new Error(message)
+      }
+      if (!data.session) throw new Error("Please confirm your email before signing in.")
+      setUser(mapUser(data.user)); setToken(data.session.access_token)
+    } catch (cause) { const message = cause instanceof Error ? cause.message : "We couldn't sign you in right now."; setError(message); throw new Error(message) }
+    finally { setLoading(false) }
+  }
+
+  const register = async (data: RegisterData) => {
+    const supabase = createClient()
+    if (!supabase) throw new Error("Authentication is not configured.")
+    setLoading(true); setError(null)
+    try {
+      const { data: result, error } = await supabase.auth.signUp({
+        email: data.email.trim().toLowerCase(), password: data.password,
+        options: { emailRedirectTo: process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL ?? `${window.location.origin}/auth/callback`, data: { username: data.username.trim(), firstName: data.firstName, lastName: data.lastName } },
       })
-
-      if (!response.ok) {
-        throw new Error('Token verification failed')
+      if (error) {
+        const message = /already registered|already exists/i.test(error.message) ? "Unable to create account with those details." : /password/i.test(error.message) ? "Choose a stronger password." : "We couldn't create your account right now."
+        throw new Error(message)
       }
-
-      const data = await response.json()
-      setUser(data.user)
-      setToken(tokenToVerify)
-    } catch (err) {
-      console.error('Token verification error:', err)
-      localStorage.removeItem('auth_token')
-      localStorage.removeItem('auth_user')
-      setUser(null)
-      setToken(null)
-      throw err
-    }
+      if (result.session && result.user) { setUser(mapUser(result.user)); setToken(result.session.access_token); return { requiresEmailConfirmation: false } }
+      return { requiresEmailConfirmation: true }
+    } catch (cause) { const message = cause instanceof Error ? cause.message : "We couldn't create your account right now."; setError(message); throw new Error(message) }
+    finally { setLoading(false) }
   }
 
-  const login = async (username: string, password: string, token?: string) => {
-    try {
-      setLoading(true)
-      setError(null)
+  const logout = async () => { const supabase = createClient(); if (supabase) await supabase.auth.signOut(); setUser(null); setToken(null); setError(null) }
+  const verifyToken = async () => { const supabase = createClient(); if (!supabase) throw new Error("Authentication is not configured."); const { data, error } = await supabase.auth.getUser(); if (error || !data.user) { setUser(null); setToken(null); throw new Error("Session expired.") } setUser(mapUser(data.user)) }
 
-      // Input validation
-      if (!username || !password) {
-        throw new Error('Username and password are required')
-      }
-
-      if (username.trim().length === 0 || password.trim().length === 0) {
-        throw new Error('Username and password cannot be empty')
-      }
-
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: username.trim(), password, token: token?.trim() || undefined }),
-      })
-
-      if (!response.ok) {
-        const data = await response.json()
-        throw new Error(data.error || 'Invalid username or password')
-      }
-
-      const data = await response.json()
-
-      if (!data.user || !data.token) {
-        throw new Error(data.message || 'Your account needs email confirmation before you can sign in.')
-      }
-
-      // Store token and user in localStorage
-      localStorage.setItem('auth_token', data.token)
-      localStorage.setItem('auth_user', JSON.stringify(data.user))
-
-      // Update state
-      setToken(data.token)
-      setUser(data.user)
-      setError(null)
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Login failed. Please try again.'
-      setError(errorMessage)
-      throw err
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const register = async (userData: RegisterData) => {
-    try {
-      setLoading(true)
-      setError(null)
-
-      const response = await fetch('/api/auth/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(userData),
-      })
-
-      if (!response.ok) {
-        const data = await response.json()
-        throw new Error(data.error || 'Registration failed')
-      }
-
-      const data = await response.json()
-
-      if (!data.token || !data.user) {
-        throw new Error('Invalid registration response from server')
-      }
-
-      // Store token and user in localStorage
-      localStorage.setItem('auth_token', data.token)
-      localStorage.setItem('auth_user', JSON.stringify(data.user))
-
-      // Update state
-      setToken(data.token)
-      setUser(data.user)
-      setError(null)
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Registration failed'
-      setError(errorMessage)
-      throw err
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const logout = () => {
-    localStorage.removeItem('auth_token')
-    localStorage.removeItem('auth_user')
-    setUser(null)
-    setToken(null)
-    setError(null)
-  }
-
-  const verifyToken = async () => {
-    if (!token) {
-      throw new Error('No token available')
-    }
-
-    try {
-      await verifyTokenHelper(token)
-    } catch (err) {
-      setUser(null)
-      setToken(null)
-      throw err
-    }
-  }
-
-  return (
-    <AuthContext.Provider
-      value={{
-        user,
-        token,
-        loading,
-        error,
-        login,
-        register,
-        logout,
-        verifyToken,
-      }}
-    >
-      {children}
-    </AuthContext.Provider>
-  )
+  return <AuthContext.Provider value={{ user, token, loading, error, login, register, logout, verifyToken }}>{children}</AuthContext.Provider>
 }
 
-export function useAuth() {
-  const context = useContext(AuthContext)
-  if (context === undefined) {
-    throw new Error('useAuth must be used within AuthProvider')
-  }
-  return context
-}
+export function useAuth() { const context = useContext(AuthContext); if (!context) throw new Error("useAuth must be used within AuthProvider"); return context }
