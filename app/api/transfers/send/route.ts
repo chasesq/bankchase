@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { v4 as uuidv4 } from 'uuid'
 import { createClient } from '@/lib/supabase/server'
 import axios from 'axios'
+import { deliverTransferAlerts } from '@/lib/transfer-alerts'
 
 /**
  * POST /api/transfers/send
@@ -22,7 +23,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { fromAccountId, toAccountNumber, toBankCode, amount, narration, recipientName, transferType } = body
+    const { fromAccountId, toAccountNumber, toBankCode, amount, narration, recipientName, recipientPhone, recipientEmail, transferType } = body
 
     // Validate required fields
     if (!fromAccountId || !toAccountNumber || !toBankCode || !amount || !recipientName) {
@@ -84,6 +85,21 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       )
     }
+
+    const transferId = uuidv4()
+    const alertBase = {
+      recipientPhone: typeof recipientPhone === 'string' ? recipientPhone : undefined,
+      recipientEmail: typeof recipientEmail === 'string' ? recipientEmail : undefined,
+      recipientName,
+      amount: parsedAmount,
+      transferType: transferType === 'zelle' ? 'zelle' as const : 'bank_transfer' as const,
+      transferId,
+    }
+
+    // Alerts are best-effort and never block a valid transfer.
+    await deliverTransferAlerts({ ...alertBase, status: 'initiated' }).catch((error) =>
+      console.warn('[v0] Initiated transfer alert failed:', error instanceof Error ? error.message : error)
+    )
 
     // Try Paystack first for bank transfers, fallback to realtime endpoint
     if (transferType === 'bank_transfer' || toBankCode) {
@@ -154,6 +170,13 @@ export async function POST(request: NextRequest) {
     }
 
     console.log('[v0] Transfer send successful:', realtimeData.transaction)
+    await deliverTransferAlerts({
+      ...alertBase,
+      transferId: realtimeData.transaction?.transactionId || transferId,
+      status: realtimeData.status === 'failed' ? 'failed' : 'completed',
+    }).catch((error) =>
+      console.warn('[v0] Final transfer alert failed:', error instanceof Error ? error.message : error)
+    )
 
     // Return 200 with transfer completion status
     return NextResponse.json(

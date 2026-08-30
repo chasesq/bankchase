@@ -44,6 +44,8 @@ function TransferContent() {
   const [formData, setFormData] = useState({
     fromAccountId: '',
     receiverName: '',
+    recipientPhone: '',
+    recipientEmail: '',
     receiverBankAccount: '',
     receiverBankCode: 'INTERNAL',
     amount: '',
@@ -146,7 +148,10 @@ function TransferContent() {
           toBankCode: formData.receiverBankCode,
           amount: parseFloat(formData.amount),
           narration: formData.narration || `Transfer to ${formData.receiverName}`,
-          recipientName: formData.receiverName
+          recipientName: formData.receiverName,
+          recipientPhone: formData.recipientPhone || undefined,
+          recipientEmail: formData.recipientEmail || undefined,
+          transferType: formData.receiverBankCode === 'ZELLE' ? 'zelle' : 'bank_transfer'
         })
       });
 
@@ -175,6 +180,8 @@ function TransferContent() {
       setFormData({
         fromAccountId: formData.fromAccountId,
         receiverName: '',
+        recipientPhone: '',
+        recipientEmail: '',
         receiverBankAccount: '',
         receiverBankCode: 'INTERNAL',
         amount: '',
@@ -331,8 +338,19 @@ function TransferContent() {
                   <h3 className="font-semibold text-foreground mb-4">Transfer Details</h3>
 
                   <div className="space-y-4">
-                    {/* Amount */}
-                    <div>
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div>
+                    <label className="mb-2 block text-sm font-medium text-foreground" htmlFor="recipientPhone">Recipient phone for SMS alerts</label>
+                    <input id="recipientPhone" type="tel" name="recipientPhone" value={formData.recipientPhone} onChange={handleInputChange} placeholder="+1 555 123 4567" className="w-full rounded-lg border border-border bg-background px-4 py-3 text-foreground" />
+                  </div>
+                  <div>
+                    <label className="mb-2 block text-sm font-medium text-foreground" htmlFor="recipientEmail">Recipient email for alerts</label>
+                    <input id="recipientEmail" type="email" name="recipientEmail" value={formData.recipientEmail} onChange={handleInputChange} placeholder="recipient@example.com" className="w-full rounded-lg border border-border bg-background px-4 py-3 text-foreground" />
+                  </div>
+                </div>
+
+                {/* Amount */}
+                <div>
                       <label className="block text-sm font-medium text-foreground mb-2">
                         Amount (USD) *
                       </label>
