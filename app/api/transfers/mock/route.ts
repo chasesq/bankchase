@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { nanoid } from 'nanoid'
+import { deliverTransferAlerts } from '@/lib/transfer-alerts'
 
 // In-memory store for demo - persists across requests
 const mockStore: any = {
@@ -52,6 +53,7 @@ export async function POST(request: NextRequest) {
       senderAccountId,
       receiverAccountId,
       recipientEmail,
+      recipientPhone,
       recipientName,
       amount,
       description,
@@ -136,6 +138,7 @@ export async function POST(request: NextRequest) {
       receiverId: receiver?.userId || null,
       receiverAccountId: receiverAccountId || '',
       recipientEmail,
+      recipientPhone,
       recipientName,
       amount: amount.toString(),
       fee: fee.toString(),
@@ -147,6 +150,17 @@ export async function POST(request: NextRequest) {
     }
 
     mockStore.transfers.set(transferId, transfer)
+
+    // Deliver recipient alerts after the wallet transfer is committed.
+    const alertDelivery = await deliverTransferAlerts({
+      recipientPhone,
+      recipientEmail,
+      recipientName,
+      amount: Number(amount),
+      transferType,
+      status: 'completed',
+      transferId,
+    })
 
     // Create sender notification
     const senderNotif = {
@@ -193,6 +207,7 @@ export async function POST(request: NextRequest) {
         senderNewBalance: sender.balance,
         receiverNewBalance: receiver?.balance || null,
         fee,
+        alertDelivery,
       },
       { status: 200 }
     )
