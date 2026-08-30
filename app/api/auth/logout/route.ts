@@ -5,6 +5,7 @@ export async function POST(request: NextRequest) {
   try {
     const cookieStore = await cookies()
     cookieStore.delete('auth_user')
+    cookieStore.delete('demo_auth')
 
     // If user logged in via Auth0, also clear Auth0 session
     const response = NextResponse.json(
