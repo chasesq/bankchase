@@ -25,6 +25,14 @@ export interface PaymentResult {
 
 export async function createPaymentIntent(data: PaymentData): Promise<PaymentResult> {
   try {
+    return {
+      success: false,
+      message: 'Stripe payments are disabled. Use the Paystack checkout flow.',
+      error: 'PAYSTACK_ONLY',
+    }
+
+    console.log('[v0] Stripe payment request blocked; Paystack is required:', data.recipientEmail)
+    /* Legacy Stripe implementation retained below for reference.
     console.log('[v0] Creating payment intent for:', data.recipientEmail)
 
     // If Stripe is not configured, use demo mode
@@ -98,6 +106,7 @@ export async function createPaymentIntent(data: PaymentData): Promise<PaymentRes
       status: paymentIntent.status,
       message: 'Payment intent created successfully',
     }
+    */
   } catch (error) {
     console.error('[v0] Payment intent creation error:', error)
     return {

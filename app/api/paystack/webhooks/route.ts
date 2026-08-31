@@ -35,12 +35,18 @@ export async function POST(request: NextRequest) {
     }
 
     // Verify HMAC-SHA512 signature
+    if (!PAYSTACK_SECRET_KEY) {
+      return NextResponse.json({ error: 'Webhook is not configured' }, { status: 503 })
+    }
+
     const hash = crypto
-      .createHmac('sha512', PAYSTACK_SECRET_KEY!)
+      .createHmac('sha512', PAYSTACK_SECRET_KEY)
       .update(rawBody)
       .digest('hex')
 
-    if (hash !== signature) {
+    const expected = Buffer.from(hash, 'utf8')
+    const received = Buffer.from(signature, 'utf8')
+    if (expected.length !== received.length || !crypto.timingSafeEqual(expected, received)) {
       console.warn('[v0] Invalid Paystack webhook signature')
       return NextResponse.json(
         { error: 'Invalid signature' },
