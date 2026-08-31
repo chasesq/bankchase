@@ -1,0 +1,40 @@
+{
+  "$schema": "https://cdn.scalar.com/schema/scalar-config-next.json",
+  "scalar": "2.0.0",
+  "info": {
+    "title": "urbane-hamlet-ztf8y",
+    "description": "",
+    "version": "Version 0"
+  },
+  "siteConfig": {
+    "subdomain": "urbane-hamlet-ztf8y",
+    "footer": {
+      "filepath": "footer.html"
+    },
+    "head": {
+      "title": "",
+      "links": [],
+      "meta": [],
+      "styles": [
+        {
+          "path": "footer-theme.css"
+        }
+      ],
+      "scripts": []
+    },
+    "routing": {
+      "redirects": []
+    }
+  },
+  "versions": {
+    "default": {
+      "title": "Version 0",
+      "header": [
+        {
+          "type": "version-selector"
+        }
+      ],
+      "routes": {}
+    }
+  }
+}
