@@ -368,7 +368,7 @@ export function MoreView({ onLogout }: MoreViewProps) {
   const handleLogout = async () => {
     toast({
       title: "Signing out",
-      description: "Your Chase session is being securely closed.",
+      description: "Your banking session is being securely closed.",
     })
 
     addActivity({

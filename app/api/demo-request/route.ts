@@ -11,7 +11,7 @@ export async function POST(request: Request) {
   let emailSent = false
   if (process.env.RESEND_API_KEY) {
     try {
-      await sendCustomEmail({ to: email, subject: 'Your customized Mercury demo', html: `<p>Hi ${name},</p><p>Your customized demo is ready.</p><p><a href="${demoUrl}">Open your demo</a></p>` })
+      await sendCustomEmail({ to: email, subject: 'Your personalized banking workspace', html: `<p>Hi ${name},</p><p>Your customized demo is ready.</p><p><a href="${demoUrl}">Open your demo</a></p>` })
       emailSent = true
     } catch (error) {
       console.warn('[v0] Demo email delivery unavailable:', error)

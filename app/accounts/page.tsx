@@ -73,7 +73,7 @@ function AccountsContent() {
                         ${account.balance.toFixed(2)}
                       </p>
                       {account.is_demo_account && (
-                        <p className="text-xs text-amber-600 mt-2 font-medium">Demo Account</p>
+                        <p className="text-xs text-muted-foreground mt-2 font-medium">Simulated account</p>
                       )}
                     </div>
                   </div>
