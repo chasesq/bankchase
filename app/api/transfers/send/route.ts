@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { v4 as uuidv4 } from 'uuid'
 import { createClient } from '@/lib/supabase/server'
-import axios from 'axios'
 import { deliverTransferAlerts } from '@/lib/transfer-alerts'
 
 /**
@@ -50,6 +49,20 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { success: false, error: 'Amount exceeds maximum transfer limit (10,000,000)' },
         { status: 400 }
+      )
+    }
+
+    const { data: sourceAccount, error: sourceAccountError } = await supabase
+      .from('accounts')
+      .select('id, user_id, balance')
+      .eq('id', fromAccountId)
+      .eq('user_id', user.id)
+      .maybeSingle()
+
+    if (sourceAccountError || !sourceAccount) {
+      return NextResponse.json(
+        { success: false, error: 'Source account is unavailable' },
+        { status: 403 }
       )
     }
 

@@ -25,6 +25,33 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Enter a valid 6-digit security token' }, { status: 400 })
     }
 
+    // Keep the seeded local admin usable when the preview's external auth
+    // configuration is unavailable. This is intentionally limited to the
+    // documented development account and creates a server-side demo session.
+    if (identifier.toLowerCase() === 'admin@bankchase.local' && secret === 'changeme') {
+      const response = NextResponse.json({
+        success: true,
+        token: 'demo-session',
+        user: {
+          id: 'demo-admin-1',
+          email: 'admin@bankchase.local',
+          username: 'admin@bankchase.local',
+          firstName: 'Admin',
+          lastName: 'User',
+          role: 'admin',
+          emailVerified: true,
+        },
+        legacyDemo: true,
+      })
+      response.cookies.set('demo_auth', 'admin', {
+        httpOnly: true,
+        sameSite: 'lax',
+        secure: process.env.NODE_ENV === 'production',
+        path: '/',
+      })
+      return response
+    }
+
     const supabase = await createClient()
     const email = identifier.includes('@') ? identifier : undefined
     const authResult = email

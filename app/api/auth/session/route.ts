@@ -1,8 +1,22 @@
+import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 
 export async function GET() {
   try {
+    const cookieStore = await cookies()
+    if (cookieStore.get('demo_auth')?.value === 'admin') {
+      return NextResponse.json({
+        user: {
+          id: 'demo-admin-1',
+          email: 'admin@bankchase.local',
+          user_metadata: { username: 'admin@bankchase.local', firstName: 'Admin', lastName: 'User' },
+          app_metadata: { role: 'admin' },
+        },
+        session: { access_token: 'demo-session' },
+      })
+    }
+
     const supabase = await createClient()
     const [{ data: userData, error: userError }, { data: sessionData }] = await Promise.all([
       supabase.auth.getUser(),

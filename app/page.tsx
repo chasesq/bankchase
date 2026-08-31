@@ -25,7 +25,6 @@ import { TransactionsDrawer } from "@/components/transactions-drawer"
 import { DisputeTransactionDrawer } from "@/components/dispute-transaction-drawer"
 import { useBanking } from "@/lib/banking-context"
 import { AccountOpeningModal } from "@/components/account-opening-modal"
-import { NewUserOnboarding } from "@/components/new-user-onboarding"
 import { AuthForm } from "@/components/auth-form"
 import { useAuth } from "@/lib/auth-context"
 import { Settings2, Sun, Moon } from "lucide-react"
@@ -51,17 +50,17 @@ export default function BankingDashboard() {
   const [customizeOpen, setCustomizeOpen] = useState(false)
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
     if (typeof window === 'undefined') return 'light'
-    try { return JSON.parse(window.localStorage.getItem('mercury-dashboard-preferences') || '{}').theme || 'light' } catch { return 'light' }
+    try { return JSON.parse(window.localStorage.getItem('banking-dashboard-preferences') || '{}').theme || 'light' } catch { return 'light' }
   })
   const [density, setDensity] = useState<'comfortable' | 'compact'>(() => {
     if (typeof window === 'undefined') return 'comfortable'
-    try { return JSON.parse(window.localStorage.getItem('mercury-dashboard-preferences') || '{}').density || 'comfortable' } catch { return 'comfortable' }
+    try { return JSON.parse(window.localStorage.getItem('banking-dashboard-preferences') || '{}').density || 'comfortable' } catch { return 'comfortable' }
   })
   const [visibleCards, setVisibleCards] = useState({ accounts: true, activity: true, credit: true })
   const { toast } = useToast()
 
   useEffect(() => {
-    window.localStorage.setItem('mercury-dashboard-preferences', JSON.stringify({ theme, density, visibleCards }))
+    window.localStorage.setItem('banking-dashboard-preferences', JSON.stringify({ theme, density, visibleCards }))
     document.documentElement.classList.toggle('dark', theme === 'dark')
   }, [theme, density, visibleCards])
 
@@ -114,7 +113,7 @@ export default function BankingDashboard() {
     setActiveView("accounts")
     toast({
       title: "Signing out",
-      description: "Your Chase session is being securely closed.",
+      description: "Your banking session is being securely closed.",
     })
     await logout()
   }
@@ -156,7 +155,6 @@ export default function BankingDashboard() {
               onAddAccount={() => setAddAccountOpen(true)}
               onTransfer={() => setTransferOpen(true)}
             />
-            <NewUserOnboarding />
             {visibleCards.accounts && <AccountsSection
               onViewAccount={() => setAccountDetailsOpen(true)}
               onLinkExternal={() => setLinkExternalOpen(true)}
@@ -193,7 +191,7 @@ export default function BankingDashboard() {
 
       <main className="px-4 pt-5">
         <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
-          <div><p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">Mercury demo</p><p className="text-sm text-muted-foreground">Make this dashboard work your way.</p></div>
+          <div><p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">Personal banking</p><p className="text-sm text-muted-foreground">Your accounts, cards, and money movement in one place.</p></div>
           <div className="flex flex-wrap gap-2"><Button variant="outline" size="sm" onClick={() => setCustomizeOpen((open) => !open)}><Settings2 data-icon="inline-start" />Customize dashboard</Button></div>
         </div>
         {customizeOpen && <section aria-label="Dashboard customization" className="mb-5 rounded-2xl border bg-card p-4 shadow-sm"><div className="flex flex-wrap items-center justify-between gap-4"><div><h2 className="font-semibold">Customize your account dashboard</h2><p className="text-sm text-muted-foreground">Choose what you see and how it feels.</p></div><Button variant="ghost" size="sm" onClick={resetDashboardPreferences}>Reset defaults</Button></div><div className="mt-4 grid gap-4 sm:grid-cols-3"><div className="flex flex-col gap-2"><span className="text-sm font-medium">Appearance</span><div className="flex gap-2"><Button size="sm" variant={theme === 'light' ? 'default' : 'outline'} onClick={() => setTheme('light')}><Sun data-icon="inline-start" />Light</Button><Button size="sm" variant={theme === 'dark' ? 'default' : 'outline'} onClick={() => setTheme('dark')}><Moon data-icon="inline-start" />Dark</Button></div></div><div className="flex flex-col gap-2"><span className="text-sm font-medium">Density</span><div className="flex gap-2"><Button size="sm" variant={density === 'comfortable' ? 'default' : 'outline'} onClick={() => setDensity('comfortable')}>Comfortable</Button><Button size="sm" variant={density === 'compact' ? 'default' : 'outline'} onClick={() => setDensity('compact')}>Compact</Button></div></div><div className="flex flex-col gap-2"><span className="text-sm font-medium">Visible cards</span><div className="flex flex-wrap gap-2">{(['accounts', 'activity', 'credit'] as const).map((card) => <Button key={card} size="sm" variant={visibleCards[card] ? 'default' : 'outline'} onClick={() => setVisibleCards((current) => ({ ...current, [card]: !current[card] }))}>{card === 'accounts' ? 'Accounts' : card === 'activity' ? 'Activity' : 'Credit'}</Button>)}</div></div></div></section>}
