@@ -8,7 +8,6 @@ import { CheckCircle, Clock, AlertCircle, TrendingDown, Download, Filter, Search
 import { format } from 'date-fns';
 import Link from 'next/link';
 import { useBanking } from '@/lib/banking-context';
-import { WalletAddressCard } from '@/components/wallet-address-card';
 
 interface Transfer {
   id: string;
@@ -135,10 +134,6 @@ function TransfersContent() {
         <div className="mb-8">
           <h1 className="text-4xl font-bold text-foreground mb-2">Transfers & Transactions</h1>
           <p className="text-muted-foreground">View and manage your transfer history</p>
-        </div>
-
-        <div className="mb-6 max-w-xl">
-          <WalletAddressCard compact />
         </div>
 
         {/* Stats Cards */}

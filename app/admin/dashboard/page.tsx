@@ -2,7 +2,6 @@ import React from 'react'
 import { getWorkflowRuns, getEmailLogs } from '@/app/actions/onboarding'
 import { BarChart3, Mail, Zap, TrendingUp } from 'lucide-react'
 import { Card } from '@/components/ui/card'
-import { WalletAddressSummary } from '@/components/wallet-address-card'
 
 // Skip prerendering for this dynamic page
 export const dynamic = 'force-dynamic'
@@ -36,9 +35,6 @@ export default async function AdminDashboard() {
 
       {/* Main Content */}
       <div className="container mx-auto px-4 py-12">
-        <div className="mb-8 max-w-xl">
-          <WalletAddressSummary />
-        </div>
         {/* Metrics Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
           <Card className="bg-card border-border p-6">

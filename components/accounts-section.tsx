@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { useBanking } from "@/lib/banking-context"
 import { useState } from "react"
-import { WalletAddressCard } from "@/components/wallet-address-card"
 
 interface AccountsSectionProps {
   onViewAccount: () => void
@@ -93,8 +92,6 @@ export function AccountsSection({
           )}
         </div>
       </Card>
-
-      <WalletAddressCard />
 
       <Card className="chase-card-shadow border-0 overflow-hidden">
         <div className="bg-[#0a4fa6] px-4 py-2">

@@ -7,7 +7,6 @@ import { Navigation } from '@/components/Navigation';
 import { ArrowUpRight, ArrowDownLeft, TrendingUp, Wallet } from 'lucide-react';
 import { format } from 'date-fns';
 import Link from 'next/link';
-import { WalletAddressCard } from '@/components/wallet-address-card';
 
 function AccountsContent() {
   const { accounts, totalBalance, isLoading } = useAccounts();
@@ -39,10 +38,6 @@ function AccountsContent() {
             </div>
             <TrendingUp className="w-6 h-6 opacity-50" />
           </div>
-        </div>
-
-        <div className="mb-8">
-          <WalletAddressCard />
         </div>
 
         {/* Accounts Grid */}
