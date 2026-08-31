@@ -1,6 +1,6 @@
 {
   "name": "@default-team-nt7hy/demo-api-scalar-galaxy",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "The Scalar Galaxy is an example OpenAPI document to test OpenAPI tools and libraries. It's a fictional universe with fictional planets and fictional data. Get all the data for all planets.",
   "author": "Demo API Scalar Galaxy",
   "repository": {
