@@ -1,21 +1,19 @@
 # Security Policy
 
-## Supported Versions
+## Reporting Security Issues
 
-Use this section to tell people about which versions of your project are
-currently being supported with security updates.
+This is a generated TypeScript SDK for Demo API (Scalar Galaxy), produced by the Scalar SDK Generator (https://scalar.com).
 
-| Version | Supported          |
-| ------- | ------------------ |
-| 5.1.x   | :white_check_mark: |
-| 5.0.x   | :x:                |
-| 4.0.x   | :white_check_mark: |
-| < 4.0   | :x:                |
+If the issue is in the generated SDK itself — its runtime, authentication handling, path construction, or serialization — report it to the Scalar team at support@scalar.com. We will acknowledge the report, triage it for severity and impact, and communicate a timeline for a fix or an explanation if we decline it.
 
-## Reporting a Vulnerability
+## Responsible Disclosure
 
-Use this section to tell people how to report a vulnerability.
+Please allow us reasonable time to investigate and address the issue before disclosing it publicly. Do not include credentials, tokens, or private API payloads in a public issue.
 
-Tell them where to go, how often they can expect to get an update on a
-reported vulnerability, what to expect if the vulnerability is accepted or
-declined, etc.
+## Reporting Non-SDK Security Issues
+
+If the issue is in the Demo API (Scalar Galaxy) or service rather than in this SDK, report it through the security process Demo API (Scalar Galaxy) has published.
+
+---
+
+Generated code validates emitted paths and escapes spec-derived strings, but OpenAPI documents should still be treated as untrusted input before generation.

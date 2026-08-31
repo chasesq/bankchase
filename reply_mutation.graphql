@@ -1,1 +1,0 @@
-mutation { addPullRequestReviewThreadReply(input: {threadId: "PRRT_kwDOSKmzds6ZLKdC", body: "Thanks — accepted. The uses line is already correctly indented; fixed in commit 4d3b62b."}) { reply { id } } }
