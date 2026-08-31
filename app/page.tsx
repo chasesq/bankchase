@@ -25,7 +25,6 @@ import { TransactionsDrawer } from "@/components/transactions-drawer"
 import { DisputeTransactionDrawer } from "@/components/dispute-transaction-drawer"
 import { useBanking } from "@/lib/banking-context"
 import { AccountOpeningModal } from "@/components/account-opening-modal"
-import { NewUserOnboarding } from "@/components/new-user-onboarding"
 import { AuthForm } from "@/components/auth-form"
 import { useAuth } from "@/lib/auth-context"
 import { Settings2, Sun, Moon } from "lucide-react"
@@ -156,7 +155,6 @@ export default function BankingDashboard() {
               onAddAccount={() => setAddAccountOpen(true)}
               onTransfer={() => setTransferOpen(true)}
             />
-            <NewUserOnboarding />
             {visibleCards.accounts && <AccountsSection
               onViewAccount={() => setAccountDetailsOpen(true)}
               onLinkExternal={() => setLinkExternalOpen(true)}
