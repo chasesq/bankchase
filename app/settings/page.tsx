@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react'
 import { ProtectedRoute } from '@/components/ProtectedRoute'
 import { Navigation } from '@/components/Navigation'
 import { useBanking } from '@/lib/banking-context'
-import { ArrowLeft, Bell, Lock, Globe, Moon, Save, AlertCircle, Zap } from 'lucide-react'
+import { ArrowLeft, Bell, Lock, Globe, Moon, Save, AlertCircle, Zap, WalletCards, CheckCircle2 } from 'lucide-react'
 import { toast } from 'sonner'
 import Link from 'next/link'
 
@@ -39,6 +39,13 @@ interface AppSettings {
     language: string
     currency: string
     timezone: string
+  }
+  payouts: {
+    provider: 'paystack'
+    currency: string
+    destination: string
+    automaticPayouts: boolean
+    environment: 'test' | 'live'
   }
 }
 
@@ -76,6 +83,13 @@ function SettingsContent() {
       language: 'English',
       currency: 'USD',
       timezone: 'America/New_York',
+    },
+    payouts: {
+      provider: 'paystack',
+      currency: 'NGN',
+      destination: 'Primary Paystack settlement account',
+      automaticPayouts: false,
+      environment: 'test',
     },
   })
 
@@ -510,6 +524,68 @@ function SettingsContent() {
                     <option>Australia/Sydney</option>
                   </select>
                 </div>
+              </div>
+            </div>
+
+            {/* Payouts Section */}
+            <div className="bg-card border border-border rounded-xl p-6 md:p-8">
+              <h2 className="text-2xl font-bold text-foreground mb-2 flex items-center gap-2">
+                <WalletCards className="w-6 h-6 text-primary" />
+                Payouts
+              </h2>
+              <p className="text-muted-foreground mb-6">Payment earnings are collected and settled through Paystack. Stripe is disabled for this project.</p>
+              <div className="rounded-lg border border-primary/20 bg-primary/5 p-4 mb-6 flex items-start gap-3">
+                <CheckCircle2 className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
+                <div>
+                  <p className="font-medium text-foreground">Paystack is active</p>
+                  <p className="text-sm text-muted-foreground">No payout is initiated automatically from this screen. Transfers require an explicit server-side action.</p>
+                </div>
+              </div>
+              <div className="grid gap-4 md:grid-cols-2">
+                <label className="flex flex-col gap-2 text-sm font-medium text-foreground">
+                  Settlement currency
+                  <select
+                    value={settings.payouts.currency}
+                    onChange={(e) => handleSelectChange('payouts', 'currency', e.target.value)}
+                    className="w-full px-3 py-2 border border-border rounded-lg bg-background"
+                  >
+                    <option value="NGN">NGN — Nigerian Naira</option>
+                    <option value="GHS">GHS — Ghanaian Cedi</option>
+                    <option value="KES">KES — Kenyan Shilling</option>
+                    <option value="ZAR">ZAR — South African Rand</option>
+                    <option value="XOF">XOF — West African CFA Franc</option>
+                    <option value="USD">USD — US Dollar</option>
+                  </select>
+                </label>
+                <label className="flex flex-col gap-2 text-sm font-medium text-foreground">
+                  Payout environment
+                  <select
+                    value={settings.payouts.environment}
+                    onChange={(e) => handleSelectChange('payouts', 'environment', e.target.value)}
+                    className="w-full px-3 py-2 border border-border rounded-lg bg-background"
+                  >
+                    <option value="test">Test mode</option>
+                    <option value="live">Live mode</option>
+                  </select>
+                </label>
+                <label className="flex flex-col gap-2 text-sm font-medium text-foreground md:col-span-2">
+                  Settlement destination
+                  <input
+                    value={settings.payouts.destination}
+                    onChange={(e) => handleSelectChange('payouts', 'destination', e.target.value)}
+                    className="w-full px-3 py-2 border border-border rounded-lg bg-background"
+                    placeholder="Describe the verified Paystack settlement account"
+                    maxLength={120}
+                  />
+                </label>
+              </div>
+              <div className="mt-4 border-t border-border pt-4">
+                <ToggleOption
+                  title="Automatic payouts"
+                  description="Keep disabled until a verified Paystack settlement destination and approval workflow are configured."
+                  checked={settings.payouts.automaticPayouts}
+                  onChange={() => setSettings((prev) => ({ ...prev, payouts: { ...prev.payouts, automaticPayouts: !prev.payouts.automaticPayouts } }))}
+                />
               </div>
             </div>
 
