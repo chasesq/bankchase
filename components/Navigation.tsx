@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Menu, X, LogOut, LayoutDashboard, Wallet, Send, User } from 'lucide-react';
+import { Menu, X, LogOut, LayoutDashboard, Wallet, Send, User, ReceiptText, Bell, Users, CreditCard, FileText, Landmark } from 'lucide-react';
 
 export function Navigation() {
   const [isOpen, setIsOpen] = useState(false);
@@ -20,8 +20,17 @@ export function Navigation() {
 
   const navItems = [
     { label: 'Accounts', href: '/accounts', icon: Wallet },
-    { label: 'Cards', href: '/cards', icon: Wallet },
-    { label: 'Transfers', href: '/transfers', icon: Send },
+    { label: 'Transactions', href: '/transactions', icon: ReceiptText },
+    { label: 'Cards', href: '/cards', icon: CreditCard },
+    { label: 'Team Spend', href: '/team-spend', icon: Users },
+    { label: 'Payments', href: '/payments', icon: Send },
+    { label: 'Invoicing', href: '/invoicing', icon: FileText },
+    { label: 'Accounting', href: '/accounting', icon: Landmark },
+    { label: 'Ops / Payroll', href: '/payroll', icon: Users },
+    { label: 'Credit Card', href: '/credit-card', icon: CreditCard },
+    { label: 'Bill Pay', href: '/bill-pay', icon: ReceiptText },
+    { label: 'Send', href: '/send-money', icon: Send },
+    { label: 'Notifications', href: '/notifications', icon: Bell },
     { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
     { label: 'Settings', href: '/settings', icon: User },
   ];
