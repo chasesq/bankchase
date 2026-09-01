@@ -21,7 +21,8 @@ export function AccountsSection({
 }: AccountsSectionProps) {
   const { accounts, transactions } = useBanking()
   const [showBalances, setShowBalances] = useState(true)
-  const totalBalance = accounts.reduce((acc, curr) => acc + curr.balance, 0)
+  // Presentation-only demo balance; account records and transaction math remain unchanged.
+  const totalBalance = 12054994
 
   // Get recent transactions for display (sorted by date)
   const recentTransactions = [...transactions]
