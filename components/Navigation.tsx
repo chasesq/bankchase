@@ -33,8 +33,8 @@ export function Navigation() {
           {/* Logo */}
           <div className="flex items-center">
             <Link href="/accounts" className="flex items-center">
-              <span className="text-2xl font-bold text-blue-600">Chase</span>
-              <span className="text-xs text-muted-foreground ml-2">Voice Banking</span>
+              <span className="text-2xl font-bold text-primary">Banking</span>
+              <span className="text-xs text-muted-foreground ml-2">Workspace</span>
             </Link>
           </div>
 

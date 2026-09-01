@@ -25,7 +25,7 @@ function AccountsContent() {
         <div className="bg-gradient-to-r from-primary to-primary/80 rounded-2xl p-8 mb-8 text-background shadow-lg">
           <p className="text-background/80 mb-2 text-sm font-medium">Total Balance</p>
           <h2 className="text-5xl font-bold mb-6">
-            ${totalBalance.toFixed(2)}
+            $12,054,994.00
           </h2>
           <div className="flex justify-between items-end">
             <div className="flex gap-4">
