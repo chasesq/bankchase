@@ -2,6 +2,7 @@
 
 import type React from "react"
 import { useState } from "react"
+import Image from "next/image"
 import Link from "next/link"
 import { ArrowLeft, Check, ChevronDown, MapPin } from "lucide-react"
 import { ProtectedRoute } from "@/components/ProtectedRoute"
@@ -50,7 +51,20 @@ function CompanyProfileContent() {
         </div>
 
         <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_280px]">
-          <form onSubmit={handleSave} className="rounded-xl border border-border bg-card p-6 shadow-sm md:p-8">
+          <div className="flex flex-col gap-8">
+            <div className="flex items-center justify-between gap-4 rounded-xl border border-border bg-card p-5 shadow-sm">
+              <div className="flex items-center gap-4">
+                <Image src="/images/chase-logo.png" alt="Chase Bank logo" width={56} height={56} className="rounded-lg" />
+                <div>
+                  <p className="text-xs font-medium uppercase tracking-[0.16em] text-muted-foreground">Company card</p>
+                  <h2 className="mt-1 text-xl font-semibold">Chase Bank</h2>
+                  <p className="text-sm text-muted-foreground">Primary business profile</p>
+                </div>
+              </div>
+              <span className="hidden rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary sm:inline-flex">Active</span>
+            </div>
+
+            <form onSubmit={handleSave} className="rounded-xl border border-border bg-card p-6 shadow-sm md:p-8">
             <div className="mb-8 flex items-start gap-4 border-b border-border pb-6">
               <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
                 <MapPin className="h-5 w-5" />
@@ -112,7 +126,8 @@ function CompanyProfileContent() {
               {saved ? <p role="status" className="flex items-center gap-2 text-sm font-medium text-primary"><Check className="h-4 w-4" /> Changes saved</p> : <span className="text-sm text-muted-foreground">Changes apply to future account documents.</span>}
               <button type="submit" className="w-full rounded-md bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90 sm:w-auto">Save changes</button>
             </div>
-          </form>
+            </form>
+          </div>
 
           <aside className="h-fit rounded-xl border border-border bg-muted/40 p-5">
             <h2 className="font-semibold">About legal addresses</h2>
