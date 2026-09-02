@@ -141,16 +141,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       const data = await response.json()
 
-      if (!data.user || !data.token) {
+      if (!data.user) {
         throw new Error(data.message || 'Your account needs email confirmation before you can sign in.')
       }
 
-      // Store token and user in localStorage
-      localStorage.setItem('auth_token', data.token)
+      // Legacy demo sessions are cookie-backed and intentionally have no bearer token.
+      if (data.token) localStorage.setItem('auth_token', data.token)
       localStorage.setItem('auth_user', JSON.stringify(data.user))
 
       // Update state
-      setToken(data.token)
+      setToken(data.token ?? null)
       setUser(data.user)
       setError(null)
     } catch (err) {

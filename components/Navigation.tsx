@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Menu, X, LogOut, LayoutDashboard, Wallet, Send, User, ReceiptText, Bell, Users, CreditCard, FileText, Landmark } from 'lucide-react';
+import { Menu, X, LogOut, LayoutDashboard, Wallet, Send, User, ReceiptText, Bell, Users, CreditCard, FileText, Landmark, ArrowRightLeft } from 'lucide-react';
 
 export function Navigation() {
   const [isOpen, setIsOpen] = useState(false);
@@ -19,6 +19,11 @@ export function Navigation() {
   };
 
   const navItems = [
+    { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+    { label: 'Send | Zelle®', href: '/send-money', icon: Send },
+    { label: 'Transfer', href: '/transfer', icon: ArrowRightLeft },
+    { label: 'Deposit', href: '/deposit', icon: Wallet },
+    { label: 'Pay bills', href: '/bill-pay', icon: ReceiptText },
     { label: 'Accounts', href: '/accounts', icon: Wallet },
     { label: 'Transactions', href: '/transactions', icon: ReceiptText },
     { label: 'Cards', href: '/cards', icon: CreditCard },
@@ -27,11 +32,8 @@ export function Navigation() {
     { label: 'Invoicing', href: '/invoicing', icon: FileText },
     { label: 'Accounting', href: '/accounting', icon: Landmark },
     { label: 'Ops / Payroll', href: '/payroll', icon: Users },
-    { label: 'Credit Card', href: '/credit-card', icon: CreditCard },
-    { label: 'Bill Pay', href: '/bill-pay', icon: ReceiptText },
-    { label: 'Send', href: '/send-money', icon: Send },
-    { label: 'Notifications', href: '/notifications', icon: Bell },
-    { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+    { label: 'Notifications', href: '/settings/notifications', icon: Bell },
+    { label: 'My profile', href: '/settings/my-profile', icon: User },
     { label: 'Settings', href: '/settings', icon: User },
   ];
 

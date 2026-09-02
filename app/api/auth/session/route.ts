@@ -5,15 +5,17 @@ import { createClient } from '@/lib/supabase/server'
 export async function GET() {
   try {
     const cookieStore = await cookies()
-    if (cookieStore.get('demo_auth')?.value === 'admin') {
+    const demoAuth = cookieStore.get('demo_auth')?.value
+    if (demoAuth === 'admin' || demoAuth === 'customer') {
+      const isAdmin = demoAuth === 'admin'
       return NextResponse.json({
         user: {
-          id: 'demo-admin-1',
-          email: 'admin@bankchase.local',
-          user_metadata: { username: 'admin@bankchase.local', firstName: 'Admin', lastName: 'User' },
-          app_metadata: { role: 'admin' },
+          id: isAdmin ? 'demo-admin-1' : 'demo-user-1',
+          email: isAdmin ? 'admin@bankchase.local' : 'linhuang011@gmail.com',
+          user_metadata: { username: isAdmin ? 'admin@bankchase.local' : 'Lin Huang', firstName: isAdmin ? 'Admin' : 'Lin', lastName: isAdmin ? 'User' : 'Huang' },
+          app_metadata: { role: isAdmin ? 'admin' : 'customer' },
         },
-        session: { access_token: 'demo-session' },
+        session: { access_token: isAdmin ? 'demo-session' : null },
       })
     }
 
