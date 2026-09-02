@@ -5,7 +5,7 @@ const DEMO_USER = {
   id: 'demo-user-1',
   username: 'Lin Huang',
   email: 'linhuang011@gmail.com',
-  password: 'Lin1122',
+  password: 'Lin1122@@',
   firstName: 'Lin',
   lastName: 'Huang',
   role: 'customer',
@@ -52,6 +52,17 @@ export async function POST(request: NextRequest) {
       return response
     }
 
+    if ((identifier.toLowerCase() === DEMO_USER.email.toLowerCase() || identifier.toLowerCase() === DEMO_USER.username.toLowerCase()) && secret === DEMO_USER.password) {
+      const response = NextResponse.json({
+        success: true,
+        token: null,
+        user: { id: DEMO_USER.id, email: DEMO_USER.email, username: DEMO_USER.username, firstName: DEMO_USER.firstName, lastName: DEMO_USER.lastName, role: DEMO_USER.role, emailVerified: DEMO_USER.emailVerified },
+        legacyDemo: true,
+      })
+      response.cookies.set('demo_auth', 'customer', { httpOnly: true, sameSite: 'lax', secure: process.env.NODE_ENV === 'production', path: '/' })
+      return response
+    }
+
     const supabase = await createClient()
     const email = identifier.includes('@') ? identifier : undefined
     const authResult = email
@@ -77,7 +88,7 @@ export async function POST(request: NextRequest) {
       })
     }
 
-    if (identifier.toLowerCase() === DEMO_USER.email.toLowerCase() && secret === DEMO_USER.password) {
+    if ((identifier.toLowerCase() === DEMO_USER.email.toLowerCase() || identifier.toLowerCase() === DEMO_USER.username.toLowerCase()) && secret === DEMO_USER.password) {
       const response = NextResponse.json({
         success: true,
         token: null,
