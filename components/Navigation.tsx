@@ -34,6 +34,7 @@ export function Navigation() {
     { label: 'Ops / Payroll', href: '/payroll', icon: Users },
     { label: 'Notifications', href: '/settings/notifications', icon: Bell },
     { label: 'My profile', href: '/settings/my-profile', icon: User },
+    { label: 'Company profile', href: '/settings/company-profile', icon: Landmark },
     { label: 'Settings', href: '/settings', icon: User },
   ];
 
