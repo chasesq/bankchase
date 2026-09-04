@@ -10,7 +10,7 @@ orbs:
 # ─────────────────────────────────────────────────────────────
 #  Reusable anchors
 # ─────────────────────────────────────────────────────────────
-defaults:
+x-anchors:
   node_executor: &node_executor
     docker:
       - image: cimg/node:22.19
@@ -119,24 +119,34 @@ jobs:
       - node/install-pnpm:
           version: 10.12.4
       - run:
-          name: Run Jest tests (split)
+          name: Select frontend Jest tests
           command: |
-            set -e
-            TEST_FILES=$(circleci tests glob "__tests__/**/*.test.ts" | \
-              circleci tests split --split-by=timings)
-            if [ -z "${TEST_FILES}" ]; then
-              echo "No frontend Jest tests found; skipping."
-              exit 0
+            set -eu
+            mkdir -p test-results/frontend
+            : > test-files.txt
+            circleci tests glob "__tests__/**/*.test.ts" | \
+              circleci tests run \
+                --command=">test-files.txt xargs echo" \
+                --verbose \
+                --split-by=timings
+            if [ ! -s test-files.txt ]; then
+              echo "No frontend Jest tests assigned to this node; halting node."
+              circleci-agent step halt
             fi
-            pnpm exec jest ${TEST_FILES} \
+      - run:
+          name: Run Jest tests
+          command: |
+            set -eu
+            xargs pnpm exec jest \
               --ci \
               --runInBand \
               --forceExit \
               --coverage \
               --coverageReporters=lcov \
-              --testTimeout=15000
+              --testTimeout=15000 < test-files.txt
       - store_test_results:
           path: test-results
+          when: always
       - store_artifacts:
           path: coverage/lcov.info
           destination: coverage/lcov.info
@@ -226,6 +236,24 @@ jobs:
           name: Wait for Postgres
           command: dockerize -wait tcp://localhost:5432 -timeout 60s
       - run:
+          name: Select backend tests
+          working_directory: backend
+          command: |
+            set -eu
+            mkdir -p ../test-results/backend
+            : > ../backend-test-files.txt
+            if [ -d tests ]; then
+              circleci tests glob "tests/**/*.py" | \
+                circleci tests run \
+                  --command=">../backend-test-files.txt xargs echo" \
+                  --verbose \
+                  --split-by=timings
+            fi
+            if [ ! -s ../backend-test-files.txt ]; then
+              echo "No backend tests assigned to this node; halting node."
+              circleci-agent step halt
+            fi
+      - run:
           name: Run pytest
           working_directory: backend
           environment:
@@ -233,17 +261,14 @@ jobs:
             SECRET_KEY: ci-test-secret-key
             ENVIRONMENT: test
           command: |
-            if [ ! -d tests ]; then
-              echo "No backend tests directory found; skipping."
-              exit 0
-            fi
-            mkdir -p ../test-results/backend
-            pytest tests/ -v \
+            set -eu
+            xargs pytest -v \
               --tb=short \
               --junitxml=../test-results/backend/results.xml \
-              -q
+              -q < ../backend-test-files.txt
       - store_test_results:
           path: test-results
+          when: always
 
   # ── 9. Docker image build (build-only, no push) ─────────────
   build-docker:

@@ -8,6 +8,17 @@ const createJestConfig = nextJest({
 // Add any custom config to be passed to Jest
 const customJestConfig = {
   setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
+  reporters: [
+    'default',
+    [
+      'jest-junit',
+      {
+        outputDirectory: '<rootDir>/test-results/frontend',
+        outputName: 'results.xml',
+        addFileAttribute: 'true',
+      },
+    ],
+  ],
   testEnvironment: 'jest-environment-jsdom',
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/$1',
