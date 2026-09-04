@@ -1,7 +1,6 @@
 import type React from "react"
 import type { Metadata } from "next"
 import { Geist, Geist_Mono } from "next/font/google"
-import Script from "next/script"
 import { Analytics } from "@vercel/analytics/next"
 import { SpeedInsights } from "@vercel/speed-insights/next"
 import { Toaster } from "@/components/ui/toaster"
@@ -61,15 +60,7 @@ export default function RootLayout({
               </AuthProvider>
             </StatsigWrapper>
           </ThemeProvider>
-        {(process.env.NODE_ENV === "development" || process.env.VERCEL_ENV === "preview") && (
-          <Script
-            id="meticulous-recording"
-            src="https://snippet.meticulous.ai/v1/meticulous.js"
-            strategy="afterInteractive"
-            data-recording-token={process.env.METICULOUS_RECORDING_TOKEN}
-            data-is-production-environment="false"
-          />
-        )}
+
       </body>
     </html>
   )
