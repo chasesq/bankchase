@@ -79,7 +79,7 @@ export function AccountsSection({
         </Button>
       </div>
 
-      <Card className="chase-card-shadow border-0 overflow-hidden">
+      <Card className="dashboard-card-shadow border-0 overflow-hidden">
         <div className="bg-gradient-to-r from-[#0a4fa6] to-[#117aca] px-4 py-3">
           <p className="text-background/80 text-sm">Total Balance</p>
           <p className="text-background text-3xl font-bold">${formatBalance(totalBalance)}</p>
@@ -94,7 +94,7 @@ export function AccountsSection({
         </div>
       </Card>
 
-      <Card className="chase-card-shadow border-0 overflow-hidden">
+      <Card className="dashboard-card-shadow border-0 overflow-hidden">
         <div className="bg-[#0a4fa6] px-4 py-2">
           <h3 className="text-background font-medium text-sm">Bank Accounts ({accounts.length})</h3>
         </div>
@@ -137,7 +137,7 @@ export function AccountsSection({
         </CardContent>
       </Card>
 
-      <Card className="chase-card-shadow border-0">
+      <Card className="dashboard-card-shadow border-0">
         <CardContent className="p-4">
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-semibold text-[#0a4fa6]">Recent Transactions</h3>
@@ -198,7 +198,7 @@ export function AccountsSection({
       {/* Link External Accounts */}
       <Button
         variant="outline"
-        className="w-full justify-between bg-card hover:bg-muted/50 border-0 chase-card-shadow h-14 rounded-xl"
+        className="w-full justify-between bg-card hover:bg-muted/50 border-0 dashboard-card-shadow h-14 rounded-xl"
         onClick={onLinkExternal}
       >
         <span className="font-medium">Link external accounts</span>

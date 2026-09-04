@@ -1,6 +1,6 @@
 "use client"
 
-import { Wallet, ArrowLeftRight, PieChart, Tag, Menu } from "lucide-react"
+import { Home, ArrowLeftRight, PieChart, ShieldCheck, Gift, Menu } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
@@ -11,11 +11,11 @@ interface BottomNavigationProps {
 
 export function BottomNavigation({ activeView, onViewChange }: BottomNavigationProps) {
   const navItems = [
-    { id: "accounts", label: "Accounts", icon: Wallet, tooltip: "View all your accounts" },
-    { id: "pay-transfer", label: "Pay & Transfer", icon: ArrowLeftRight, tooltip: "Send money & pay bills" },
-    { id: "plan-track", label: "Plan & Track", icon: PieChart, tooltip: "Budget & spending insights" },
-    { id: "offers", label: "Offers", icon: Tag, tooltip: "Exclusive offers for you" },
-    { id: "more", label: "More", icon: Menu, tooltip: "Settings & more options" },
+    { id: "accounts", label: "Home", icon: Home, tooltip: "View your accounts" },
+    { id: "pay-transfer", label: "Pay & Transfer", icon: ArrowLeftRight, tooltip: "Send money and pay bills" },
+    { id: "plan-track", label: "Plan & Track", icon: PieChart, tooltip: "Budget and spending insights" },
+    { id: "offers", label: "Benefits", icon: Gift, tooltip: "Rewards and offers" },
+    { id: "more", label: "More", icon: Menu, tooltip: "Settings and card controls" },
   ]
 
   const handleViewChange = (viewId: string) => {
