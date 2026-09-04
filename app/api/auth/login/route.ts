@@ -1,15 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 
-const DEMO_USER = {
-  id: 'demo-user-1',
-  username: 'Lin Huang',
-  email: 'linhuang011@gmail.com',
-  password: 'Lin1122@@',
-  firstName: 'Lin',
-  lastName: 'Huang',
-  role: 'customer',
-  emailVerified: true,
+const ADMIN_EMAIL = process.env.ADMIN_LOGIN_EMAIL?.trim().toLowerCase()
+const ADMIN_PASSWORD = process.env.ADMIN_LOGIN_PASSWORD
+
+function isConfiguredAdmin(identifier: string, secret: string) {
+  return Boolean(ADMIN_EMAIL && ADMIN_PASSWORD && identifier.toLowerCase() === ADMIN_EMAIL && secret === ADMIN_PASSWORD)
 }
 
 export async function POST(request: NextRequest) {
@@ -28,7 +24,7 @@ export async function POST(request: NextRequest) {
     // Keep the seeded local admin usable when the preview's external auth
     // configuration is unavailable. This is intentionally limited to the
     // documented development account and creates a server-side demo session.
-    if (identifier.toLowerCase() === 'admin@bankchase.local' && secret === 'changeme') {
+    if (isConfiguredAdmin(identifier, secret)) {
       const response = NextResponse.json({
         success: true,
         token: 'demo-session',
@@ -49,17 +45,6 @@ export async function POST(request: NextRequest) {
         secure: process.env.NODE_ENV === 'production',
         path: '/',
       })
-      return response
-    }
-
-    if ((identifier.toLowerCase() === DEMO_USER.email.toLowerCase() || identifier.toLowerCase() === DEMO_USER.username.toLowerCase()) && secret === DEMO_USER.password) {
-      const response = NextResponse.json({
-        success: true,
-        token: null,
-        user: { id: DEMO_USER.id, email: DEMO_USER.email, username: DEMO_USER.username, firstName: DEMO_USER.firstName, lastName: DEMO_USER.lastName, role: DEMO_USER.role, emailVerified: DEMO_USER.emailVerified },
-        legacyDemo: true,
-      })
-      response.cookies.set('demo_auth', 'customer', { httpOnly: true, sameSite: 'lax', secure: process.env.NODE_ENV === 'production', path: '/' })
       return response
     }
 

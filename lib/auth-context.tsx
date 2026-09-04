@@ -15,7 +15,7 @@ export interface User {
   city?: string
   state?: string
   zipCode?: string
-  role?: 'admin' | 'editor' | 'viewer'
+  role?: 'admin' | 'editor' | 'viewer' | 'customer' | 'auditor'
   permissions?: Array<{
     role: string
     action: string
