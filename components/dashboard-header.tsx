@@ -121,9 +121,16 @@ export function DashboardHeader() {
             </Button>
           </div>
 
-          <div className="flex items-center gap-2">
-            <div className="flex size-9 items-center justify-center rounded-lg border border-primary-foreground/30 bg-primary-foreground/10 text-sm font-semibold">SB</div>
-            <span className="text-primary-foreground text-lg font-semibold tracking-tight">Summit Banking</span>
+          <div className="flex items-center gap-2" aria-label="Chase">
+            <Image
+              src="/images/chase-logo.png"
+              alt="Chase"
+              width={40}
+              height={40}
+              className="size-9 rounded-lg object-contain"
+              priority
+            />
+            <span className="text-primary-foreground text-lg font-semibold tracking-tight">Chase</span>
           </div>
 
           <Button

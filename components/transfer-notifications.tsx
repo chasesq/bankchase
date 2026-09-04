@@ -34,7 +34,7 @@ export function TransferNotifications({
       {displayedNotifications.map((notification) => (
         <Card 
           key={notification.id} 
-          className={`chase-card-shadow border-l-4 ${
+          className={`dashboard-card-shadow border-l-4 ${
             notification.type.includes('received')
               ? 'border-l-green-500 bg-green-50 dark:bg-green-900/20'
               : notification.type.includes('sent')
