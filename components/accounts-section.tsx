@@ -67,11 +67,11 @@ export function AccountsSection({
   return (
     <section className="space-y-4">
       <div className="flex items-center justify-between px-1">
-        <h2 className="text-lg font-bold text-[#0a4fa6]">Accounts</h2>
+        <h2 className="text-lg font-bold text-primary">Accounts</h2>
         <Button
           variant="ghost"
           size="sm"
-          className="text-[#0a4fa6] gap-1"
+          className="text-primary gap-1"
           onClick={() => setShowBalances(!showBalances)}
         >
           {showBalances ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -80,7 +80,7 @@ export function AccountsSection({
       </div>
 
       <Card className="dashboard-card-shadow border-0 overflow-hidden">
-        <div className="bg-gradient-to-r from-[#0a4fa6] to-[#117aca] px-4 py-3">
+        <div className="dashboard-gradient px-4 py-3">
           <p className="text-background/80 text-sm">Total Balance</p>
           <p className="text-background text-3xl font-bold">${formatBalance(totalBalance)}</p>
           {pendingCount > 0 && (
@@ -140,11 +140,11 @@ export function AccountsSection({
       <Card className="dashboard-card-shadow border-0">
         <CardContent className="p-4">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="font-semibold text-[#0a4fa6]">Recent Transactions</h3>
+            <h3 className="font-semibold text-primary">Recent Transactions</h3>
             <Button
               variant="ghost"
               size="sm"
-              className="text-[#0a4fa6] text-xs h-auto p-0 hover:underline"
+              className="text-primary text-xs h-auto p-0 hover:underline"
               onClick={onSeeAllTransactions}
             >
               See All
