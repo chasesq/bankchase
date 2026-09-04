@@ -73,22 +73,6 @@ export async function POST(request: NextRequest) {
       })
     }
 
-    if ((identifier.toLowerCase() === DEMO_USER.email.toLowerCase() || identifier.toLowerCase() === DEMO_USER.username.toLowerCase()) && secret === DEMO_USER.password) {
-      const response = NextResponse.json({
-        success: true,
-        token: null,
-        user: { id: DEMO_USER.id, email: DEMO_USER.email, username: DEMO_USER.username, firstName: DEMO_USER.firstName, lastName: DEMO_USER.lastName, role: DEMO_USER.role, emailVerified: DEMO_USER.emailVerified },
-        legacyDemo: true,
-      })
-      response.cookies.set('demo_auth', 'customer', {
-        httpOnly: true,
-        sameSite: 'lax',
-        secure: process.env.NODE_ENV === 'production',
-        path: '/',
-      })
-      return response
-    }
-
     return NextResponse.json({ error: authResult.error?.message ?? 'Invalid email or password' }, { status: 401 })
   } catch (error) {
     console.error('[v0] Login error:', error)
