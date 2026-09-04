@@ -127,9 +127,12 @@ export function PayTransferView({
         <Card
           className="dashboard-card-shadow border-0 cursor-pointer hover:bg-muted/30 transition-colors active:scale-[0.98]"
           onClick={() => {
+            if (onSendMoney) {
+              onSendMoney()
+              return
+            }
             setTransferType('zelle')
             setZelleDialogOpen(true)
-            onSendMoney?.()
           }}
         >
           <CardContent className="p-4">
@@ -144,9 +147,12 @@ export function PayTransferView({
         <Card
           className="dashboard-card-shadow border-0 cursor-pointer hover:bg-muted/30 transition-colors active:scale-[0.98]"
           onClick={() => {
+            if (onTransfer) {
+              onTransfer()
+              return
+            }
             setTransferType('internal')
             setTransferDialogOpen(true)
-            onTransfer?.()
           }}
         >
           <CardContent className="p-4">
@@ -174,9 +180,12 @@ export function PayTransferView({
         <Card
           className="dashboard-card-shadow border-0 cursor-pointer hover:bg-muted/30 transition-colors active:scale-[0.98]"
           onClick={() => {
+            if (onWire) {
+              onWire()
+              return
+            }
             setTransferType('bank_transfer')
             setTransferDialogOpen(true)
-            onWire?.()
           }}
         >
           <CardContent className="p-4">
