@@ -8,6 +8,12 @@ import { ArrowUpRight, ArrowDownLeft, TrendingUp, Wallet } from 'lucide-react';
 import { format } from 'date-fns';
 import Link from 'next/link';
 
+const officialChaseLinks = [
+  { label: 'Chase Ultimate Rewards', href: 'https://ultimaterewardspoints.chase.com/' },
+  { label: 'Chase Messages', href: 'https://www.chase.com/digital/customer-service' },
+  { label: 'Chase Savings Goals', href: 'https://www.chase.com/personal/savings' },
+]
+
 function AccountsContent() {
   const { accounts, totalBalance, isLoading } = useAccounts();
   const { transactions } = useTransactions(undefined, 10);
@@ -25,16 +31,19 @@ function AccountsContent() {
         <div className="bg-gradient-to-r from-primary to-primary/80 rounded-2xl p-8 mb-8 text-background shadow-lg">
           <p className="text-background/80 mb-2 text-sm font-medium">Total Balance</p>
           <h2 className="text-5xl font-bold mb-6">
-            $12,054,994.00
+            {isLoading ? '—' : `$${totalBalance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
           </h2>
           <div className="flex justify-between items-end">
             <div className="flex gap-4">
               <button className="bg-background/20 hover:bg-background/30 px-4 py-2 rounded-lg transition">
                 Send Money
               </button>
-              <button className="bg-background/20 hover:bg-background/30 px-4 py-2 rounded-lg transition">
-                Request
-              </button>
+              <Link href="/plaid-setup" className="bg-background/20 hover:bg-background/30 px-4 py-2 rounded-lg transition">
+                Connect accounts
+              </Link>
+              <Link href="/accounting" className="bg-background/20 hover:bg-background/30 px-4 py-2 rounded-lg transition">
+                Accounting sync
+              </Link>
             </div>
             <TrendingUp className="w-6 h-6 opacity-50" />
           </div>
@@ -87,6 +96,20 @@ function AccountsContent() {
             )}
           </div>
         </div>
+
+        <section className="mb-8 rounded-xl border border-border bg-card p-6" aria-labelledby="chase-tools-heading">
+          <div className="mb-4">
+            <h3 id="chase-tools-heading" className="text-2xl font-bold text-foreground">Chase tools</h3>
+            <p className="mt-1 text-sm text-muted-foreground">Use Chase&apos;s official site or app for Rewards, Messages, and Savings Goals. This app never asks for your Chase password.</p>
+          </div>
+          <div className="flex flex-wrap gap-3">
+            {officialChaseLinks.map((item) => (
+              <a key={item.label} href={item.href} target="_blank" rel="noopener noreferrer" className="rounded-lg border border-border px-4 py-2 text-sm font-medium text-primary hover:bg-muted">
+                {item.label}
+              </a>
+            ))}
+          </div>
+        </section>
 
         {/* Recent Transactions */}
         <div>
