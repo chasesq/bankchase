@@ -9,7 +9,6 @@ import { BottomNavigation } from "@/components/bottom-navigation"
 import { SendMoneyDrawer } from "@/components/send-money-drawer"
 import { DepositChecksDrawer } from "@/components/deposit-checks-drawer"
 import { PayBillsDrawer } from "@/components/pay-bills-drawer"
-import { AddAccountDrawer } from "@/components/add-account-drawer"
 import { AccountDetailsDrawer } from "@/components/account-details-drawer"
 import { LinkExternalDrawer } from "@/components/link-external-drawer"
 import { CreditScoreDrawer } from "@/components/credit-score-drawer"
@@ -35,7 +34,6 @@ export default function BankingDashboard() {
   const [sendMoneyOpen, setSendMoneyOpen] = useState(false)
   const [depositChecksOpen, setDepositChecksOpen] = useState(false)
   const [payBillsOpen, setPayBillsOpen] = useState(false)
-  const [addAccountOpen, setAddAccountOpen] = useState(false)
   const [accountDetailsOpen, setAccountDetailsOpen] = useState(false)
   const [linkExternalOpen, setLinkExternalOpen] = useState(false)
   const [creditScoreOpen, setCreditScoreOpen] = useState(false)
@@ -152,7 +150,7 @@ export default function BankingDashboard() {
               onSendMoney={() => setSendMoneyOpen(true)}
               onDepositChecks={() => setDepositChecksOpen(true)}
               onPayBills={() => setPayBillsOpen(true)}
-              onAddAccount={() => setAddAccountOpen(true)}
+              onAddAccount={() => setAccountOpeningOpen(true)}
               onTransfer={() => setTransferOpen(true)}
             />
             {visibleCards.accounts && <AccountsSection
@@ -219,7 +217,6 @@ export default function BankingDashboard() {
       <WireDrawer open={wireOpen} onOpenChange={setWireOpen} onReceiptOpen={handleOpenReceipt} />
       <DepositChecksDrawer open={depositChecksOpen} onOpenChange={setDepositChecksOpen} />
       <PayBillsDrawer open={payBillsOpen} onOpenChange={setPayBillsOpen} onReceiptOpen={handleOpenReceipt} />
-      <AddAccountDrawer open={addAccountOpen} onOpenChange={setAddAccountOpen} />
       <AccountDetailsDrawer
         open={accountDetailsOpen}
         onOpenChange={setAccountDetailsOpen}
