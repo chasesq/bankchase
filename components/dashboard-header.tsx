@@ -90,7 +90,7 @@ export function DashboardHeader() {
 
   return (
     <>
-      <header className="sticky top-0 z-50 chase-gradient">
+      <header className="sticky top-0 z-50 dashboard-gradient text-primary-foreground">
         <div className="flex items-center justify-between px-4 py-3">
           <div className="flex items-center gap-2">
             <Button
@@ -121,9 +121,16 @@ export function DashboardHeader() {
             </Button>
           </div>
 
-          <div className="flex items-center gap-2">
-            <Image src="/images/chase-logo.png" alt="Chase" width={36} height={36} className="rounded" />
-            <span className="text-primary-foreground text-xl font-bold tracking-wide">CHASE</span>
+          <div className="flex items-center gap-2" aria-label="Chase">
+            <Image
+              src="/images/chase-logo.png"
+              alt="Chase"
+              width={40}
+              height={40}
+              className="size-9 rounded-lg object-contain"
+              priority
+            />
+            <span className="text-primary-foreground text-lg font-semibold tracking-tight">Chase</span>
           </div>
 
           <Button

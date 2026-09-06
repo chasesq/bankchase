@@ -92,7 +92,7 @@ export function PayTransferView({
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Search payments & transfers"
-            className="pl-11 bg-card border-0 chase-card-shadow h-12 rounded-xl"
+            className="pl-11 bg-card border-0 dashboard-card-shadow h-12 rounded-xl"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
@@ -125,16 +125,19 @@ export function PayTransferView({
       {/* Quick Actions Grid */}
       <div className="grid grid-cols-2 gap-3">
         <Card
-          className="chase-card-shadow border-0 cursor-pointer hover:bg-muted/30 transition-colors active:scale-[0.98]"
+          className="dashboard-card-shadow border-0 cursor-pointer hover:bg-muted/30 transition-colors active:scale-[0.98]"
           onClick={() => {
+            if (onSendMoney) {
+              onSendMoney()
+              return
+            }
             setTransferType('zelle')
             setZelleDialogOpen(true)
-            onSendMoney?.()
           }}
         >
           <CardContent className="p-4">
-            <div className="h-12 w-12 rounded-full bg-[#0a4fa6]/10 flex items-center justify-center mb-3">
-              <Smartphone className="h-6 w-6 text-[#0a4fa6]" />
+            <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mb-3">
+              <Smartphone className="h-6 w-6 text-primary" />
             </div>
             <h3 className="font-semibold text-sm">Send money with Zelle®</h3>
             <p className="text-xs text-muted-foreground mt-1">Fast & free transfers</p>
@@ -142,16 +145,19 @@ export function PayTransferView({
         </Card>
 
         <Card
-          className="chase-card-shadow border-0 cursor-pointer hover:bg-muted/30 transition-colors active:scale-[0.98]"
+          className="dashboard-card-shadow border-0 cursor-pointer hover:bg-muted/30 transition-colors active:scale-[0.98]"
           onClick={() => {
+            if (onTransfer) {
+              onTransfer()
+              return
+            }
             setTransferType('internal')
             setTransferDialogOpen(true)
-            onTransfer?.()
           }}
         >
           <CardContent className="p-4">
-            <div className="h-12 w-12 rounded-full bg-[#0a4fa6]/10 flex items-center justify-center mb-3">
-              <RefreshCw className="h-6 w-6 text-[#0a4fa6]" />
+            <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mb-3">
+              <RefreshCw className="h-6 w-6 text-primary" />
             </div>
             <h3 className="font-semibold text-sm">Transfer</h3>
             <p className="text-xs text-muted-foreground mt-1">Between accounts</p>
@@ -159,12 +165,12 @@ export function PayTransferView({
         </Card>
 
         <Card
-          className="chase-card-shadow border-0 cursor-pointer hover:bg-muted/30 transition-colors active:scale-[0.98]"
+          className="dashboard-card-shadow border-0 cursor-pointer hover:bg-muted/30 transition-colors active:scale-[0.98]"
           onClick={onPayBills}
         >
           <CardContent className="p-4">
-            <div className="h-12 w-12 rounded-full bg-[#0a4fa6]/10 flex items-center justify-center mb-3">
-              <Receipt className="h-6 w-6 text-[#0a4fa6]" />
+            <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mb-3">
+              <Receipt className="h-6 w-6 text-primary" />
             </div>
             <h3 className="font-semibold text-sm">Pay bills</h3>
             <p className="text-xs text-muted-foreground mt-1">Manage & schedule</p>
@@ -172,16 +178,19 @@ export function PayTransferView({
         </Card>
 
         <Card
-          className="chase-card-shadow border-0 cursor-pointer hover:bg-muted/30 transition-colors active:scale-[0.98]"
+          className="dashboard-card-shadow border-0 cursor-pointer hover:bg-muted/30 transition-colors active:scale-[0.98]"
           onClick={() => {
+            if (onWire) {
+              onWire()
+              return
+            }
             setTransferType('bank_transfer')
             setTransferDialogOpen(true)
-            onWire?.()
           }}
         >
           <CardContent className="p-4">
-            <div className="h-12 w-12 rounded-full bg-[#0a4fa6]/10 flex items-center justify-center mb-3">
-              <Banknote className="h-6 w-6 text-[#0a4fa6]" />
+            <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mb-3">
+              <Banknote className="h-6 w-6 text-primary" />
             </div>
             <h3 className="font-semibold text-sm">Wires & global</h3>
             <p className="text-xs text-muted-foreground mt-1">International transfers</p>
@@ -191,12 +200,12 @@ export function PayTransferView({
 
       {/* Scheduled Payments */}
       {activeScheduledPayments.length > 0 && (
-        <Card className="chase-card-shadow border-0">
+        <Card className="dashboard-card-shadow border-0">
           <CardContent className="p-4">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
-                <Clock className="h-4 w-4 text-[#0a4fa6]" />
-                <h3 className="font-semibold text-[#0a4fa6]">Scheduled Payments</h3>
+                <Clock className="h-4 w-4 text-primary" />
+                <h3 className="font-semibold text-primary">Scheduled Payments</h3>
                 <Badge variant="secondary" className="text-xs">
                   {activeScheduledPayments.length}
                 </Badge>
@@ -204,7 +213,7 @@ export function PayTransferView({
               <Button
                 variant="ghost"
                 size="sm"
-                className="text-[#0a4fa6] text-xs h-auto p-0"
+                className="text-primary text-xs h-auto p-0"
                 onClick={() => setShowScheduledDetails(!showScheduledDetails)}
               >
                 {showScheduledDetails ? "Show less" : "Manage"}
@@ -252,14 +261,14 @@ export function PayTransferView({
       )}
 
       {/* Recent Activity */}
-      <Card className="chase-card-shadow border-0">
+      <Card className="dashboard-card-shadow border-0">
         <CardContent className="p-4">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="font-semibold text-[#0a4fa6]">Recent Activity</h3>
+            <h3 className="font-semibold text-primary">Recent Activity</h3>
             <Button
               variant="ghost"
               size="sm"
-              className="text-[#0a4fa6] text-xs h-auto p-0 gap-1"
+              className="text-primary text-xs h-auto p-0 gap-1"
               onClick={() => setShowAllTransactions(!showAllTransactions)}
             >
               {showAllTransactions ? "Show less" : "See all"}
@@ -344,7 +353,7 @@ export function PayTransferView({
 
       {/* Notifications */}
       {notifications.length > 0 && (
-        <Card className="chase-card-shadow border-0 bg-blue-50 dark:bg-blue-900/20">
+        <Card className="dashboard-card-shadow border-0 bg-blue-50 dark:bg-blue-900/20">
           <CardContent className="p-4">
             <h3 className="font-semibold text-sm text-blue-900 dark:text-blue-100 mb-3">Recent Notifications</h3>
             <div className="space-y-2">

@@ -681,7 +681,7 @@ export function MoreView({ onLogout }: MoreViewProps) {
   if (currentView === "main") {
     return (
       <div className="pb-24">
-        <Card className="p-4 mb-4 chase-card-shadow">
+        <Card className="p-4 mb-4 dashboard-card-shadow">
           <div className="flex items-center gap-4">
             <div className="relative">
               <div className="h-16 w-16 rounded-full bg-gradient-to-br from-[#0a4fa6] to-[#117aca] flex items-center justify-center overflow-hidden">
@@ -750,7 +750,7 @@ export function MoreView({ onLogout }: MoreViewProps) {
             if (item.href) {
               return (
                 <NextLink key={item.label} href={item.href}>
-                  <Card className="p-4 cursor-pointer hover:bg-accent transition-colors chase-card-shadow">
+                  <Card className="p-4 cursor-pointer hover:bg-accent transition-colors dashboard-card-shadow">
                     {menuItemContent}
                   </Card>
                 </NextLink>
@@ -760,7 +760,7 @@ export function MoreView({ onLogout }: MoreViewProps) {
             return (
               <Card
                 key={item.label}
-                className="p-4 cursor-pointer hover:bg-accent transition-colors chase-card-shadow"
+                className="p-4 cursor-pointer hover:bg-accent transition-colors dashboard-card-shadow"
                 onClick={() => setCurrentView(item.view)}
               >
                 {menuItemContent}
@@ -769,7 +769,7 @@ export function MoreView({ onLogout }: MoreViewProps) {
           })}
 
           <Card
-            className="p-4 cursor-pointer hover:bg-red-50 dark:hover:bg-red-950/20 transition-colors chase-card-shadow mt-4"
+            className="p-4 cursor-pointer hover:bg-red-50 dark:hover:bg-red-950/20 transition-colors dashboard-card-shadow mt-4"
             onClick={handleLogout}
           >
             <div className="flex items-center gap-4">

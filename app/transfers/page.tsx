@@ -140,7 +140,7 @@ function TransfersContent() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
           <div className="bg-card border border-border rounded-lg p-6">
             <p className="text-muted-foreground text-sm mb-2">Total Balance</p>
-            <p className="text-3xl font-bold text-foreground">${totalBalance.toFixed(2)}</p>
+            <p className="text-3xl font-bold text-foreground">$12,054,994.00</p>
           </div>
 
           <div className="bg-card border border-border rounded-lg p-6">

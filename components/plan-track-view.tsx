@@ -129,7 +129,7 @@ export function PlanTrackView() {
     <div className="space-y-6 pb-24">
       {/* Summary Cards */}
       <div className="grid gap-4 md:grid-cols-2">
-        <Card className="chase-card-shadow border-0">
+        <Card className="dashboard-card-shadow border-0">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Spending This Month</CardTitle>
             <Wallet className="h-4 w-4 text-[#0a4fa6]" />
@@ -144,7 +144,7 @@ export function PlanTrackView() {
           </CardContent>
         </Card>
 
-        <Card className="chase-card-shadow border-0">
+        <Card className="dashboard-card-shadow border-0">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Savings Goals</CardTitle>
             <PiggyBank className="h-4 w-4 text-[#0a4fa6]" />
@@ -174,7 +174,7 @@ export function PlanTrackView() {
         </div>
 
         {savingsGoals.length === 0 ? (
-          <Card className="p-8 text-center chase-card-shadow border-0">
+          <Card className="p-8 text-center dashboard-card-shadow border-0">
             <Target className="h-12 w-12 mx-auto text-muted-foreground mb-3" />
             <p className="text-muted-foreground">No savings goals yet</p>
             <p className="text-xs text-muted-foreground mt-1">Create a goal to start saving</p>
@@ -192,7 +192,7 @@ export function PlanTrackView() {
               const daysLeft = Math.ceil((new Date(goal.deadline).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
 
               return (
-                <Card key={goal.id} className="p-4 chase-card-shadow border-0">
+                <Card key={goal.id} className="p-4 dashboard-card-shadow border-0">
                   <div className="flex justify-between items-start mb-2">
                     <h4 className="font-medium">{goal.name}</h4>
                     <div className="flex items-center gap-1">
@@ -250,7 +250,7 @@ export function PlanTrackView() {
               .map((item, index) => {
                 const percentage = monthlySpending > 0 ? (item.amount / monthlySpending) * 100 : 0
                 return (
-                  <Card key={index} className="p-4 chase-card-shadow border-0">
+                  <Card key={index} className="p-4 dashboard-card-shadow border-0">
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-3">
                         <div className={`h-3 w-3 rounded-full ${categoryColors[item.category] || "bg-secondary"}`} />
@@ -264,7 +264,7 @@ export function PlanTrackView() {
                 )
               })
           ) : (
-            <Card className="p-6 text-center chase-card-shadow border-0">
+            <Card className="p-6 text-center dashboard-card-shadow border-0">
               <Wallet className="h-12 w-12 mx-auto text-muted-foreground mb-3" />
               <p className="text-muted-foreground">No spending data for this month yet</p>
             </Card>
