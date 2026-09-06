@@ -949,6 +949,15 @@ export function LoginPage({ onLogin }: LoginPageProps) {
                 </div>
               )}
 
+              <div className="mb-6 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-950">
+                <div className="flex items-start gap-3">
+                  <Shield className="mt-0.5 h-4 w-4 flex-shrink-0 text-amber-700" />
+                  <p>
+                    Safe login alerts can be sent by email, text, or app notification. Verify unexpected messages by opening the official BankChase app or website directly. Do not click links in urgent texts or social-media ads, and confirm the recipient is enrolled before sending money through Zelle.
+                  </p>
+                </div>
+              </div>
+
               <div className="mb-6">
                 <label className="block text-sm font-medium text-foreground mb-2">Username or User ID *</label>
                 <div className="relative">

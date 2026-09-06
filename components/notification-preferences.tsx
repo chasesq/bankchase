@@ -176,6 +176,13 @@ export function NotificationPreferences() {
           </div>
         </div>
 
+        <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
+          <p className="font-medium">Security notification reminder</p>
+          <p className="mt-1">
+            You can enroll to receive account alerts by email, text, or app notification. Always verify an alert by opening the official BankChase app or website directly instead of clicking any link in a message. Be careful with social media ads or payment requests, and confirm the recipient is enrolled before sending money through services like Zelle.
+          </p>
+        </div>
+
         <div className="space-y-4 mt-4">
           <div className="flex items-center gap-3">
             <Checkbox
