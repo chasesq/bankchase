@@ -1,17 +1,15 @@
 'use client'
 
 import { Descope } from '@descope/nextjs-sdk'
-import { useRouter } from 'next/navigation'
 import { useCallback, useState } from 'react'
 
 export default function SignInPage() {
-  const router = useRouter()
   const [error, setError] = useState<string | null>(null)
 
   const handleSuccess = useCallback(() => {
     setError(null)
-    router.replace('/home')
-  }, [router])
+    window.location.assign('/home')
+  }, [])
 
   return (
     <main className="flex min-h-screen items-center justify-center p-6">
