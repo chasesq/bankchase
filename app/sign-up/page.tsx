@@ -1,5 +1,3 @@
-import { AuthForm } from '@/components/auth-form'
+import SignInPage from '@/app/sign-in/page'
 
-export default function SignUpPage() {
-  return <AuthForm mode="sign-up" />
-}
+export default SignInPage

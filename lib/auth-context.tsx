@@ -1,6 +1,8 @@
 'use client'
 
-import React, { createContext, useContext, useEffect, useState } from 'react'
+import { createContext, useContext, useMemo, useState } from 'react'
+import { AuthProvider as DescopeAuthProvider } from '@descope/nextjs-sdk'
+import { useDescope, useSession, useUser } from '@descope/nextjs-sdk/client'
 
 export interface User {
   id: string
@@ -9,29 +11,8 @@ export interface User {
   firstName?: string
   lastName?: string
   phone?: string
-  ssn?: string
-  dateOfBirth?: string
-  address?: string
-  city?: string
-  state?: string
-  zipCode?: string
-  role?: 'admin' | 'editor' | 'viewer'
-  permissions?: Array<{
-    role: string
-    action: string
-    resource: string
-  }>
-}
-
-interface AuthContextType {
-  user: User | null
-  token: string | null
-  loading: boolean
-  error: string | null
-  login: (username: string, password: string, token?: string) => Promise<void>
-  register: (userData: RegisterData) => Promise<void>
-  logout: () => void
-  verifyToken: () => Promise<void>
+  role?: 'admin' | 'editor' | 'viewer' | 'customer'
+  [key: string]: unknown
 }
 
 interface RegisterData {
@@ -49,202 +30,76 @@ interface RegisterData {
   zipCode: string
 }
 
+interface AuthContextType {
+  user: User | null
+  token: string | null
+  loading: boolean
+  error: string | null
+  login: (username: string, password: string, token?: string) => Promise<void>
+  register: (userData: RegisterData) => Promise<void>
+  logout: () => void
+  verifyToken: () => Promise<void>
+}
+
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
-export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null)
-  const [token, setToken] = useState<string | null>(null)
-  const [loading, setLoading] = useState(true)
+function DescopeAuthState({ children }: { children: React.ReactNode }) {
+  const { isAuthenticated, isSessionLoading } = useSession()
+  const { user: descopeUser, isUserLoading } = useUser()
+  const sdk = useDescope()
   const [error, setError] = useState<string | null>(null)
 
-  // Restore the server-managed Supabase session on every full page load.
-  useEffect(() => {
-    const initAuth = async () => {
-      try {
-        const response = await fetch('/api/auth/session', { cache: 'no-store' })
-        if (!response.ok) return
-        const data = await response.json()
-        if (data.user) {
-          const authUser: User = {
-            id: data.user.id,
-            email: data.user.email ?? '',
-            username: data.user.user_metadata?.username ?? data.user.email ?? '',
-            firstName: data.user.user_metadata?.firstName ?? '',
-            lastName: data.user.user_metadata?.lastName ?? '',
-            role: data.user.app_metadata?.role ?? 'customer',
-          }
-          setUser(authUser)
-          setToken(data.session?.access_token ?? null)
-        }
-      } catch (err) {
-        console.error('[v0] Auth initialization error:', err)
-        setUser(null)
-        setToken(null)
-      } finally {
-        setLoading(false)
-      }
+  const user = useMemo<User | null>(() => {
+    if (!isAuthenticated || !descopeUser) return null
+    const nameParts = (descopeUser.name ?? '').trim().split(/\s+/).filter(Boolean)
+    return {
+      id: descopeUser.userId,
+      username: descopeUser.loginIds?.[0] ?? descopeUser.email ?? descopeUser.userId,
+      email: descopeUser.email ?? '',
+      firstName: descopeUser.givenName ?? nameParts[0] ?? '',
+      lastName: descopeUser.familyName ?? nameParts.slice(1).join(' '),
+      phone: descopeUser.phone,
+      role: 'customer',
     }
-    void initAuth()
-  }, [])
-
-  const verifyTokenHelper = async (tokenToVerify: string) => {
-    try {
-      const response = await fetch('/api/auth/verify', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${tokenToVerify}`,
-          'Content-Type': 'application/json',
-        },
-      })
-
-      if (!response.ok) {
-        throw new Error('Token verification failed')
-      }
-
-      const data = await response.json()
-      setUser(data.user)
-      setToken(tokenToVerify)
-    } catch (err) {
-      console.error('Token verification error:', err)
-      localStorage.removeItem('auth_token')
-      localStorage.removeItem('auth_user')
-      setUser(null)
-      setToken(null)
-      throw err
-    }
-  }
-
-  const login = async (username: string, password: string, token?: string) => {
-    try {
-      setLoading(true)
-      setError(null)
-
-      // Input validation
-      if (!username || !password) {
-        throw new Error('Username and password are required')
-      }
-
-      if (username.trim().length === 0 || password.trim().length === 0) {
-        throw new Error('Username and password cannot be empty')
-      }
-
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: username.trim(), password, token: token?.trim() || undefined }),
-      })
-
-      if (!response.ok) {
-        const data = await response.json()
-        throw new Error(data.error || 'Invalid username or password')
-      }
-
-      const data = await response.json()
-
-      if (!data.user) {
-        throw new Error(data.message || 'Your account needs email confirmation before you can sign in.')
-      }
-
-      // Legacy demo sessions are cookie-backed and intentionally have no bearer token.
-      if (data.token) localStorage.setItem('auth_token', data.token)
-      localStorage.setItem('auth_user', JSON.stringify(data.user))
-
-      // Update state
-      setToken(data.token ?? null)
-      setUser(data.user)
-      setError(null)
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Login failed. Please try again.'
-      setError(errorMessage)
-      throw err
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const register = async (userData: RegisterData) => {
-    try {
-      setLoading(true)
-      setError(null)
-
-      const response = await fetch('/api/auth/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(userData),
-      })
-
-      if (!response.ok) {
-        const data = await response.json()
-        throw new Error(data.error || 'Registration failed')
-      }
-
-      const data = await response.json()
-
-      if (!data.token || !data.user) {
-        throw new Error('Invalid registration response from server')
-      }
-
-      // Store token and user in localStorage
-      localStorage.setItem('auth_token', data.token)
-      localStorage.setItem('auth_user', JSON.stringify(data.user))
-
-      // Update state
-      setToken(data.token)
-      setUser(data.user)
-      setError(null)
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Registration failed'
-      setError(errorMessage)
-      throw err
-    } finally {
-      setLoading(false)
-    }
-  }
+  }, [descopeUser, isAuthenticated])
 
   const logout = () => {
-    localStorage.removeItem('auth_token')
-    localStorage.removeItem('auth_user')
-    setUser(null)
-    setToken(null)
     setError(null)
+    void sdk.logout()
   }
 
-  const verifyToken = async () => {
-    if (!token) {
-      throw new Error('No token available')
-    }
-
-    try {
-      await verifyTokenHelper(token)
-    } catch (err) {
-      setUser(null)
-      setToken(null)
-      throw err
-    }
+  const unsupportedAuthAction = async () => {
+    const message = 'Use the Descope sign-in flow to authenticate.'
+    setError(message)
+    throw new Error(message)
   }
 
+  const value: AuthContextType = {
+    user,
+    token: null,
+    loading: isSessionLoading || isUserLoading,
+    error,
+    login: unsupportedAuthAction,
+    register: unsupportedAuthAction,
+    logout,
+    verifyToken: async () => {
+      if (!isAuthenticated) throw new Error('No authenticated session')
+    },
+  }
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
+}
+
+export function AuthProvider({ children }: { children: React.ReactNode }) {
   return (
-    <AuthContext.Provider
-      value={{
-        user,
-        token,
-        loading,
-        error,
-        login,
-        register,
-        logout,
-        verifyToken,
-      }}
-    >
-      {children}
-    </AuthContext.Provider>
+    <DescopeAuthProvider projectId={process.env.NEXT_PUBLIC_DESCOPE_PROJECT_ID ?? ''}>
+      <DescopeAuthState>{children}</DescopeAuthState>
+    </DescopeAuthProvider>
   )
 }
 
 export function useAuth() {
   const context = useContext(AuthContext)
-  if (context === undefined) {
-    throw new Error('useAuth must be used within AuthProvider')
-  }
+  if (!context) throw new Error('useAuth must be used within AuthProvider')
   return context
 }

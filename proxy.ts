@@ -1,12 +1,11 @@
-import { updateSession } from '@/lib/supabase/proxy'
-import type { NextRequest } from 'next/server'
+import { authMiddleware } from '@descope/nextjs-sdk/server'
 
-export default async function proxy(request: NextRequest) {
-  return updateSession(request)
-}
+export default authMiddleware({
+  projectId: process.env.NEXT_PUBLIC_DESCOPE_PROJECT_ID ?? '',
+  redirectUrl: '/sign-in',
+  publicRoutes: ['/', '/landing', '/sign-in', '/sign-up', '/api/public'],
+})
 
 export const config = {
-  matcher: [
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
-  ],
+  matcher: ['/((?!_next|.*\\.[\\w]+$).*)'],
 }
