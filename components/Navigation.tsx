@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Menu, X, LogOut, LayoutDashboard, Wallet, Send, User, ReceiptText, Bell, Users, CreditCard, FileText, Landmark, ArrowRightLeft } from 'lucide-react';
+import { Menu, X, LogOut, LayoutDashboard, Wallet, Send, User, ReceiptText, Users, CreditCard, FileText, Landmark, ArrowRightLeft } from 'lucide-react';
 import { useAuth } from '@/lib/auth-context';
 
 export function Navigation() {
@@ -30,7 +30,6 @@ export function Navigation() {
     { label: 'Invoicing', href: '/invoicing', icon: FileText },
     { label: 'Accounting', href: '/accounting', icon: Landmark },
     { label: 'Ops / Payroll', href: '/payroll', icon: Users },
-    { label: 'Notifications', href: '/settings/notifications', icon: Bell },
     { label: 'My profile', href: '/settings/my-profile', icon: User },
     { label: 'Company profile', href: '/settings/company-profile', icon: Landmark },
     { label: 'Settings', href: '/settings', icon: User },
