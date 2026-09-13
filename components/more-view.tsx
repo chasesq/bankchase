@@ -108,6 +108,7 @@ type ViewType =
   | "cards"
   | "help"
   | "rewards"
+  | "offers"
   | "savings"
   | "spending"
   | "messages"
@@ -626,17 +627,17 @@ export function MoreView({ onLogout }: MoreViewProps) {
     {
       title: "Account & Security",
       items: [
-        { label: "Profile & Preferences", description: "Personal details, language, and contact info", icon: User, href: "/profile" },
-        { label: "Security & Privacy", description: "Password, biometrics, 2-step verification, and devices", icon: Shield, href: "/security" },
-        { label: "Manage Alerts", description: "Customize push, text, and email notifications", icon: Bell, href: "/settings/notifications", badge: unreadNotificationCount > 0 ? unreadNotificationCount.toString() : undefined },
-        { label: "Statements & Documents", description: "Paperless delivery, statements, and tax documents", icon: FileText, href: "/statements" },
+        { label: "Profile & Preferences", description: "Personal details, language, and contact info", icon: User, view: "profile" },
+        { label: "Security & Privacy", description: "Password, biometrics, 2-step verification, and devices", icon: Shield, view: "security" },
+        { label: "Manage Alerts", description: "Customize push, text, and email notifications", icon: Bell, view: "notifications", badge: unreadNotificationCount > 0 ? unreadNotificationCount.toString() : undefined },
+        { label: "Statements & Documents", description: "Paperless delivery, statements, and tax documents", icon: FileText, view: "viewStatements" },
         { label: "Account Management", description: "Username, linked accounts, and account controls", icon: UserCog, view: "accountManagement", href: "/account-management" },
       ],
     },
     {
       title: "Card Management & Digital Wallets",
       items: [
-        { label: "Manage Cards", description: "Lock, replace, and customize your debit or credit cards", icon: CreditCard, href: "/cards" },
+        { label: "Manage Cards", description: "Lock, replace, and customize your debit or credit cards", icon: CreditCard, view: "cards" },
         { label: "Digital Wallets", description: "Connect Apple Pay, Google Wallet, or PayPal", icon: Smartphone, action: () => showComingSoon("Digital Wallets") },
         { label: "Travel Notifications", description: "Tell us about upcoming domestic or international travel", icon: Plane, action: () => showComingSoon("Travel Notifications") },
         { label: "Manage PIN", description: "Set or update your debit card PIN", icon: Lock, view: "security-pin" },
@@ -653,8 +654,8 @@ export function MoreView({ onLogout }: MoreViewProps) {
     {
       title: "Rewards, Offers & Perks",
       items: [
-        { label: "Chase Ultimate Rewards", description: "Redeem points for cash back, travel, gift cards, or credits", icon: Award, href: "/rewards" },
-        { label: "Chase Offers", description: "Activate cash-back offers from participating merchants", icon: Gift, href: "/offers" },
+        { label: "Chase Ultimate Rewards", description: "Redeem points for cash back, travel, gift cards, or credits", icon: Award, view: "rewards" },
+        { label: "Chase Offers", description: "Activate cash-back offers from participating merchants", icon: Gift, view: "offers" },
         { label: "Chase Experiences", description: "Access exclusive sports, dining, and entertainment events", icon: Ticket, action: () => showComingSoon("Chase Experiences") },
       ],
     },
@@ -663,8 +664,8 @@ export function MoreView({ onLogout }: MoreViewProps) {
       items: [
         { label: "Credit Journey", description: "Free credit score, report insights, and identity monitoring", icon: Target, action: () => showComingSoon("Credit Journey") },
         { label: "Pay Over Time / My Chase Plan", description: "Split eligible purchases into fixed monthly payments", icon: DollarSign, action: () => showComingSoon("Pay Over Time") },
-        { label: "Savings Goals", description: "Track progress toward the things that matter", icon: Target, href: "/savings" },
-        { label: "Spending Analysis", description: "See where your money is going", icon: PieChart, href: "/spending" },
+        { label: "Savings Goals", description: "Track progress toward the things that matter", icon: Target, view: "savings" },
+        { label: "Spending Analysis", description: "See where your money is going", icon: PieChart, view: "spending" },
       ],
     },
     {
@@ -673,7 +674,7 @@ export function MoreView({ onLogout }: MoreViewProps) {
         { label: "Secure Message Center", description: "Send confidential messages and view system notices", icon: Mail, href: "/messages", badge: unreadMessageCount > 0 ? unreadMessageCount.toString() : undefined },
         { label: "Schedule a Meeting", description: "Book time with a banker or financial advisor", icon: Calendar, view: "help" },
         { label: "Find Us: Branches & ATMs", description: "Find nearby branches, ATMs, and hours", icon: MapPin, view: "help" },
-        { label: "Contact Us & Feedback", description: "Get help or share feedback about the app", icon: HelpCircle, href: "/help" },
+        { label: "Contact Us & Feedback", description: "Get help or share feedback about the app", icon: HelpCircle, view: "help" },
         { label: "Recent Activity", description: "Review your account activity log", icon: History, view: "activity" },
         { label: "Login History", description: "Review recent sign-ins and devices", icon: Clock, view: "loginHistory" },
       ],
