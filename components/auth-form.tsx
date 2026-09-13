@@ -1,7 +1,6 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import Image from "next/image"
 import Link from "next/link"
 import { Eye, EyeOff, Fingerprint, Loader2, MoreHorizontal, ShieldCheck, X } from "lucide-react"
 import { useAuth } from "@/lib/auth-context"
@@ -58,9 +57,11 @@ export function AuthForm({ mode }: { mode: "sign-in" | "sign-up" }) {
           <div className="flex items-center gap-2 text-sm font-medium"><ShieldCheck className="size-5" /> Secure sign in</div>
         </header>
         <div className="flex flex-1 flex-col items-center justify-center gap-7 py-6 sm:gap-9 sm:py-8">
-          <div className="flex items-center gap-2 text-white" aria-label="Secure banking">
-            <span className="grid size-12 place-items-center rounded-full border border-white/60 text-2xl font-semibold">B</span>
-            <span className="font-mono text-3xl font-semibold tracking-[0.08em] sm:text-4xl">BANKING</span>
+          <div className="flex items-center gap-2 text-white" aria-label="Chase">
+            <span className="font-mono text-3xl font-bold tracking-[0.12em] sm:text-4xl">CHASE</span>
+            <span className="grid size-12 place-items-center bg-[#1477c9]" aria-hidden="true">
+              <span className="relative size-7 rotate-45 rounded-[3px] bg-white before:absolute before:inset-y-0 before:left-1/2 before:w-1/3 before:-translate-x-1/2 before:bg-[#1477c9] after:absolute after:inset-x-0 after:top-1/2 after:h-1/3 after:-translate-y-1/2 after:bg-[#1477c9]" />
+            </span>
           </div>
           <section className="w-full max-w-xl rounded-md border border-[#aeb4bb] bg-white shadow-[0_3px_12px_rgba(0,0,0,.22)]">
             <div className="p-6 sm:p-9">
