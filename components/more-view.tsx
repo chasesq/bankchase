@@ -69,6 +69,7 @@ import {
   QrCode,
   RefreshCw,
   Loader2,
+  BriefcaseBusiness,
 } from "lucide-react"
 import { useBanking } from "@/lib/banking-context"
 import { useToast } from "@/hooks/use-toast"
@@ -607,74 +608,76 @@ export function MoreView({ onLogout }: MoreViewProps) {
     toast({ title: "Reply Sent", description: "Your reply has been added to the ticket." })
   }
 
-  const menuItems = [
-    { label: "Profile", description: "View and edit your personal details", icon: User, view: "profile" as ViewType, href: "/profile" },
+  type MenuItem = {
+    label: string
+    description: string
+    icon: React.ElementType
+    view?: ViewType
+    href?: string
+    badge?: string
+    action?: () => void
+  }
+
+  const showComingSoon = (label: string) => {
+    toast({ title: label, description: "This feature is ready to connect to your Chase account." })
+  }
+
+  const menuSections: { title: string; items: MenuItem[] }[] = [
     {
-      label: "Account Management",
-      description: "Manage your account settings",
-      icon: UserCog,
-      view: "accountManagement" as ViewType,
-      href: "/account-management",
+      title: "Account & Security",
+      items: [
+        { label: "Profile & Preferences", description: "Personal details, language, and contact info", icon: User, href: "/profile" },
+        { label: "Security & Privacy", description: "Password, biometrics, 2-step verification, and devices", icon: Shield, href: "/security" },
+        { label: "Manage Alerts", description: "Customize push, text, and email notifications", icon: Bell, href: "/settings/notifications", badge: unreadNotificationCount > 0 ? unreadNotificationCount.toString() : undefined },
+        { label: "Statements & Documents", description: "Paperless delivery, statements, and tax documents", icon: FileText, href: "/statements" },
+        { label: "Account Management", description: "Username, linked accounts, and account controls", icon: UserCog, view: "accountManagement", href: "/account-management" },
+      ],
     },
     {
-      label: "Notifications",
-      description: "Check your latest alerts",
-      icon: Bell,
-      view: "notificationCenter" as ViewType,
-      badge: unreadNotificationCount > 0 ? unreadNotificationCount.toString() : undefined,
-      href: "/notifications",
+      title: "Card Management & Digital Wallets",
+      items: [
+        { label: "Manage Cards", description: "Lock, replace, and customize your debit or credit cards", icon: CreditCard, href: "/cards" },
+        { label: "Digital Wallets", description: "Connect Apple Pay, Google Wallet, or PayPal", icon: Smartphone, action: () => showComingSoon("Digital Wallets") },
+        { label: "Travel Notifications", description: "Tell us about upcoming domestic or international travel", icon: Plane, action: () => showComingSoon("Travel Notifications") },
+        { label: "Manage PIN", description: "Set or update your debit card PIN", icon: Lock, view: "security-pin" },
+      ],
     },
     {
-      label: "Messages",
-      description: "View communications from Chase",
-      icon: Mail,
-      view: "messages" as ViewType,
-      badge: unreadMessageCount > 0 ? unreadMessageCount.toString() : undefined,
-      href: "/messages",
+      title: "Products & Services",
+      items: [
+        { label: "Explore Products", description: "Checking, savings, credit cards, loans, and mortgages", icon: Plus, href: "/open-account" },
+        { label: "J.P. Morgan Wealth Management", description: "Investing, automated portfolios, and financial advice", icon: PieChart, action: () => showComingSoon("J.P. Morgan Wealth Management") },
+        { label: "Business Banking", description: "Business accounts and merchant services", icon: BriefcaseBusiness, action: () => showComingSoon("Business Banking") },
+      ],
     },
     {
-      label: "Card Management",
-      description: "Manage your credit and debit cards",
-      icon: CreditCard,
-      view: "cards" as ViewType,
-      href: "/cards",
+      title: "Rewards, Offers & Perks",
+      items: [
+        { label: "Chase Ultimate Rewards", description: "Redeem points for cash back, travel, gift cards, or credits", icon: Award, href: "/rewards" },
+        { label: "Chase Offers", description: "Activate cash-back offers from participating merchants", icon: Gift, href: "/offers" },
+        { label: "Chase Experiences", description: "Access exclusive sports, dining, and entertainment events", icon: Ticket, action: () => showComingSoon("Chase Experiences") },
+      ],
     },
     {
-      label: "Chase Ultimate Rewards",
-      description: "View and redeem your reward points",
-      icon: Award,
-      view: "rewards" as ViewType,
-      href: "/rewards",
-    },
-    { label: "Savings Goals", description: "Track your financial goals", icon: Target, view: "savings" as ViewType, href: "/savings" },
-    {
-      label: "Spending Analysis",
-      description: "See where your money is going",
-      icon: PieChart,
-      view: "spending" as ViewType,
-      href: "/spending",
-    },
-    { label: "View Statements", description: "Download account statements", icon: FileText, view: "viewStatements" as ViewType, href: "/statements" },
-    { label: "External Accounts", description: "Link or manage external accounts", icon: Link, view: "linkExternal" as ViewType },
-    { label: "Change Username", description: "Update your login username", icon: Edit, view: "changeUsername" as ViewType },
-    { label: "Settings", description: "Customize your app preferences", icon: Settings, view: "settings" as ViewType, href: "/settings" },
-    {
-      label: "Security & Privacy",
-      description: "Manage your account security",
-      icon: Shield,
-      view: "security" as ViewType,
-      href: "/security",
+      title: "Financial Health & Credit Tools",
+      items: [
+        { label: "Credit Journey", description: "Free credit score, report insights, and identity monitoring", icon: Target, action: () => showComingSoon("Credit Journey") },
+        { label: "Pay Over Time / My Chase Plan", description: "Split eligible purchases into fixed monthly payments", icon: DollarSign, action: () => showComingSoon("Pay Over Time") },
+        { label: "Savings Goals", description: "Track progress toward the things that matter", icon: Target, href: "/savings" },
+        { label: "Spending Analysis", description: "See where your money is going", icon: PieChart, href: "/spending" },
+      ],
     },
     {
-      label: "Help & Support",
-      description: "Get assistance and find answers",
-      icon: HelpCircle,
-      view: "help" as ViewType,
-      href: "/help",
+      title: "Customer Support & Locations",
+      items: [
+        { label: "Secure Message Center", description: "Send confidential messages and view system notices", icon: Mail, href: "/messages", badge: unreadMessageCount > 0 ? unreadMessageCount.toString() : undefined },
+        { label: "Schedule a Meeting", description: "Book time with a banker or financial advisor", icon: Calendar, view: "help" },
+        { label: "Find Us: Branches & ATMs", description: "Find nearby branches, ATMs, and hours", icon: MapPin, view: "help" },
+        { label: "Contact Us & Feedback", description: "Get help or share feedback about the app", icon: HelpCircle, href: "/help" },
+        { label: "Recent Activity", description: "Review your account activity log", icon: History, view: "activity" },
+        { label: "Login History", description: "Review recent sign-ins and devices", icon: Clock, view: "loginHistory" },
+      ],
     },
-    { label: "Recent Activity", description: "View your activity log", icon: History, view: "activity" as ViewType },
-    { label: "Linked Devices", description: "Manage logged-in devices", icon: Smartphone, view: "devices" as ViewType },
-    { label: "Login History", description: "View your login activity", icon: Clock, view: "loginHistory" as ViewType },
   ]
 
   // Main Menu View
@@ -725,51 +728,42 @@ export function MoreView({ onLogout }: MoreViewProps) {
           </div>
         </Card>
 
-        <div className="space-y-2">
-          {menuItems.map((item: any) => {
-            const menuItemContent = (
-              <div className="flex items-center gap-4">
-                <div className="h-10 w-10 rounded-full bg-[#0a4fa6]/10 flex items-center justify-center">
-                  <item.icon className="h-5 w-5 text-[#0a4fa6]" />
-                </div>
-                <div className="flex-1">
-                  <div className="flex items-center gap-2">
-                    <span className="font-medium">{item.label}</span>
-                    {item.badge && (
-                      <Badge className="bg-red-500 text-background text-xs h-5 min-w-5 flex items-center justify-center">
-                        {item.badge}
-                      </Badge>
-                    )}
-                  </div>
-                  <p className="text-sm text-muted-foreground">{item.description}</p>
-                </div>
-                <ChevronRight className="h-5 w-5 text-muted-foreground" />
+        <div className="flex flex-col gap-6">
+          {menuSections.map((section) => (
+            <section key={section.title} aria-labelledby={`more-${section.title}`}>
+              <h3 id={`more-${section.title}`} className="mb-2 px-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                {section.title}
+              </h3>
+              <div className="flex flex-col gap-2">
+                {section.items.map((item) => {
+                  const menuItemContent = (
+                    <div className="flex items-center gap-4">
+                      <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-[#0a4fa6]/10">
+                        <item.icon className="size-5 text-[#0a4fa6]" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium">{item.label}</span>
+                          {item.badge && <Badge className="flex size-5 items-center justify-center bg-red-500 p-0 text-xs text-background">{item.badge}</Badge>}
+                        </div>
+                        <p className="text-sm text-muted-foreground">{item.description}</p>
+                      </div>
+                      <ChevronRight className="size-5 shrink-0 text-muted-foreground" />
+                    </div>
+                  )
+
+                  if (item.href) {
+                    return <NextLink key={item.label} href={item.href}><Card className="cursor-pointer p-4 transition-colors dashboard-card-shadow hover:bg-accent">{menuItemContent}</Card></NextLink>
+                  }
+
+                  return <Card key={item.label} className="cursor-pointer p-4 transition-colors dashboard-card-shadow hover:bg-accent" onClick={item.action ?? (() => item.view && setCurrentView(item.view))}>{menuItemContent}</Card>
+                })}
               </div>
-            );
-
-            if (item.href) {
-              return (
-                <NextLink key={item.label} href={item.href}>
-                  <Card className="p-4 cursor-pointer hover:bg-accent transition-colors dashboard-card-shadow">
-                    {menuItemContent}
-                  </Card>
-                </NextLink>
-              );
-            }
-
-            return (
-              <Card
-                key={item.label}
-                className="p-4 cursor-pointer hover:bg-accent transition-colors dashboard-card-shadow"
-                onClick={() => setCurrentView(item.view)}
-              >
-                {menuItemContent}
-              </Card>
-            );
-          })}
+            </section>
+          ))}
 
           <Card
-            className="p-4 cursor-pointer hover:bg-red-50 dark:hover:bg-red-950/20 transition-colors dashboard-card-shadow mt-4"
+            className="mt-0 cursor-pointer p-4 transition-colors dashboard-card-shadow hover:bg-red-50 dark:hover:bg-red-950/20"
             onClick={handleLogout}
           >
             <div className="flex items-center gap-4">
