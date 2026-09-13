@@ -84,7 +84,7 @@ const defaultUserProfile = {
   ssn: "***-**-4521",
   memberSince: "March 2018",
   profilePicture: "",
-  tier: "Mercury Private Client",
+  tier: "Banking Private Client",
   ultimateRewardsPoints: 287450,
   preferredLanguage: "English",
   currency: "USD",
@@ -268,7 +268,7 @@ export function MoreView({ onLogout }: MoreViewProps) {
   const [chatMessages, setChatMessages] = useState<{ from: "user" | "bot"; content: string; time: string }[]>([
     {
       from: "bot",
-      content: "Hello! I'm Mercury Virtual Assistant. How can I help you today?",
+      content: "Hello! I'm Banking Virtual Assistant. How can I help you today?",
       time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
     },
   ])
@@ -422,7 +422,7 @@ export function MoreView({ onLogout }: MoreViewProps) {
 
     const descriptions: Record<string, string> = {
       cashback: "Cash Back to Account",
-      travel: "Mercury Travel Credit",
+      travel: "Banking Travel Credit",
       giftcard: "Gift Card Purchase",
       statement: "Statement Credit",
     }
@@ -513,7 +513,7 @@ export function MoreView({ onLogout }: MoreViewProps) {
     setSearchedLocations([
       {
         id: "1",
-        name: "Mercury Bank - Main Street",
+        name: "Banking Bank - Main Street",
         type: "Branch",
         address: "123 Main St, New York, NY 10001",
         distance: "0.3 mi",
@@ -521,7 +521,7 @@ export function MoreView({ onLogout }: MoreViewProps) {
       },
       {
         id: "2",
-        name: "Mercury ATM - Broadway",
+        name: "Banking ATM - Broadway",
         type: "ATM",
         address: "456 Broadway, New York, NY 10002",
         distance: "0.5 mi",
@@ -529,7 +529,7 @@ export function MoreView({ onLogout }: MoreViewProps) {
       },
       {
         id: "3",
-        name: "Mercury Bank - Financial District",
+        name: "Banking Bank - Financial District",
         type: "Branch",
         address: "789 Wall St, New York, NY 10003",
         distance: "0.8 mi",
@@ -620,7 +620,7 @@ export function MoreView({ onLogout }: MoreViewProps) {
   }
 
   const showComingSoon = (label: string) => {
-    toast({ title: label, description: "This feature is ready to connect to your Mercury account." })
+    toast({ title: label, description: "This feature is ready to connect to your Banking account." })
   }
 
   const menuSections: { title: string; items: MenuItem[] }[] = [
@@ -654,16 +654,16 @@ export function MoreView({ onLogout }: MoreViewProps) {
     {
       title: "Rewards, Offers & Perks",
       items: [
-        { label: "Mercury Ultimate Rewards", description: "Redeem points for cash back, travel, gift cards, or credits", icon: Award, view: "rewards" },
-        { label: "Mercury Offers", description: "Activate cash-back offers from participating merchants", icon: Gift, view: "offers" },
-        { label: "Mercury Experiences", description: "Access exclusive sports, dining, and entertainment events", icon: Ticket, action: () => showComingSoon("Mercury Experiences") },
+        { label: "Banking Ultimate Rewards", description: "Redeem points for cash back, travel, gift cards, or credits", icon: Award, view: "rewards" },
+        { label: "Banking Offers", description: "Activate cash-back offers from participating merchants", icon: Gift, view: "offers" },
+        { label: "Banking Experiences", description: "Access exclusive sports, dining, and entertainment events", icon: Ticket, action: () => showComingSoon("Banking Experiences") },
       ],
     },
     {
       title: "Financial Health & Credit Tools",
       items: [
         { label: "Credit Journey", description: "Free credit score, report insights, and identity monitoring", icon: Target, action: () => showComingSoon("Credit Journey") },
-        { label: "Pay Over Time / My Mercury Plan", description: "Split eligible purchases into fixed monthly payments", icon: DollarSign, action: () => showComingSoon("Pay Over Time") },
+        { label: "Pay Over Time / My Banking Plan", description: "Split eligible purchases into fixed monthly payments", icon: DollarSign, action: () => showComingSoon("Pay Over Time") },
         { label: "Savings Goals", description: "Track progress toward the things that matter", icon: Target, view: "savings" },
         { label: "Spending Analysis", description: "See where your money is going", icon: PieChart, view: "spending" },
       ],
@@ -719,7 +719,7 @@ export function MoreView({ onLogout }: MoreViewProps) {
               />
             </div>
             <div className="flex-1">
-              <h2 className="font-bold text-lg">{safeUserProfile.name || "Mercury User"}</h2>
+              <h2 className="font-bold text-lg">{safeUserProfile.name || "Banking User"}</h2>
               <p className="text-sm text-muted-foreground">{safeUserProfile.email}</p>
               <Badge variant="secondary" className="mt-1 bg-[#0a4fa6]/10 text-[#0a4fa6]">
                 {safeUserProfile.tier || "Member"}
@@ -773,7 +773,7 @@ export function MoreView({ onLogout }: MoreViewProps) {
               </div>
               <div className="flex-1">
                 <span className="font-medium text-red-600">Sign Out</span>
-                <p className="text-sm text-muted-foreground">Sign out of your Mercury account</p>
+                <p className="text-sm text-muted-foreground">Sign out of your Banking account</p>
               </div>
               <ChevronRight className="h-5 w-5 text-muted-foreground" />
             </div>
@@ -781,7 +781,7 @@ export function MoreView({ onLogout }: MoreViewProps) {
         </div>
 
         <div className="mt-6 text-center text-sm text-muted-foreground">
-          <p>Mercury Mobile® App</p>
+          <p>Banking Mobile® App</p>
           <p>Version 5.67.0</p>
         </div>
       </div>
@@ -1677,7 +1677,7 @@ export function MoreView({ onLogout }: MoreViewProps) {
         {/* Contact Us View */}
         {helpSubView === "contact" && (
           <Card className="p-6 space-y-4">
-            <h3 className="font-semibold text-[#0a4fa6]">Contact Mercury</h3>
+            <h3 className="font-semibold text-[#0a4fa6]">Contact Banking</h3>
             <div className="space-y-4">
               <div
                 className="flex items-center gap-3 p-3 border rounded-lg cursor-pointer hover:bg-muted/50"
@@ -1726,7 +1726,7 @@ export function MoreView({ onLogout }: MoreViewProps) {
                 <Bot className="h-5 w-5 text-background" />
               </div>
               <div>
-                <p className="font-semibold">Mercury Virtual Assistant</p>
+                <p className="font-semibold">Banking Virtual Assistant</p>
                 <p className="text-xs text-green-600">Online</p>
               </div>
             </div>
@@ -2017,7 +2017,7 @@ export function MoreView({ onLogout }: MoreViewProps) {
             <h3 className="font-semibold text-[#0a4fa6]">Transfers & Payments</h3>
             <div className="space-y-3">
               {[
-                { title: "Transfer Between Accounts", desc: "Move money between your Mercury accounts instantly" },
+                { title: "Transfer Between Accounts", desc: "Move money between your Banking accounts instantly" },
                 { title: "Send with Zelle", desc: "Send money to friends and family using email or phone" },
                 { title: "Wire Transfers", desc: "Domestic and international wire transfers" },
                 { title: "Pay Bills", desc: "Set up one-time or recurring bill payments" },
@@ -2221,7 +2221,7 @@ export function MoreView({ onLogout }: MoreViewProps) {
     )
   }
 
-  // Mercury Ultimate Rewards View
+  // Banking Ultimate Rewards View
   if (currentView === "rewards") {
     return (
       <div className="pb-24 space-y-6">
@@ -2229,7 +2229,7 @@ export function MoreView({ onLogout }: MoreViewProps) {
           <Button variant="ghost" size="icon" onClick={() => setCurrentView("main")}>
             <ChevronLeft className="h-5 w-5" />
           </Button>
-          <h2 className="text-2xl font-semibold">Mercury Ultimate Rewards</h2>
+          <h2 className="text-2xl font-semibold">Banking Ultimate Rewards</h2>
         </div>
 
         <Card className="p-6 bg-gradient-to-r from-[#0a4fa6] to-[#117aca] text-background">
@@ -2399,7 +2399,7 @@ export function MoreView({ onLogout }: MoreViewProps) {
     }
 
     const downloadBackupCodes = () => {
-      const content = `Mercury Banking Backup Codes\nGenerated: ${new Date().toLocaleDateString()}\n\n${backupCodes.join("\n")}\n\nKeep these codes safe. Each code can only be used once.`
+      const content = `Banking Banking Backup Codes\nGenerated: ${new Date().toLocaleDateString()}\n\n${backupCodes.join("\n")}\n\nKeep these codes safe. Each code can only be used once.`
       const blob = new Blob([content], { type: "text/plain" })
       const url = URL.createObjectURL(blob)
       const a = document.createElement("a")

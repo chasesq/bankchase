@@ -179,12 +179,12 @@ export default function BankingDashboard() {
   return (
     <div className="min-h-screen bg-[#f7f7fa] text-[#20212a]">
       <div className="hidden lg:flex h-12 items-center justify-between bg-[#373742] px-6 text-sm text-white">
-        <div className="flex items-center gap-3"><span className="grid size-7 place-items-center rounded-full border border-white/50 text-xs">M</span><span>Mercury Demo</span><a className="text-white/70 underline" href="#">Customize your experience</a></div>
+        <div className="flex items-center gap-3"><span className="grid size-7 place-items-center rounded-full border border-white/50 text-xs">B</span><span>Banking Demo</span><a className="text-white/70 underline" href="#">Customize your experience</a></div>
         <div className="flex items-center gap-3"><span className="rounded-full bg-white/10 px-4 py-2 text-white/80">Viewing as Admin⌄</span><button className="rounded-full bg-[#6375ee] px-5 py-2 font-medium">Open account</button></div>
       </div>
       <div className="flex min-h-[calc(100vh-3rem)]">
         <aside className="hidden w-[220px] shrink-0 border-r border-[#e4e4e9] bg-white lg:block">
-          <div className="flex h-16 items-center gap-2 border-b border-[#e4e4e9] px-5 font-semibold"><span className="grid size-7 place-items-center rounded-md bg-[#282936] text-xs text-white">M</span> Mercury <span className="rounded bg-[#282936] px-1.5 py-0.5 text-[10px] text-white">Pro</span></div>
+          <div className="flex h-16 items-center gap-2 border-b border-[#e4e4e9] px-5 font-semibold"><span className="grid size-7 place-items-center rounded-md bg-[#282936] text-xs text-white">B</span> Banking <span className="rounded bg-[#282936] px-1.5 py-0.5 text-[10px] text-white">Pro</span></div>
           <nav className="flex flex-col gap-1 p-3">
             {mercuryNav.map((item) => <button key={item.id} onClick={() => setActiveView(item.id)} className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm ${activeView === item.id ? "bg-[#ececf1] font-medium" : "text-[#60616b] hover:bg-[#f4f4f7]"}`}><span className="w-4 text-center">{item.icon}</span>{item.label}</button>)}
           </nav>
@@ -198,7 +198,7 @@ export default function BankingDashboard() {
           </main>
           <BottomNavigation activeView={activeView} onViewChange={setActiveView} />
         </div>
-        <aside className="hidden w-[300px] shrink-0 border-l border-[#e4e4e9] bg-white p-5 xl:block"><div className="flex items-center justify-between"><h2 className="font-medium">Try out Mercury</h2><span>⌄</span></div><div className="mt-4 flex gap-2"><span className="rounded-lg bg-[#eef0ff] px-3 py-1.5 text-xs font-medium text-[#5264d8]">Startup</span><span className="rounded-lg border px-3 py-1.5 text-xs">Ecommerce</span><span className="rounded-lg border px-3 py-1.5 text-xs">More</span></div><div className="mt-4 overflow-hidden rounded-xl border">{["Send money to contractors","Invite your team members","Create cards for your team","Request vendor payment details","Understand your data"].map((item) => <button key={item} onClick={() => toast({ title: item, description: "This Mercury workflow is ready to explore." })} className="flex w-full items-center justify-between border-b px-4 py-4 text-left text-sm last:border-0 hover:bg-[#fafafd]"><span>{item}</span><span className="text-lg text-[#8b8c96]">›</span></button>)}</div></aside>
+        <aside className="hidden w-[300px] shrink-0 border-l border-[#e4e4e9] bg-white p-5 xl:block"><div className="flex items-center justify-between"><h2 className="font-medium">Try out Banking</h2><span>⌄</span></div><div className="mt-4 flex gap-2"><span className="rounded-lg bg-[#eef0ff] px-3 py-1.5 text-xs font-medium text-[#5264d8]">Startup</span><span className="rounded-lg border px-3 py-1.5 text-xs">Ecommerce</span><span className="rounded-lg border px-3 py-1.5 text-xs">More</span></div><div className="mt-4 overflow-hidden rounded-xl border">{["Send money to contractors","Invite your team members","Create cards for your team","Request vendor payment details","Understand your data"].map((item) => <button key={item} onClick={() => toast({ title: item, description: "This Banking workflow is ready to explore." })} className="flex w-full items-center justify-between border-b px-4 py-4 text-left text-sm last:border-0 hover:bg-[#fafafd]"><span>{item}</span><span className="text-lg text-[#8b8c96]">›</span></button>)}</div></aside>
       </div>
       <SendMoneyDrawer open={sendMoneyOpen} onOpenChange={setSendMoneyOpen} onReceiptOpen={handleOpenReceipt} />
       <TransferDrawer open={transferOpen} onOpenChange={setTransferOpen} onReceiptOpen={handleOpenReceipt} />

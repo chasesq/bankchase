@@ -121,9 +121,9 @@ export function DashboardHeader() {
             </Button>
           </div>
 
-          <div className="flex items-center gap-2" aria-label="Mercury">
-            <span className="grid size-9 place-items-center rounded-lg bg-white/15 text-lg font-semibold text-primary-foreground">M</span>
-            <span className="text-primary-foreground text-lg font-semibold tracking-tight">Mercury</span>
+          <div className="flex items-center gap-2" aria-label="Banking dashboard">
+            <span className="grid size-9 place-items-center rounded-lg bg-white/15 text-lg font-semibold text-primary-foreground">B</span>
+            <span className="text-primary-foreground text-lg font-semibold tracking-tight">Banking</span>
           </div>
 
           <Button
