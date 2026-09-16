@@ -1,42 +1,53 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 
 import { ProtectedRoute } from '@/components/ProtectedRoute'
 import { Navigation } from '@/components/Navigation'
 import { Card } from '@/components/ui/card'
-import { ArrowLeft, User, Mail, Phone, MapPin, Edit, Save, X } from 'lucide-react'
+import { User, Mail, Phone, MapPin, Edit, Save, X } from 'lucide-react'
+import { useBanking } from '@/lib/banking-context'
+import { useToast } from '@/hooks/use-toast'
 
 function AccountManagementContent() {
   const router = useRouter()
-  const userId = 'demo-user'
+  const { userProfile, updateUserProfile } = useBanking()
+  const { toast } = useToast()
   const [isEditing, setIsEditing] = useState(false)
   const [loading, setLoading] = useState(false)
-  const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
-    email: '',
-    phone: '',
-    address: '',
-    city: '',
-    state: '',
-    zipCode: '',
+  const [formData, setFormData] = useState(() => {
+    const [firstName = '', ...lastNameParts] = userProfile.name.split(' ')
+    const addressParts = userProfile.address.split(',').map((part) => part.trim())
+    const stateAndZip = (addressParts[2] || '').split(' ')
+    return {
+      firstName,
+      lastName: lastNameParts.join(' '),
+      email: userProfile.email,
+      phone: userProfile.phone,
+      address: addressParts[0] || '',
+      city: addressParts[1] || '',
+      state: stateAndZip[0] || '',
+      zipCode: stateAndZip.slice(1).join(' '),
+    }
   })
 
-  const handleSave = async () => {
-    try {
-      const response = await fetch('/api/user/profile', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId, ...formData }),
-      })
-      if (response.ok) {
-        setIsEditing(false)
-      }
-    } catch (error) {
-      console.error('[v0] Failed to save profile:', error)
+  const handleSave = () => {
+    if (!formData.firstName.trim() || !formData.lastName.trim() || !formData.email.trim()) {
+      toast({ title: 'Complete your required details', description: 'First name, last name, and email are required.', variant: 'destructive' })
+      return
     }
+
+    setLoading(true)
+    updateUserProfile({
+      name: `${formData.firstName.trim()} ${formData.lastName.trim()}`,
+      email: formData.email.trim(),
+      phone: formData.phone.trim(),
+      address: [formData.address.trim(), formData.city.trim(), `${formData.state.trim()} ${formData.zipCode.trim()}`.trim()].filter(Boolean).join(', '),
+    })
+    setIsEditing(false)
+    setLoading(false)
+    toast({ title: 'Account details saved', description: 'Your updated information is available across the dashboard.' })
   }
 
   return (
@@ -167,7 +178,8 @@ function AccountManagementContent() {
 
               <button
                 onClick={handleSave}
-                className="w-full px-6 py-3 bg-green-600 text-background font-medium rounded-lg hover:bg-green-700 transition flex items-center justify-center gap-2"
+                disabled={loading}
+                className="w-full px-6 py-3 bg-green-600 text-background font-medium rounded-lg hover:bg-green-700 transition flex items-center justify-center gap-2 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 <Save className="w-4 h-4" />
                 Save Changes
