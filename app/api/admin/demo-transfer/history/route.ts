@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { createClient as createServerClient } from '@/lib/supabase/server';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
@@ -7,7 +8,10 @@ const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const adminUserId = searchParams.get('adminUserId');
+    const requestedAdminUserId = searchParams.get('adminUserId');
+    const authClient = await createServerClient();
+    const { data: { user } } = await authClient.auth.getUser();
+    const adminUserId = requestedAdminUserId || user?.id;
     const status = searchParams.get('status');
     const limit = parseInt(searchParams.get('limit') || '50');
     const offset = parseInt(searchParams.get('offset') || '0');

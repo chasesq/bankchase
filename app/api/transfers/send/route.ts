@@ -22,7 +22,20 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { fromAccountId, toAccountNumber, toBankCode, amount, narration, recipientName, recipientPhone, recipientEmail, transferType } = body
+    const {
+      fromAccountId,
+      fromAccountNumber,
+      toAccountNumber,
+      toBankCode,
+      amount,
+      narration,
+      recipientName = toAccountNumber,
+      recipientPhone,
+      recipientEmail,
+      transferType,
+    } = body
+
+    const sourceAccountSelector = fromAccountId || fromAccountNumber
 
     // Validate required fields
     if (!fromAccountId || !toAccountNumber || !toBankCode || !amount || !recipientName) {
@@ -55,7 +68,7 @@ export async function POST(request: NextRequest) {
     const { data: sourceAccount, error: sourceAccountError } = await supabase
       .from('accounts')
       .select('id, user_id, balance')
-      .eq('id', fromAccountId)
+      .eq(fromAccountId ? 'id' : 'account_number', sourceAccountSelector)
       .eq('user_id', user.id)
       .maybeSingle()
 

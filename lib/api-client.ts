@@ -127,9 +127,18 @@ export class ApiClient {
     amount: number;
     narration?: string;
   }) {
-    return this.request('/pay-transfer/send', {
+    return this.request('/transfers/send', {
       method: 'POST',
-      body: JSON.stringify(data),
+      body: JSON.stringify({
+        fromAccountId: data.from_account_number,
+        fromAccountNumber: data.from_account_number,
+        toAccountNumber: data.to_account_number,
+        toBankCode: data.to_bank_code,
+        amount: data.amount,
+        narration: data.narration,
+        recipientName: data.to_account_number,
+        transferType: data.to_bank_code === 'INTERNAL' ? 'internal' : 'bank_transfer',
+      }),
     });
   }
 

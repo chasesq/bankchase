@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { createClient as createServerClient } from '@/lib/supabase/server';
 import { v4 as uuidv4 } from 'uuid';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
@@ -7,9 +8,15 @@ const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
 
 export async function POST(request: NextRequest) {
   try {
-    const { toAccountNumber, amount, daysToRefund = 7, adminUserId } = await request.json();
+    const { toAccountNumber, amount, daysToRefund = 7, adminUserId: requestedAdminUserId } = await request.json();
+    const authClient = await createServerClient();
+    const { data: { user } } = await authClient.auth.getUser();
+    const adminUserId = requestedAdminUserId || user?.id;
 
     // Validate inputs
+    if (!adminUserId) {
+      return NextResponse.json({ error: 'Authentication is required' }, { status: 401 });
+    }
     if (!toAccountNumber || !amount || amount <= 0) {
       return NextResponse.json(
         { error: 'Invalid account number or amount' },
