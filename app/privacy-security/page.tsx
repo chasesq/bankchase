@@ -4,6 +4,7 @@
 import { ProtectedRoute } from '@/components/ProtectedRoute'
 import { Navigation } from '@/components/Navigation'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -480,8 +481,8 @@ export default function PrivacySecurityPage() {
               <h3 className="font-semibold text-blue-900">Your Privacy Matters</h3>
               <p className="text-blue-800 text-sm mt-2">
                 We are committed to protecting your privacy and security. Your data is encrypted and stored securely. 
-                For more information, please review our <a href="#" className="underline font-semibold hover:text-blue-700">Privacy Policy</a> and 
-                <a href="#" className="underline font-semibold hover:text-blue-700"> Terms of Service</a>.
+                For more information, please review our <Link href="/privacy-security" className="underline font-semibold hover:text-blue-700">Privacy Policy</Link> and 
+                <Link href="/terms-of-service" className="underline font-semibold hover:text-blue-700"> Terms of Service</Link>.
               </p>
             </div>
           </div>
