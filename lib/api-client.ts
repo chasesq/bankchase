@@ -3,7 +3,9 @@
  * Handles all backend communication
  */
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '/api';
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_URL ||
+  (typeof window === 'undefined' ? 'http://localhost:3000/api' : '/api');
 
 export interface ApiError {
   status: number;
