@@ -126,9 +126,11 @@ export class ApiClient {
     to_bank_code: string;
     amount: number;
     narration?: string;
+    idempotency_key?: string;
   }) {
     return this.request('/transfers/send', {
       method: 'POST',
+      headers: data.idempotency_key ? { 'Idempotency-Key': data.idempotency_key } : undefined,
       body: JSON.stringify({
         fromAccountId: data.from_account_number,
         fromAccountNumber: data.from_account_number,

@@ -29,6 +29,7 @@ export async function POST(request: NextRequest) {
       toBankCode,
       amount,
       narration,
+      idempotencyKey,
       recipientName = toAccountNumber,
       recipientPhone,
       recipientEmail,
@@ -108,7 +109,7 @@ export async function POST(request: NextRequest) {
           success: false,
           error: `Insufficient balance. Available: ₦${walletBalance.toFixed(2)}, Required: ₦${parsedAmount.toFixed(2)}`
         },
-        { status: 400 }
+        { status: 402 }
       )
     }
 
