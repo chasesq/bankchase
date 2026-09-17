@@ -132,7 +132,6 @@ export class ApiClient {
       method: 'POST',
       headers: data.idempotency_key ? { 'Idempotency-Key': data.idempotency_key } : undefined,
       body: JSON.stringify({
-        fromAccountId: data.from_account_number,
         fromAccountNumber: data.from_account_number,
         toAccountNumber: data.to_account_number,
         toBankCode: data.to_bank_code,

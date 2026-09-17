@@ -37,14 +37,15 @@ export async function POST(request: NextRequest) {
     } = body
 
     const sourceAccountSelector = fromAccountId || fromAccountNumber
+    const sourceAccountField = fromAccountId ? 'id' : 'account_number'
 
-    // Validate required fields
-    if (!fromAccountId || !toAccountNumber || !toBankCode || !amount || !recipientName) {
-      console.error('[v0] Missing required transfer fields:', { fromAccountId, toAccountNumber, toBankCode, amount, recipientName })
+    // Validate required fields. Callers may identify the source account by id or number.
+    if (!sourceAccountSelector || !toAccountNumber || !toBankCode || !amount || !recipientName) {
+      console.error('[v0] Missing required transfer fields:', { fromAccountId, fromAccountNumber, toAccountNumber, toBankCode, amount, recipientName })
       return NextResponse.json(
         {
           success: false,
-          error: 'Missing required fields: fromAccountId, toAccountNumber, toBankCode, amount, recipientName'
+          error: 'Missing required fields: fromAccountId or fromAccountNumber, toAccountNumber, toBankCode, amount, recipientName'
         },
         { status: 400 }
       )
@@ -69,7 +70,7 @@ export async function POST(request: NextRequest) {
     const { data: sourceAccount, error: sourceAccountError } = await supabase
       .from('accounts')
       .select('id, user_id, balance')
-      .eq(fromAccountId ? 'id' : 'account_number', sourceAccountSelector)
+      .eq(sourceAccountField, sourceAccountSelector)
       .eq('user_id', user.id)
       .maybeSingle()
 
