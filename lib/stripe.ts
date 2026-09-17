@@ -12,7 +12,6 @@ export function getStripe(): Stripe {
   }
 
   client = new Stripe(secretKey, {
-    apiVersion: '2026-08-26.dahlia',
     typescript: true,
     maxNetworkRetries: 2,
     appInfo: { name: 'BankChase', version: '1.0.0' },
