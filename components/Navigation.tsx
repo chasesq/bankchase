@@ -17,7 +17,7 @@ export function Navigation() {
   };
 
   const navItems = [
-    { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+    { label: 'Dashboard', href: '/', icon: LayoutDashboard },
     { label: 'Send | Zelle®', href: '/send-money', icon: Send },
     { label: 'Transfer', href: '/transfer', icon: ArrowRightLeft },
     { label: 'Deposit', href: '/deposit', icon: Wallet },
@@ -42,7 +42,7 @@ export function Navigation() {
         <div className="flex justify-between h-16">
           {/* Logo */}
           <div className="flex items-center">
-            <Link href="/accounts" className="flex items-center">
+            <Link href="/" className="flex items-center">
               <span className="text-2xl font-bold text-primary">Banking</span>
               <span className="text-xs text-muted-foreground ml-2">Workspace</span>
             </Link>

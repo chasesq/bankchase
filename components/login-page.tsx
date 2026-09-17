@@ -2,6 +2,7 @@
 
 import type React from "react"
 import Image from "next/image"
+import Link from "next/link"
 
 import { useState, useEffect } from "react"
 import {
@@ -1217,13 +1218,13 @@ export function LoginPage({ onLogin }: LoginPageProps) {
                         />
                         <span className="text-sm text-muted-foreground">
                           I agree to the{" "}
-                          <a href="#" className="text-[#117aca] hover:underline">
+                          <Link href="/terms-of-service" className="text-[#117aca] hover:underline">
                             Terms of Service
-                          </a>{" "}
+                          </Link>{" "}
                           and{" "}
-                          <a href="#" className="text-[#117aca] hover:underline">
+                          <Link href="/privacy-security" className="text-[#117aca] hover:underline">
                             Privacy Policy
-                          </a>
+                          </Link>
                         </span>
                       </label>
                       <label className="flex items-start gap-3 cursor-pointer">

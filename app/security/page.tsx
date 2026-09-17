@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 
 import { ProtectedRoute } from '@/components/ProtectedRoute'
 import { Navigation } from '@/components/Navigation'
@@ -314,9 +315,9 @@ export default function SecurityPage() {
             </div>
 
             <div className="mt-8">
-              <a href="#" className="text-blue-600 hover:text-blue-700 font-medium">
+              <Link href="/privacy-security" className="text-blue-600 hover:text-blue-700 font-medium">
                 View Privacy Policy
-              </a>
+              </Link>
             </div>
           </Card>
         )}

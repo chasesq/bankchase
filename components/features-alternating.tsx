@@ -75,12 +75,9 @@ export function FeaturesAlternating() {
                   </p>
 
                   <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-800">
-                    <a href="#" className="text-sm font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors inline-flex items-center gap-2">
-                      Learn more
-                      <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                      </svg>
-                    </a>
+<a href="/home" className="text-sm font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors inline-flex items-center gap-2">
+  Learn more
+</a>
                   </div>
                 </div>
               </div>

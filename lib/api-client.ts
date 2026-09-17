@@ -3,7 +3,9 @@
  * Handles all backend communication
  */
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '/api';
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_URL ||
+  (typeof window === 'undefined' ? 'http://localhost:3000/api' : '/api');
 
 export interface ApiError {
   status: number;
@@ -124,10 +126,20 @@ export class ApiClient {
     to_bank_code: string;
     amount: number;
     narration?: string;
+    idempotency_key?: string;
   }) {
-    return this.request('/pay-transfer/send', {
+    return this.request('/transfers/send', {
       method: 'POST',
-      body: JSON.stringify(data),
+      headers: data.idempotency_key ? { 'Idempotency-Key': data.idempotency_key } : undefined,
+      body: JSON.stringify({
+        fromAccountNumber: data.from_account_number,
+        toAccountNumber: data.to_account_number,
+        toBankCode: data.to_bank_code,
+        amount: data.amount,
+        narration: data.narration,
+        recipientName: data.to_account_number,
+        transferType: data.to_bank_code === 'INTERNAL' ? 'internal' : 'bank_transfer',
+      }),
     });
   }
 
@@ -148,9 +160,14 @@ export class ApiClient {
     days_to_refund?: number;
     narration?: string;
   }) {
-    return this.request('/admin/demo/transfer', {
+    return this.request('/admin/demo-transfer', {
       method: 'POST',
-      body: JSON.stringify(data),
+      body: JSON.stringify({
+        toAccountNumber: data.to_account_number,
+        amount: data.amount,
+        daysToRefund: data.days_to_refund,
+        narration: data.narration,
+      }),
     });
   }
 
@@ -158,15 +175,18 @@ export class ApiClient {
     amount: number;
     days_to_refund?: number;
   }) {
-    return this.request('/admin/demo/bulk-to-all-users', {
+    return this.request('/admin/demo-transfer/bulk', {
       method: 'POST',
-      body: JSON.stringify(data),
+      body: JSON.stringify({
+        amount: data.amount,
+        daysToRefund: data.days_to_refund,
+      }),
     });
   }
 
   static async getAdminTransfers(limit = 50, offset = 0) {
     const params = new URLSearchParams({ limit: limit.toString(), offset: offset.toString() });
-    return this.request(`/admin/demo/transfers?${params}`);
+    return this.request(`/admin/demo-transfer/history?${params}`);
   }
 
   static async getAdminStats() {

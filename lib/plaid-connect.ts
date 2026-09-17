@@ -1,11 +1,16 @@
 import 'server-only'
 
-import { getToken } from '@vercel/connect'
+/**
+ * Reads the server-only Plaid secret without importing an optional Vercel
+ * Connect runtime package. This keeps Plaid routes deployable in environments
+ * where the connector is not attached; PlaidService still owns the API calls.
+ */
+export async function getPlaidSecret(_userId: string) {
+  const secret = process.env.PLAID_SECRET
 
-export const PLAID_CONNECTOR_UID = 'plaid/home-dashboard-banking'
+  if (!secret) {
+    throw new Error('Plaid is not configured on this deployment')
+  }
 
-export async function getPlaidSecret(userId: string) {
-  return getToken(PLAID_CONNECTOR_UID, {
-    subject: { type: 'user', id: userId, issuer: 'supabase' },
-  })
+  return secret
 }

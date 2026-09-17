@@ -113,25 +113,25 @@ export default function LandingPage() {
             <div>
               <h3 className="font-semibold text-foreground mb-4">Product</h3>
               <ul className="space-y-2">
-                <li><Link href="#" className="text-muted-foreground hover:text-foreground">Features</Link></li>
-                <li><Link href="#" className="text-muted-foreground hover:text-foreground">Pricing</Link></li>
-                <li><Link href="#" className="text-muted-foreground hover:text-foreground">Security</Link></li>
+                <li><Link href="/home" className="text-muted-foreground hover:text-foreground">Features</Link></li>
+                <li><Link href="/offers" className="text-muted-foreground hover:text-foreground">Pricing</Link></li>
+                <li><Link href="/security" className="text-muted-foreground hover:text-foreground">Security</Link></li>
               </ul>
             </div>
             <div>
               <h3 className="font-semibold text-foreground mb-4">Company</h3>
               <ul className="space-y-2">
-                <li><Link href="#" className="text-muted-foreground hover:text-foreground">About</Link></li>
-                <li><Link href="#" className="text-muted-foreground hover:text-foreground">Blog</Link></li>
-                <li><Link href="#" className="text-muted-foreground hover:text-foreground">Careers</Link></li>
+                <li><Link href="/home" className="text-muted-foreground hover:text-foreground">About</Link></li>
+                <li><Link href="/help" className="text-muted-foreground hover:text-foreground">Blog</Link></li>
+                <li><Link href="/help" className="text-muted-foreground hover:text-foreground">Careers</Link></li>
               </ul>
             </div>
             <div>
               <h3 className="font-semibold text-foreground mb-4">Legal</h3>
               <ul className="space-y-2">
                 <li><Link href="/terms-of-service" className="text-muted-foreground hover:text-foreground">Terms</Link></li>
-                <li><Link href="#" className="text-muted-foreground hover:text-foreground">Privacy</Link></li>
-                <li><Link href="#" className="text-muted-foreground hover:text-foreground">Cookies</Link></li>
+                <li><Link href="/privacy-security" className="text-muted-foreground hover:text-foreground">Privacy</Link></li>
+                <li><Link href="/privacy-security" className="text-muted-foreground hover:text-foreground">Cookies</Link></li>
               </ul>
             </div>
             <div>

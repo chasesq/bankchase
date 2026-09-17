@@ -6,6 +6,7 @@ import Image from "next/image"
 import { MessageSquare, Bell, Search, Camera } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useState, useRef } from "react"
+import { useRouter } from "next/navigation"
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
@@ -19,6 +20,7 @@ export function DashboardHeader() {
   const [notificationsOpen, setNotificationsOpen] = useState(false)
   const [profileOpen, setProfileOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
+  const router = useRouter()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const { toast } = useToast()
   const { logout } = useAuth()
@@ -341,20 +343,20 @@ export function DashboardHeader() {
               </div>
               <p className="text-3xl font-bold">{userProfile.ultimateRewardsPoints?.toLocaleString() || "287,450"}</p>
               <p className="text-sm opacity-80">points available</p>
-              <Button variant="secondary" size="sm" className="mt-3 w-full bg-background text-primary hover:bg-background/90">
+              <Button variant="secondary" size="sm" className="mt-3 w-full bg-background text-primary hover:bg-background/90" onClick={() => { setProfileOpen(false); router.push('/rewards') }}>
                 Redeem Points
               </Button>
             </div>
 
             {/* Quick Actions */}
             <div className="space-y-2">
-              <Button variant="outline" className="w-full justify-start h-12 bg-transparent">
+              <Button variant="outline" className="w-full justify-start h-12 bg-transparent" onClick={() => { setProfileOpen(false); router.push('/account-management') }}>
                 Account Settings
               </Button>
-              <Button variant="outline" className="w-full justify-start h-12 bg-transparent">
+              <Button variant="outline" className="w-full justify-start h-12 bg-transparent" onClick={() => { setProfileOpen(false); router.push('/settings/security') }}>
                 Security & Privacy
               </Button>
-              <Button variant="outline" className="w-full justify-start h-12 bg-transparent">
+              <Button variant="outline" className="w-full justify-start h-12 bg-transparent" onClick={() => { setProfileOpen(false); router.push('/help') }}>
                 Help & Support
               </Button>
               <Button
