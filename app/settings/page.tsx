@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react'
 
 import { ProtectedRoute } from '@/components/ProtectedRoute'
-import { Navigation } from '@/components/Navigation'
 import { useBanking } from '@/lib/banking-context'
 import { ArrowLeft, Bell, Lock, Globe, Moon, Save, AlertCircle, Zap } from 'lucide-react'
 import { toast } from 'sonner'
@@ -198,7 +197,6 @@ function SettingsContent() {
 
   return (
     <main className="min-h-screen bg-background pb-24 md:pb-8">
-      <Navigation />
       <div className="max-w-4xl mx-auto p-4 md:p-8">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
