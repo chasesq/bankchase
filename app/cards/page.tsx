@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
-import { Navigation } from '@/components/Navigation';
 import { useBanking } from '@/lib/banking-context';
 import { CreditCard, Lock, Eye, EyeOff, Plus, MoreVertical, Check, Clock, Send } from 'lucide-react';
 import Link from 'next/link';
@@ -414,7 +413,6 @@ function CardsContent() {
 export default function CardsPage() {
   return (
     <ProtectedRoute>
-      <Navigation />
       <CardsContent />
     </ProtectedRoute>
   );
