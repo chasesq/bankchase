@@ -11,6 +11,7 @@ const parentRoutes: Record<string, { href: string; label: string }> = {
   '/transactions': { href: '/accounts', label: 'Accounts' },
   '/statements': { href: '/accounts', label: 'Accounts' },
   '/transfer': { href: '/', label: 'Dashboard' },
+  '/send-money/transfer': { href: '/send-money', label: 'Send Money' },
   '/transfers': { href: '/transfer', label: 'Transfer' },
   '/send-money': { href: '/', label: 'Dashboard' },
   '/deposit': { href: '/', label: 'Dashboard' },
