@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
-import { Navigation } from '@/components/Navigation';
 import { useBanking } from '@/lib/banking-context';
 import { CreditCard, Lock, Eye, EyeOff, Plus, MoreVertical, Check, Clock, Send } from 'lucide-react';
 import Link from 'next/link';
@@ -317,6 +316,12 @@ function CardsContent() {
 
                 {/* Card Info */}
                 <div className="mt-4 space-y-3">
+                  <Link
+                    href={`/cards/${encodeURIComponent(card.id)}`}
+                    className="flex w-full items-center justify-center rounded-lg border border-border bg-card py-2 text-sm font-medium text-foreground transition hover:border-primary hover:text-primary"
+                  >
+                    View card details
+                  </Link>
                   {/* Balance */}
                   <div className="bg-card border border-border rounded-lg p-4">
                     <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Available Balance</p>
@@ -414,7 +419,6 @@ function CardsContent() {
 export default function CardsPage() {
   return (
     <ProtectedRoute>
-      <Navigation />
       <CardsContent />
     </ProtectedRoute>
   );

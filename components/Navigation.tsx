@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Menu, X, LogOut, LayoutDashboard, Wallet, Send, User, ReceiptText, Bell, Users, CreditCard, FileText, Landmark, ArrowRightLeft } from 'lucide-react';
 import { useAuth } from '@/lib/auth-context';
+import { ContextualBackButton } from '@/components/contextual-back-button';
 
 export function Navigation() {
   const [isOpen, setIsOpen] = useState(false);
@@ -43,13 +44,13 @@ export function Navigation() {
           {/* Logo */}
           <div className="flex items-center">
             <Link href="/" className="flex items-center">
-              <span className="text-2xl font-bold text-primary">Banking</span>
-              <span className="text-xs text-muted-foreground ml-2">Workspace</span>
+              <span className="text-2xl font-bold text-primary">Chase</span>
             </Link>
           </div>
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-1 overflow-x-auto py-2">
+            <ContextualBackButton />
             {navItems.map((item) => {
               const Icon = item.icon;
               return (
@@ -89,6 +90,7 @@ export function Navigation() {
       {isOpen && (
         <div className="md:hidden bg-card border-t border-border">
           <div className="px-2 pt-2 pb-3 space-y-1">
+            <ContextualBackButton />
             {navItems.map((item) => {
               const Icon = item.icon;
               return (

@@ -1,13 +1,13 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-;
 import { useSearchParams } from 'next/navigation';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { Navigation } from '@/components/Navigation';
 import { useBanking } from '@/lib/banking-context';
-import { Send, ArrowRight, Clock, CheckCircle, AlertCircle, Loader } from 'lucide-react';
+import { Send, Clock, CheckCircle, AlertCircle, Loader } from 'lucide-react';
 import Link from 'next/link';
+import { ContextualBackButton } from '@/components/contextual-back-button';
 import { toast } from 'sonner';
 
 interface Account {
@@ -31,14 +31,13 @@ interface TransferStatus {
 
 function TransferContent() {
   const { isLoaded, userProfile } = useBanking();
-  const userId = userProfile.id;
+  const userId = userProfile?.id;
   const searchParams = useSearchParams();
   const cardId = searchParams.get('cardId');
 
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [isLoadingAccounts, setIsLoadingAccounts] = useState(true);
   const [isTransferring, setIsTransferring] = useState(false);
-  const [showReceiverForm, setShowReceiverForm] = useState(false);
   const [recentTransfers, setRecentTransfers] = useState<TransferStatus[]>([]);
 
   const [formData, setFormData] = useState({
@@ -242,9 +241,15 @@ function TransferContent() {
     <main className="min-h-screen bg-background pb-24 md:pb-8">
       <div className="max-w-4xl mx-auto p-4 md:p-8">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-foreground mb-2">Send Money</h1>
-          <p className="text-muted-foreground">Transfer funds to bank accounts instantly</p>
+        <div className="mb-8 flex items-start gap-4">
+          <ContextualBackButton />
+          <div>
+            <div className="mb-2 flex items-center gap-3">
+              <Send className="h-8 w-8 text-primary" aria-hidden="true" />
+              <h1 className="text-4xl font-bold text-foreground">Send Money</h1>
+            </div>
+            <p className="text-muted-foreground">Transfer funds to bank accounts instantly</p>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

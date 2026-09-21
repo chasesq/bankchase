@@ -8,7 +8,6 @@ import { QuickActions } from "@/components/quick-actions"
 import { CreditJourneyCard } from "@/components/credit-journey-card"
 import { BottomNavigation } from "@/components/bottom-navigation"
 import { SendMoneyDrawer } from "@/components/send-money-drawer"
-import { DepositChecksDrawer } from "@/components/deposit-checks-drawer"
 import { PayBillsDrawer } from "@/components/pay-bills-drawer"
 import { AccountDetailsDrawer } from "@/components/account-details-drawer"
 import { LinkExternalDrawer } from "@/components/link-external-drawer"
@@ -29,7 +28,6 @@ import { useAuth } from "@/lib/auth-context"
 export default function BankingDashboard() {
   const [activeView, setActiveView] = useState("accounts")
   const [sendMoneyOpen, setSendMoneyOpen] = useState(false)
-  const [depositChecksOpen, setDepositChecksOpen] = useState(false)
   const [payBillsOpen, setPayBillsOpen] = useState(false)
   const [accountDetailsOpen, setAccountDetailsOpen] = useState(false)
   const [linkExternalOpen, setLinkExternalOpen] = useState(false)
@@ -125,7 +123,7 @@ export default function BankingDashboard() {
           <div className="flex flex-col gap-5 pb-24">
             <QuickActions
               onSendMoney={() => setSendMoneyOpen(true)}
-              onDepositChecks={() => setDepositChecksOpen(true)}
+              onDepositChecks={() => router.push("/add-funds/check/details")}
               onPayBills={() => setPayBillsOpen(true)}
               onTransfer={() => setTransferOpen(true)}
             />
@@ -186,7 +184,6 @@ export default function BankingDashboard() {
       <SendMoneyDrawer open={sendMoneyOpen} onOpenChange={setSendMoneyOpen} onReceiptOpen={handleOpenReceipt} />
       <TransferDrawer open={transferOpen} onOpenChange={setTransferOpen} onReceiptOpen={handleOpenReceipt} />
       <WireDrawer open={wireOpen} onOpenChange={setWireOpen} onReceiptOpen={handleOpenReceipt} />
-      <DepositChecksDrawer open={depositChecksOpen} onOpenChange={setDepositChecksOpen} />
       <PayBillsDrawer open={payBillsOpen} onOpenChange={setPayBillsOpen} onReceiptOpen={handleOpenReceipt} />
       <AccountDetailsDrawer
         open={accountDetailsOpen}
