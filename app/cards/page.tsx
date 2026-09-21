@@ -316,6 +316,12 @@ function CardsContent() {
 
                 {/* Card Info */}
                 <div className="mt-4 space-y-3">
+                  <Link
+                    href={`/cards/${encodeURIComponent(card.id)}`}
+                    className="flex w-full items-center justify-center rounded-lg border border-border bg-card py-2 text-sm font-medium text-foreground transition hover:border-primary hover:text-primary"
+                  >
+                    View card details
+                  </Link>
                   {/* Balance */}
                   <div className="bg-card border border-border rounded-lg p-4">
                     <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Available Balance</p>
