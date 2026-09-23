@@ -1389,7 +1389,19 @@ export function BankingProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   const updateBalance = useCallback((accountId: string, amount: number) => {
-    setAccounts((prev) => prev.map((acc) => (acc.id === accountId ? { ...acc, balance: acc.balance + amount } : acc)))
+    if (!accountId || !Number.isFinite(amount)) {
+      throw new Error("A valid account and balance amount are required")
+    }
+
+    setAccounts((prev) => {
+      const account = prev.find((item) => item.id === accountId)
+      if (!account) throw new Error("Account not found")
+
+      const nextBalance = account.balance + amount
+      if (nextBalance < 0) throw new Error("Insufficient funds")
+
+      return prev.map((item) => (item.id === accountId ? { ...item, balance: nextBalance } : item))
+    })
   }, [])
 
   const calculateSpending = useCallback(
@@ -1426,29 +1438,29 @@ export function BankingProvider({ children }: { children: React.ReactNode }) {
       if (!fromAccountId || !toAccountId) {
         throw new Error('Both source and destination accounts are required')
       }
-      if (amount <= 0) {
+      if (!Number.isFinite(amount) || amount <= 0) {
         throw new Error('Transfer amount must be greater than zero')
+      }
+      if (!Number.isFinite(fee) || fee < 0) {
+        throw new Error('Transfer fee must be zero or greater')
       }
       if (fromAccountId === toAccountId) {
         throw new Error('Cannot transfer to the same account')
       }
 
-      // Update both accounts in a single operation for consistency
-      setAccounts((prev) =>
-        prev.map((acc) => {
-          if (acc.id === fromAccountId) {
-            const newBalance = acc.balance - amount - fee
-            if (newBalance < 0) {
-              throw new Error('Insufficient funds for this transfer')
-            }
-            return { ...acc, balance: newBalance }
-          }
-          if (acc.id === toAccountId) {
-            return { ...acc, balance: acc.balance + amount }
-          }
-          return acc
-        }),
-      )
+      // Validate the complete operation before committing either balance change.
+      setAccounts((prev) => {
+        const source = prev.find((account) => account.id === fromAccountId)
+        const destination = prev.find((account) => account.id === toAccountId)
+        if (!source || !destination) throw new Error('Source or destination account not found')
+        if (source.balance - amount - fee < 0) throw new Error('Insufficient funds for this transfer')
+
+        return prev.map((account) => {
+          if (account.id === fromAccountId) return { ...account, balance: account.balance - amount - fee }
+          if (account.id === toAccountId) return { ...account, balance: account.balance + amount }
+          return account
+        })
+      })
 
       const newTransaction: Transaction = {
         id: `tx${Date.now()}`,
