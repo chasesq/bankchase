@@ -34,7 +34,7 @@ interface Card {
 }
 
 function CardsContent() {
-  const { isLoaded, userProfile } = useBanking();
+  const { isLoaded, userProfile, accounts } = useBanking();
   const userId = userProfile?.id;
   const [cards, setCards] = useState<Card[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -332,10 +332,12 @@ function CardsContent() {
                   >
                     View card details
                   </Link>
-                  {/* Balance */}
+                  {/* Linked account and balance */}
                   <div className="bg-card border border-border rounded-lg p-4">
-                    <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Available Balance</p>
-                    <p className="text-2xl font-bold text-foreground">${card.balance.toFixed(2)}</p>
+                    <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Linked account</p>
+                    <p className="font-semibold text-foreground">{accounts.find((account) => account.id === card.accountId)?.name ?? 'Account unavailable'}</p>
+                    <p className="mt-3 text-xs text-muted-foreground uppercase tracking-wider mb-1">Available balance</p>
+                    <p className="text-2xl font-bold text-foreground">${(accounts.find((account) => account.id === card.accountId)?.balance ?? card.balance).toFixed(2)}</p>
                     <p className="text-xs text-muted-foreground mt-2">{card.currency}</p>
                   </div>
 
