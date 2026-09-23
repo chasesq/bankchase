@@ -89,26 +89,12 @@ export async function POST(request: NextRequest) {
       toAccountNumber
     })
 
-    // Check wallet balance
-    const { data: userProfile, error: profileError } = await supabase
-      .from('profiles')
-      .select('wallet_balance')
-      .eq('id', user.id)
-      .single()
-
-    if (profileError || !userProfile) {
-      return NextResponse.json(
-        { success: false, error: 'User profile not found' },
-        { status: 404 }
-      )
-    }
-
-    const walletBalance = parseFloat(userProfile.wallet_balance || '0')
-    if (walletBalance < parsedAmount) {
+    const sourceBalance = Number(sourceAccount.balance ?? 0)
+    if (!Number.isFinite(sourceBalance) || sourceBalance < parsedAmount) {
       return NextResponse.json(
         {
           success: false,
-          error: `Insufficient balance. Available: ₦${walletBalance.toFixed(2)}, Required: ₦${parsedAmount.toFixed(2)}`
+          error: `Insufficient funds in the selected account. Available: $${Math.max(0, sourceBalance).toFixed(2)}, Required: $${parsedAmount.toFixed(2)}`
         },
         { status: 402 }
       )

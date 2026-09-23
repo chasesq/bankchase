@@ -12,6 +12,7 @@ import {
   getCardTransactions,
   replaceCard,
   getCardStats,
+  getCardDetails,
   type CardType,
   type CardDesign,
   type CardBrand
@@ -53,9 +54,13 @@ export async function POST(request: NextRequest) {
           customControls?: Record<string, unknown>
         }
 
-        if (!userId || !accountId || !type || !cardholderName) {
+        const normalizedName = typeof cardholderName === 'string' ? cardholderName.trim() : ''
+        const validType = type === 'virtual' || type === 'physical'
+        const validPin = pin === undefined || (typeof pin === 'string' && /^\d{4}$/.test(pin))
+
+        if (!userId || !accountId || !validType || normalizedName.length < 2 || !validPin) {
           return NextResponse.json(
-            { error: 'userId, accountId, type, and cardholderName required' },
+            { error: 'A valid user, account, card type, cardholder name, and optional 4-digit PIN are required' },
             { status: 400 }
           )
         }
@@ -64,7 +69,7 @@ export async function POST(request: NextRequest) {
           type,
           brand,
           design,
-          cardholderName,
+          cardholderName: normalizedName,
           pin,
           billingAddress,
           customControls
@@ -193,14 +198,15 @@ export async function POST(request: NextRequest) {
 
       case 'replace': {
         const { cardId, reason } = data
-        if (!cardId || !reason) {
+        const validReasons = new Set(['lost', 'stolen', 'damaged'])
+        if (!cardId || typeof reason !== 'string' || !validReasons.has(reason)) {
           return NextResponse.json(
-            { error: 'cardId and reason required' },
+            { error: 'Choose lost, stolen, or damaged as the replacement reason' },
             { status: 400 }
           )
         }
 
-        const newCard = replaceCard(cardId, reason)
+        const newCard = replaceCard(cardId, reason as 'lost' | 'stolen' | 'damaged')
         if (!newCard) {
           return NextResponse.json(
             { error: 'Card not found' },
@@ -241,19 +247,25 @@ export async function GET(request: NextRequest) {
     }
 
     if (cardId && transactions === 'true') {
+      const card = getCard(cardId)
+      if (!card || (userId && card.userId !== userId)) {
+        return NextResponse.json({ error: 'Card not found' }, { status: 404 })
+      }
+
       const txns = getCardTransactions(cardId)
       return NextResponse.json({ success: true, transactions: txns })
     }
 
     if (cardId) {
       const card = getCard(cardId)
-      if (!card) {
+      if (!card || (userId && card.userId !== userId)) {
         return NextResponse.json(
           { error: 'Card not found' },
           { status: 404 }
         )
       }
-      return NextResponse.json({ success: true, card })
+      const details = userId && card.userId === userId ? getCardDetails(cardId) : null
+      return NextResponse.json({ success: true, card: { ...card, cardNumber: details?.cardNumber } })
     }
 
     if (userId) {

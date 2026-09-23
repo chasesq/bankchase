@@ -14,6 +14,7 @@ interface Account {
   id: string;
   accountNumber: string;
   accountType: string;
+  name: string;
   balance: number;
   currency: string;
 }
@@ -52,6 +53,7 @@ function TransferContent() {
   });
 
   const [transferResult, setTransferResult] = useState<TransferStatus | null>(null);
+  const selectedAccount = accounts.find((account) => account.id === formData.fromAccountId);
 
   // Fetch accounts
   const fetchAccounts = useCallback(async () => {
@@ -59,14 +61,27 @@ function TransferContent() {
 
     setIsLoadingAccounts(true);
     try {
-      const response = await fetch(`/api/accounts?userId=${userId}`);
-      if (!response.ok) throw new Error('Failed to fetch accounts');
-      const data = await response.json();
-      setAccounts(data.accounts || []);
-      
-      // Pre-select first account if no card specified
-      if (!cardId && data.accounts && data.accounts.length > 0) {
-        setFormData(prev => ({ ...prev, fromAccountId: data.accounts[0].id }));
+      const response = await fetch(`/api/accounts?userId=${encodeURIComponent(userId)}`, { cache: 'no-store' });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.error || 'Failed to fetch accounts');
+
+      const loadedAccounts: Account[] = (Array.isArray(data.accounts) ? data.accounts : []).map((account: Record<string, unknown>) => ({
+        id: String(account.id),
+        name: String(account.account_name ?? account.name ?? account.account_type ?? 'Bank account'),
+        accountNumber: String(account.account_number ?? account.accountNumber ?? ''),
+        accountType: String(account.account_type ?? account.accountType ?? 'checking'),
+        balance: Number(account.balance ?? 0),
+        currency: String(account.currency ?? 'USD'),
+      }));
+      setAccounts(loadedAccounts);
+
+      if (loadedAccounts.length > 0) {
+        setFormData(prev => ({
+          ...prev,
+          fromAccountId: loadedAccounts.some((account) => account.id === prev.fromAccountId)
+            ? prev.fromAccountId
+            : loadedAccounts[0].id,
+        }));
       }
     } catch (err) {
       console.error('[v0] Error fetching accounts:', err);
@@ -74,7 +89,7 @@ function TransferContent() {
     } finally {
       setIsLoadingAccounts(false);
     }
-  }, [userId, isLoaded, cardId]);
+  }, [userId, isLoaded]);
 
   // Fetch transfer history
   const fetchTransferHistory = useCallback(async () => {
@@ -92,11 +107,15 @@ function TransferContent() {
   }, [userId, isLoaded]);
 
   useEffect(() => {
-    fetchAccounts();
-    fetchTransferHistory();
-    // Refresh transfer history every 3 seconds for real-time updates
-    const interval = setInterval(fetchTransferHistory, 3000);
-    return () => clearInterval(interval);
+    const initialLoad = window.setTimeout(() => {
+      void fetchAccounts();
+      void fetchTransferHistory();
+    }, 0);
+    const interval = window.setInterval(() => void fetchTransferHistory(), 3000);
+    return () => {
+      window.clearTimeout(initialLoad);
+      window.clearInterval(interval);
+    };
   }, [fetchAccounts, fetchTransferHistory]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
@@ -274,11 +293,12 @@ function TransferContent() {
                       <option value="">Select an account</option>
                       {accounts.map(account => (
                         <option key={account.id} value={account.id}>
-                          {account.accountType} - {account.accountNumber} (${account.balance.toFixed(2)})
+                          {account.name} ({account.accountType}) ••••{account.accountNumber.slice(-4)} — ${account.balance.toFixed(2)} available
                         </option>
                       ))}
                     </select>
                   )}
+                  {selectedAccount ? <p className="mt-2 text-sm text-muted-foreground">Available balance: <span className="font-semibold text-foreground">${selectedAccount.balance.toFixed(2)}</span></p> : null}
                 </div>
 
                 {/* Receiver Information */}
