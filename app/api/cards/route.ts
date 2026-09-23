@@ -197,14 +197,15 @@ export async function POST(request: NextRequest) {
 
       case 'replace': {
         const { cardId, reason } = data
-        if (!cardId || !reason) {
+        const validReasons = new Set(['lost', 'stolen', 'damaged'])
+        if (!cardId || typeof reason !== 'string' || !validReasons.has(reason)) {
           return NextResponse.json(
-            { error: 'cardId and reason required' },
+            { error: 'Choose lost, stolen, or damaged as the replacement reason' },
             { status: 400 }
           )
         }
 
-        const newCard = replaceCard(cardId, reason)
+        const newCard = replaceCard(cardId, reason as 'lost' | 'stolen' | 'damaged')
         if (!newCard) {
           return NextResponse.json(
             { error: 'Card not found' },
