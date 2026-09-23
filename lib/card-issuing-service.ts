@@ -4,7 +4,7 @@
  */
 
 import crypto from 'crypto'
-import { tokenizeCard, type CardBrand, type TokenizedCard } from './pci-compliance'
+import { tokenizeCard, detokenizeCard, type CardBrand, type TokenizedCard } from './pci-compliance'
 
 export type { CardBrand }
 import { audit } from './audit-service'
@@ -290,6 +290,20 @@ export function issueCard(
  */
 export function getCard(cardId: string): IssuedCard | null {
   return issuedCards.get(cardId) || null
+}
+
+export function getCardDetails(cardId: string): { cardNumber: string; expiry: string; cardholderName: string } | null {
+  const card = getCard(cardId)
+  if (!card) return null
+
+  const details = detokenizeCard(card.token)
+  if (!details) return null
+
+  return {
+    cardNumber: details.cardNumber,
+    expiry: `${details.expiryMonth}/${details.expiryYear}`,
+    cardholderName: details.cardholderName,
+  }
 }
 
 /**

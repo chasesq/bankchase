@@ -12,6 +12,7 @@ import {
   getCardTransactions,
   replaceCard,
   getCardStats,
+  getCardDetails,
   type CardType,
   type CardDesign,
   type CardBrand
@@ -263,7 +264,8 @@ export async function GET(request: NextRequest) {
           { status: 404 }
         )
       }
-      return NextResponse.json({ success: true, card })
+      const details = userId && card.userId === userId ? getCardDetails(cardId) : null
+      return NextResponse.json({ success: true, card: { ...card, cardNumber: details?.cardNumber } })
     }
 
     if (userId) {
