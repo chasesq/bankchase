@@ -58,7 +58,17 @@ function CardsContent() {
         throw new Error('Failed to fetch cards');
       }
       const data = await response.json();
-      setCards(data.cards || []);
+      const nextCards = Array.isArray(data.cards) ? data.cards : [];
+      setCards(nextCards.map((card: Partial<Card>) => ({
+        ...card,
+        balance: typeof card.balance === 'number' && Number.isFinite(card.balance) ? card.balance : 0,
+        currency: typeof card.currency === 'string' && card.currency ? card.currency : 'USD',
+        spendingControls: {
+          dailyLimit: Number(card.spendingControls?.dailyLimit) || 0,
+          monthlyLimit: Number(card.spendingControls?.monthlyLimit) || 0,
+          singleTransactionLimit: Number(card.spendingControls?.singleTransactionLimit) || 0,
+        },
+      })));
     } catch (err) {
       console.error('[v0] Error fetching cards:', err);
       setError(err instanceof Error ? err.message : 'Failed to fetch cards');
