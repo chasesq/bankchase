@@ -46,18 +46,18 @@ function CardsContent() {
   const [activationData, setActivationData] = useState({ lastFourDigits: '' });
 
   // Fetch cards
-  const fetchCards = useCallback(async () => {
+  const fetchCards = useCallback(async (showLoading = false) => {
     if (!userId || !isLoaded) return;
 
-    setIsLoading(true);
+    if (showLoading) setIsLoading(true);
     setError(null);
 
     try {
-      const response = await fetch(`/api/cards?userId=${userId}`);
+      const response = await fetch(`/api/cards?userId=${encodeURIComponent(userId)}`, { cache: 'no-store' });
+      const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        throw new Error('Failed to fetch cards');
+        throw new Error(typeof data.error === 'string' ? data.error : 'Failed to fetch cards');
       }
-      const data = await response.json();
       const nextCards = Array.isArray(data.cards) ? data.cards : [];
       setCards(nextCards.map((card: Partial<Card>) => ({
         ...card,
@@ -73,16 +73,19 @@ function CardsContent() {
       console.error('[v0] Error fetching cards:', err);
       setError(err instanceof Error ? err.message : 'Failed to fetch cards');
     } finally {
-      setIsLoading(false);
+      if (showLoading) setIsLoading(false);
     }
   }, [userId, isLoaded]);
 
   useEffect(() => {
     if (!userId || !isLoaded) return;
 
-    void fetchCards();
-    const interval = window.setInterval(() => void fetchCards(), 5000);
-    return () => window.clearInterval(interval);
+    const initialLoad = window.setTimeout(() => void fetchCards(true), 0);
+    const interval = window.setInterval(() => void fetchCards(false), 15000);
+    return () => {
+      window.clearTimeout(initialLoad);
+      window.clearInterval(interval);
+    };
   }, [fetchCards, isLoaded, userId]);
 
   const handleActivateCard = (card: Card) => {
