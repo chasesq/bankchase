@@ -53,9 +53,13 @@ export async function POST(request: NextRequest) {
           customControls?: Record<string, unknown>
         }
 
-        if (!userId || !accountId || !type || !cardholderName) {
+        const normalizedName = typeof cardholderName === 'string' ? cardholderName.trim() : ''
+        const validType = type === 'virtual' || type === 'physical'
+        const validPin = pin === undefined || (typeof pin === 'string' && /^\d{4}$/.test(pin))
+
+        if (!userId || !accountId || !validType || normalizedName.length < 2 || !validPin) {
           return NextResponse.json(
-            { error: 'userId, accountId, type, and cardholderName required' },
+            { error: 'A valid user, account, card type, cardholder name, and optional 4-digit PIN are required' },
             { status: 400 }
           )
         }
@@ -64,7 +68,7 @@ export async function POST(request: NextRequest) {
           type,
           brand,
           design,
-          cardholderName,
+          cardholderName: normalizedName,
           pin,
           billingAddress,
           customControls
