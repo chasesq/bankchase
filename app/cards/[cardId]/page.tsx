@@ -38,30 +38,57 @@ function CardDetailContent() {
   const [error, setError] = useState<string | null>(null)
 
   const loadCard = useCallback(async () => {
-    if (!isLoaded || !userProfile?.id || !params.cardId) return
+    const userId = userProfile?.id
+    const cardId = typeof params.cardId === 'string' ? params.cardId : ''
+    if (!isLoaded || !userId || !cardId) return
+
     setIsLoading(true)
     setError(null)
     try {
-      const response = await fetch(`/api/cards?userId=${encodeURIComponent(userProfile.id)}`)
-      if (!response.ok) throw new Error('Unable to load cards')
-      const data = await response.json()
-      const match = (data.cards as Card[]).find((item) => item.id === params.cardId)
-      if (!match) throw new Error('This card could not be found in your account')
-      setCard(match)
-
-      const transactionResponse = await fetch(`/api/cards?cardId=${encodeURIComponent(match.id)}&transactions=true`)
-      if (transactionResponse.ok) {
-        const transactionData = await transactionResponse.json()
-        setTransactions(transactionData.transactions ?? [])
+      const cardResponse = await fetch(
+        `/api/cards?cardId=${encodeURIComponent(cardId)}&userId=${encodeURIComponent(userId)}`,
+        { cache: 'no-store' },
+      )
+      const cardData: { card?: Card; error?: string } = await cardResponse.json().catch(() => ({}))
+      if (!cardResponse.ok || !cardData.card) {
+        throw new Error(cardData.error || 'This card could not be found in your account')
       }
+
+      const nextCard = {
+        ...cardData.card,
+        balance: Number.isFinite(Number(cardData.card.balance)) ? Number(cardData.card.balance) : 0,
+        currency: cardData.card.currency || 'USD',
+        spendingControls: {
+          dailyLimit: Number(cardData.card.spendingControls?.dailyLimit) || 0,
+          monthlyLimit: Number(cardData.card.spendingControls?.monthlyLimit) || 0,
+          singleTransactionLimit: Number(cardData.card.spendingControls?.singleTransactionLimit) || 0,
+        },
+      }
+      setCard(nextCard)
+
+      const transactionResponse = await fetch(
+        `/api/cards?cardId=${encodeURIComponent(cardId)}&userId=${encodeURIComponent(userId)}&transactions=true`,
+        { cache: 'no-store' },
+      )
+      if (!transactionResponse.ok) {
+        setTransactions([])
+        return
+      }
+      const transactionData: { transactions?: CardTransaction[] } = await transactionResponse.json().catch(() => ({}))
+      setTransactions(Array.isArray(transactionData.transactions) ? transactionData.transactions : [])
     } catch (loadError) {
+      console.error('[v0] Card details load failed:', loadError)
+      setCard(null)
+      setTransactions([])
       setError(loadError instanceof Error ? loadError.message : 'Unable to load this card')
     } finally {
       setIsLoading(false)
     }
   }, [isLoaded, params.cardId, userProfile?.id])
 
-  useEffect(() => { void loadCard() }, [loadCard])
+  useEffect(() => {
+    void loadCard()
+  }, [loadCard])
 
   const updateCard = async (action: 'freeze' | 'replace', body: Record<string, unknown> = {}) => {
     if (!card) return

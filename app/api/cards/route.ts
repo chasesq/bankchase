@@ -245,13 +245,18 @@ export async function GET(request: NextRequest) {
     }
 
     if (cardId && transactions === 'true') {
+      const card = getCard(cardId)
+      if (!card || (userId && card.userId !== userId)) {
+        return NextResponse.json({ error: 'Card not found' }, { status: 404 })
+      }
+
       const txns = getCardTransactions(cardId)
       return NextResponse.json({ success: true, transactions: txns })
     }
 
     if (cardId) {
       const card = getCard(cardId)
-      if (!card) {
+      if (!card || (userId && card.userId !== userId)) {
         return NextResponse.json(
           { error: 'Card not found' },
           { status: 404 }
