@@ -7,7 +7,6 @@ import { Navigation } from '@/components/Navigation';
 import { useBanking } from '@/lib/banking-context';
 import { Send, Clock, CheckCircle, AlertCircle, Loader } from 'lucide-react';
 import Link from 'next/link';
-import { ContextualBackButton } from '@/components/contextual-back-button';
 import { toast } from 'sonner';
 
 interface Account {
@@ -260,7 +259,6 @@ function TransferContent() {
     <main className="min-h-screen bg-background pb-24 md:pb-8">
       <div className="mx-auto max-w-5xl px-4 py-6 md:px-8 md:py-10">
         <div className="mb-8 flex items-center gap-4">
-          <ContextualBackButton />
           <div>
             <div className="mb-1 flex items-center gap-3">
               <Send className="size-6 text-primary" aria-hidden="true" />
