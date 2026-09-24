@@ -30,7 +30,7 @@ interface TransferStatus {
 }
 
 function TransferContent() {
-  const { isLoaded, userProfile } = useBanking();
+  const { isLoaded, userProfile, accounts: bankingAccounts } = useBanking();
   const userId = userProfile?.id;
   const searchParams = useSearchParams();
   const cardId = searchParams.get('cardId');
@@ -54,6 +54,15 @@ function TransferContent() {
   const [transferResult, setTransferResult] = useState<TransferStatus | null>(null);
   const selectedAccount = accounts.find((account) => account.id === formData.fromAccountId);
 
+  const dashboardAccounts: Account[] = bankingAccounts.map((account) => ({
+    id: account.id,
+    accountNumber: account.accountNumber,
+    accountType: account.type,
+    name: account.name,
+    balance: account.balance,
+    currency: 'USD',
+  }));
+
   // Fetch accounts
   const fetchAccounts = useCallback(async () => {
     if (!userId || !isLoaded) return;
@@ -72,23 +81,29 @@ function TransferContent() {
         balance: Number(account.balance ?? 0),
         currency: String(account.currency ?? 'USD'),
       }));
-      setAccounts(loadedAccounts);
+      const availableAccounts = loadedAccounts.length > 0 ? loadedAccounts : dashboardAccounts;
+      setAccounts(availableAccounts);
 
-      if (loadedAccounts.length > 0) {
+      if (availableAccounts.length > 0) {
         setFormData(prev => ({
           ...prev,
-          fromAccountId: loadedAccounts.some((account) => account.id === prev.fromAccountId)
+          fromAccountId: availableAccounts.some((account) => account.id === prev.fromAccountId)
             ? prev.fromAccountId
-            : loadedAccounts[0].id,
+            : availableAccounts[0].id,
         }));
       }
     } catch (err) {
       console.error('[v0] Error fetching accounts:', err);
-      toast.error('Failed to load accounts');
+      if (dashboardAccounts.length > 0) {
+        setAccounts(dashboardAccounts);
+        setFormData((prev) => ({ ...prev, fromAccountId: prev.fromAccountId || dashboardAccounts[0].id }));
+      } else {
+        toast.error('Failed to load accounts');
+      }
     } finally {
       setIsLoadingAccounts(false);
     }
-  }, [userId, isLoaded]);
+  }, [dashboardAccounts, userId, isLoaded]);
 
   // Fetch transfer history
   const fetchTransferHistory = useCallback(async () => {
