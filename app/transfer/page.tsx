@@ -517,7 +517,7 @@ function TransferContent() {
 export default function TransferPage() {
   return (
     <ProtectedRoute>
-      <Navigation />
+      <Navigation hideBrand hideBackButton />
       <TransferContent />
     </ProtectedRoute>
   );

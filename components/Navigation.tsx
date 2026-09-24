@@ -7,7 +7,12 @@ import { Menu, X, LogOut, LayoutDashboard, Wallet, Send, User, ReceiptText, Bell
 import { useAuth } from '@/lib/auth-context';
 import { ContextualBackButton } from '@/components/contextual-back-button';
 
-export function Navigation() {
+interface NavigationProps {
+  hideBrand?: boolean;
+  hideBackButton?: boolean;
+}
+
+export function Navigation({ hideBrand = false, hideBackButton = false }: NavigationProps) {
   const [isOpen, setIsOpen] = useState(false);
   const router = useRouter();
   const { logout } = useAuth();
@@ -43,14 +48,16 @@ export function Navigation() {
         <div className="flex justify-between h-16">
           {/* Logo */}
           <div className="flex items-center">
-            <Link href="/" className="flex items-center">
-              <span className="text-2xl font-bold text-primary">Chase</span>
-            </Link>
+            {!hideBrand && (
+              <Link href="/" className="flex items-center">
+                <span className="text-2xl font-bold text-primary">Mercury</span>
+              </Link>
+            )}
           </div>
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-1 overflow-x-auto py-2">
-            <ContextualBackButton />
+            {!hideBackButton && <ContextualBackButton />}
             {navItems.map((item) => {
               const Icon = item.icon;
               return (
@@ -90,7 +97,7 @@ export function Navigation() {
       {isOpen && (
         <div className="md:hidden bg-card border-t border-border">
           <div className="px-2 pt-2 pb-3 space-y-1">
-            <ContextualBackButton />
+            {!hideBackButton && <ContextualBackButton />}
             {navItems.map((item) => {
               const Icon = item.icon;
               return (
