@@ -16,10 +16,33 @@ export async function POST(request: NextRequest) {
       return await handleBulkAlert(body.alerts)
     }
 
-    // Single alert
+    // Wire confirmation requests use the payload sent by the transfer flow.
+    if (body.alertType === 'wire_confirmation' && body.phoneNumber && body.data) {
+      const { amount, recipientName, recipientBank, confirmationNumber, estimatedArrival } = body.data
+      const result = await sendSmsAlert({
+        phoneNumber: body.phoneNumber,
+        amount: Number(amount),
+        currency: 'USD',
+        status: 'initiated',
+        transactionId: String(confirmationNumber || 'WIRE-CONFIRMATION'),
+        receiverAccount: `${recipientName || 'recipient'} at ${recipientBank || 'bank'} (${estimatedArrival || 'standard delivery'})`,
+      })
+
+      if (!result.success) {
+        return NextResponse.json({ error: result.error || 'Failed to send SMS' }, { status: 502 })
+      }
+
+      return NextResponse.json({
+        success: true,
+        messageId: result.messageId,
+        message: 'Wire confirmation SMS sent successfully',
+      })
+    }
+
+    // Single transfer alert
     const { phoneNumber, amount, currency, status, transactionId, receiverAccount, failureReason } = body
 
-    if (!phoneNumber || !amount || !currency || !status || !transactionId) {
+    if (!phoneNumber || amount === undefined || !currency || !status || !transactionId) {
       return NextResponse.json(
         {
           error: 'Missing required fields',

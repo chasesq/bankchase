@@ -73,17 +73,34 @@ async function sendTwilioAlert(
   phoneNumber: string,
   message: string
 ): Promise<{ success: boolean; messageId?: string; error?: string }> {
-  const accountSid = process.env.TWILIO_ACCOUNT_SID
+  // Support the canonical names plus the names used by the connected Twilio setup.
+  const accountSid = process.env.TWILIO_ACCOUNT_SID || process.env.Accounts
   const authToken = process.env.TWILIO_AUTH_TOKEN
   const fromNumber = process.env.TWILIO_FROM_PHONE || process.env.TWILIO_PHONE_NUMBER
   // Messaging Services are preferred because Twilio selects the sender from the service pool.
   // The fallback keeps existing phone-number based setups working.
-  const messagingServiceSid = process.env.TWILIO_MESSAGING_SERVICE_SID || 'MG695da0b8cf946024ca978c8ad5b20e41'
+  const messagingServiceSid = process.env.TWILIO_MESSAGING_SERVICE_SID || process.env.MessagingServiceSid
 
-  if (!accountSid || !authToken || (!fromNumber && !messagingServiceSid)) {
+  if (!accountSid || !authToken) {
     return {
       success: false,
-      error: 'Twilio credentials not configured'
+      error: 'Twilio account credentials are not configured'
+    }
+  }
+
+  if (!messagingServiceSid && !fromNumber) {
+    return {
+      success: false,
+      error: 'Configure TWILIO_MESSAGING_SERVICE_SID or TWILIO_FROM_PHONE'
+    }
+  }
+
+  const normalizedPhoneNumber = phoneNumber.replace(/[\s()-]/g, '')
+
+  if (!/^\+?[1-9]\d{7,14}$/.test(normalizedPhoneNumber)) {
+    return {
+      success: false,
+      error: 'Recipient phone number must be a valid international number'
     }
   }
 
@@ -93,7 +110,7 @@ async function sendTwilioAlert(
     const auth = Buffer.from(`${accountSid}:${authToken}`).toString('base64')
 
     const params = new URLSearchParams()
-    params.append('To', phoneNumber)
+    params.append('To', normalizedPhoneNumber)
     if (messagingServiceSid) {
       params.append('MessagingServiceSid', messagingServiceSid)
     } else if (fromNumber) {
@@ -111,8 +128,28 @@ async function sendTwilioAlert(
     })
 
     if (!response.ok) {
-      const error = await response.text()
-      throw new Error(`Twilio API error: ${error}`)
+      const rawError = await response.text()
+      let errorMessage = `Twilio API error (${response.status})`
+
+      try {
+        const twilioError = JSON.parse(rawError) as {
+          code?: number
+          message?: string
+        }
+        const detail = twilioError.message || rawError
+
+        if (twilioError.code === 30034 || /unregistered|a2p|compliance|cannot send messages/i.test(detail)) {
+          errorMessage = 'Twilio cannot send this message because the sender is not A2P registered. Complete US A2P 10DLC registration and attach the approved number to the Messaging Service, then retry.'
+        } else if (twilioError.code === 21608 || twilioError.code === 21610) {
+          errorMessage = `Twilio rejected the recipient: ${detail}`
+        } else {
+          errorMessage = `${errorMessage}: ${detail}`
+        }
+      } catch {
+        errorMessage = `${errorMessage}: ${rawError}`
+      }
+
+      throw new Error(errorMessage)
     }
 
     const data = (await response.json()) as any
