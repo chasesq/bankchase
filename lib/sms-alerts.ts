@@ -125,8 +125,28 @@ async function sendTwilioAlert(
     })
 
     if (!response.ok) {
-      const error = await response.text()
-      throw new Error(`Twilio API error: ${error}`)
+      const rawError = await response.text()
+      let errorMessage = `Twilio API error (${response.status})`
+
+      try {
+        const twilioError = JSON.parse(rawError) as {
+          code?: number
+          message?: string
+        }
+        const detail = twilioError.message || rawError
+
+        if (twilioError.code === 30034 || /unregistered|a2p|compliance|cannot send messages/i.test(detail)) {
+          errorMessage = 'Twilio cannot send this message because the sender is not A2P registered. Complete US A2P 10DLC registration and attach the approved number to the Messaging Service, then retry.'
+        } else if (twilioError.code === 21608 || twilioError.code === 21610) {
+          errorMessage = `Twilio rejected the recipient: ${detail}`
+        } else {
+          errorMessage = `${errorMessage}: ${detail}`
+        }
+      } catch {
+        errorMessage = `${errorMessage}: ${rawError}`
+      }
+
+      throw new Error(errorMessage)
     }
 
     const data = (await response.json()) as any
