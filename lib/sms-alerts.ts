@@ -78,7 +78,7 @@ async function sendTwilioAlert(
   const fromNumber = process.env.TWILIO_FROM_PHONE || process.env.TWILIO_PHONE_NUMBER
   // Messaging Services are preferred because Twilio selects the sender from the service pool.
   // The fallback keeps existing phone-number based setups working.
-  const messagingServiceSid = process.env.TWILIO_MESSAGING_SERVICE_SID || 'MG695da0b8cf946024ca978c8ad5b20e41'
+  const messagingServiceSid = process.env.TWILIO_MESSAGING_SERVICE_SID
 
   if (!accountSid || !authToken || (!fromNumber && !messagingServiceSid)) {
     return {
