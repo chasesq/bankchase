@@ -3,7 +3,6 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
-import { Navigation } from '@/components/Navigation';
 import { useBanking } from '@/lib/banking-context';
 import { Send, Clock, CheckCircle, AlertCircle, Loader } from 'lucide-react';
 import Link from 'next/link';
@@ -540,8 +539,7 @@ function TransferContent() {
 export default function TransferPage() {
   return (
     <ProtectedRoute>
-      <Navigation hideBrand hideBackButton />
-      <TransferContent />
+    <TransferContent />
     </ProtectedRoute>
   );
 }
