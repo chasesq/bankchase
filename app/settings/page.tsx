@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useTheme } from 'next-themes'
 
 import { ProtectedRoute } from '@/components/ProtectedRoute'
 import { useBanking } from '@/lib/banking-context'
@@ -43,6 +44,7 @@ interface AppSettings {
 
 function SettingsContent() {
   const { isLoaded, userProfile } = useBanking()
+  const { setTheme } = useTheme()
   const userId = userProfile.id
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -87,8 +89,9 @@ function SettingsContent() {
         setLoading(true)
         const response = await fetch(`/api/user/settings?userId=${userId}`)
         if (response.ok) {
-          const data = await response.json()
-          setSettings(data.settings || settings)
+          const nextSettings = data.settings || settings
+          setSettings(nextSettings)
+          setTheme(nextSettings.display?.theme === 'auto' ? 'system' : nextSettings.display?.theme === 'light' ? 'light' : 'dark')
         }
       } catch (err) {
         console.error('[v0] Failed to fetch settings:', err)
@@ -121,6 +124,15 @@ function SettingsContent() {
   }
 
   const handleSelectChange = (category: string, key: string, value: string | number) => {
+    if (category === 'display' && key === 'theme' && typeof value === 'string') {
+      setTheme(value === 'auto' ? 'system' : value)
+      setSettings((prev) => ({
+        ...prev,
+        display: { ...prev.display, theme: value, darkMode: value === 'dark' },
+      }))
+      return
+    }
+
     setSettings((prev) => ({
       ...prev,
       [category]: {
@@ -131,13 +143,20 @@ function SettingsContent() {
   }
 
   const handleDisplayToggle = (key: string) => {
-    setSettings((prev) => ({
-      ...prev,
-      display: {
-        ...prev.display,
-        [key]: !prev.display[key as keyof typeof prev.display],
-      },
-    }))
+    setSettings((prev) => {
+      const nextValue = !prev.display[key as keyof typeof prev.display]
+      if (key === 'darkMode') {
+        setTheme(nextValue ? 'dark' : 'light')
+      }
+      return {
+        ...prev,
+        display: {
+          ...prev.display,
+          [key]: nextValue,
+          ...(key === 'darkMode' ? { theme: nextValue ? 'dark' : 'light' } : {}),
+        },
+      }
+    })
   }
 
   const handleSecurityToggle = (key: string) => {
@@ -552,7 +571,10 @@ function ToggleOption({
         <p className="text-muted-foreground text-sm">{description}</p>
       </div>
       <button
+        type="button"
         onClick={onChange}
+        aria-label={`${title}: ${checked ? 'On' : 'Off'}`}
+        aria-pressed={checked}
         className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
           checked ? 'bg-blue-600' : 'bg-gray-300 dark:bg-gray-600'
         }`}
