@@ -258,24 +258,30 @@ function TransferContent() {
 
   return (
     <main className="min-h-screen bg-background pb-24 md:pb-8">
-      <div className="max-w-4xl mx-auto p-4 md:p-8">
-        {/* Header */}
-        <div className="mb-8 flex items-start gap-4">
+      <div className="mx-auto max-w-5xl px-4 py-6 md:px-8 md:py-10">
+        <div className="mb-8 flex items-center gap-4">
           <ContextualBackButton />
           <div>
-            <div className="mb-2 flex items-center gap-3">
-              <Send className="h-8 w-8 text-primary" aria-hidden="true" />
-              <h1 className="text-4xl font-bold text-foreground">Send Money</h1>
+            <div className="mb-1 flex items-center gap-3">
+              <Send className="size-6 text-primary" aria-hidden="true" />
+              <h1 className="text-3xl font-semibold tracking-tight text-foreground">Transfer funds</h1>
             </div>
-            <p className="text-muted-foreground">Transfer funds to bank accounts instantly</p>
+            <p className="text-sm text-muted-foreground">Move money between your accounts or send it to someone else.</p>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
           {/* Transfer Form */}
           <div className="lg:col-span-2">
-            <div className="bg-card border border-border rounded-xl p-6">
-              <form onSubmit={handleTransfer} className="space-y-6">
+            <div className="rounded-2xl border border-border bg-card p-6 shadow-sm md:p-8">
+              <div className="mb-6 flex items-center justify-between gap-4">
+                <div>
+                  <h2 className="text-lg font-semibold text-foreground">One-time transfer</h2>
+                  <p className="mt-1 text-sm text-muted-foreground">Send funds securely from an eligible account.</p>
+                </div>
+                <span className="rounded-full bg-muted px-3 py-1 text-xs font-medium text-muted-foreground">Secure</span>
+              </div>
+              <form onSubmit={handleTransfer} className="flex flex-col gap-6">
                 {/* Source Account Selection */}
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-2">
