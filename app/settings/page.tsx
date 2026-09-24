@@ -88,6 +88,7 @@ function SettingsContent() {
       try {
         setLoading(true)
         const response = await fetch(`/api/user/settings?userId=${userId}`)
+        const data = await response.json().catch(() => ({}))
         if (response.ok) {
           const nextSettings = data.settings || settings
           setSettings(nextSettings)

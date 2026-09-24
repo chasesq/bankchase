@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { Navigation } from '@/components/Navigation';
@@ -54,14 +54,14 @@ function TransferContent() {
   const [transferResult, setTransferResult] = useState<TransferStatus | null>(null);
   const selectedAccount = accounts.find((account) => account.id === formData.fromAccountId);
 
-  const dashboardAccounts: Account[] = bankingAccounts.map((account) => ({
+  const dashboardAccounts = useMemo<Account[]>(() => bankingAccounts.map((account) => ({
     id: account.id,
     accountNumber: account.accountNumber,
     accountType: account.type,
     name: account.name,
     balance: account.balance,
     currency: 'USD',
-  }));
+  })), [bankingAccounts]);
 
   // Fetch accounts
   const fetchAccounts = useCallback(async () => {
@@ -69,7 +69,7 @@ function TransferContent() {
 
     setIsLoadingAccounts(true);
     try {
-      const response = await fetch(`/api/accounts?userId=${encodeURIComponent(userId)}`, { cache: 'no-store' });
+      const response = await fetch('/api/accounts', { cache: 'no-store' });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(data.error || 'Failed to fetch accounts');
 
@@ -135,6 +135,12 @@ function TransferContent() {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleAccountChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const accountId = e.target.value;
+    setFormData(prev => ({ ...prev, fromAccountId: accountId }));
+    setTransferResult(null);
   };
 
   const validateTransfer = (): boolean => {
@@ -306,8 +312,10 @@ function TransferContent() {
                     <select
                       name="fromAccountId"
                       value={formData.fromAccountId}
-                      onChange={handleInputChange}
-                      className="w-full px-4 py-3 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                      onChange={handleAccountChange}
+                      disabled={accounts.length === 0}
+                      aria-label="From Account"
+                      className="w-full px-4 py-3 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary disabled:cursor-not-allowed disabled:opacity-60"
                     >
                       <option value="">Select an account</option>
                       {accounts.map(account => (
