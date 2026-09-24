@@ -73,12 +73,13 @@ async function sendTwilioAlert(
   phoneNumber: string,
   message: string
 ): Promise<{ success: boolean; messageId?: string; error?: string }> {
-  const accountSid = process.env.TWILIO_ACCOUNT_SID
+  // Support the canonical names plus the names used by the connected Twilio setup.
+  const accountSid = process.env.TWILIO_ACCOUNT_SID || process.env.Accounts
   const authToken = process.env.TWILIO_AUTH_TOKEN
   const fromNumber = process.env.TWILIO_FROM_PHONE || process.env.TWILIO_PHONE_NUMBER
   // Messaging Services are preferred because Twilio selects the sender from the service pool.
   // The fallback keeps existing phone-number based setups working.
-  const messagingServiceSid = process.env.TWILIO_MESSAGING_SERVICE_SID
+  const messagingServiceSid = process.env.TWILIO_MESSAGING_SERVICE_SID || process.env.MessagingServiceSid
 
   if (!accountSid || !authToken) {
     return {
@@ -94,7 +95,9 @@ async function sendTwilioAlert(
     }
   }
 
-  if (!/^\+?[1-9]\d{7,14}$/.test(phoneNumber.replace(/[\s()-]/g, ''))) {
+  const normalizedPhoneNumber = phoneNumber.replace(/[\s()-]/g, '')
+
+  if (!/^\+?[1-9]\d{7,14}$/.test(normalizedPhoneNumber)) {
     return {
       success: false,
       error: 'Recipient phone number must be a valid international number'
@@ -107,7 +110,7 @@ async function sendTwilioAlert(
     const auth = Buffer.from(`${accountSid}:${authToken}`).toString('base64')
 
     const params = new URLSearchParams()
-    params.append('To', phoneNumber)
+    params.append('To', normalizedPhoneNumber)
     if (messagingServiceSid) {
       params.append('MessagingServiceSid', messagingServiceSid)
     } else if (fromNumber) {
