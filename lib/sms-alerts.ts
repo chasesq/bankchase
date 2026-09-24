@@ -80,10 +80,24 @@ async function sendTwilioAlert(
   // The fallback keeps existing phone-number based setups working.
   const messagingServiceSid = process.env.TWILIO_MESSAGING_SERVICE_SID
 
-  if (!accountSid || !authToken || (!fromNumber && !messagingServiceSid)) {
+  if (!accountSid || !authToken) {
     return {
       success: false,
-      error: 'Twilio credentials not configured'
+      error: 'Twilio account credentials are not configured'
+    }
+  }
+
+  if (!messagingServiceSid && !fromNumber) {
+    return {
+      success: false,
+      error: 'Configure TWILIO_MESSAGING_SERVICE_SID or TWILIO_FROM_PHONE'
+    }
+  }
+
+  if (!/^\+?[1-9]\d{7,14}$/.test(phoneNumber.replace(/[\s()-]/g, ''))) {
+    return {
+      success: false,
+      error: 'Recipient phone number must be a valid international number'
     }
   }
 
