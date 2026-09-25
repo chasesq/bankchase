@@ -120,9 +120,8 @@ export default function LandingPage() {
           </div>
           <a
             href="https://interserver.net/r/1139215"
-            target="_blank"
-            rel="sponsored noopener noreferrer"
-            aria-label="Visit InterServer hosting (opens in a new tab)"
+            rel="sponsored noreferrer"
+            aria-label="Visit InterServer hosting"
             className="inline-flex shrink-0 items-center gap-2 rounded-md bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground shadow-sm transition hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
           >
             Visit InterServer
