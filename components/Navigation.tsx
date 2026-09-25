@@ -46,14 +46,7 @@ export function Navigation({ hideBrand = false, hideBackButton = false }: Naviga
     <nav className="bg-background shadow">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
-          {/* Logo */}
-          <div className="flex items-center">
-            {!hideBrand && (
-              <Link href="/" className="flex items-center">
-                <span className="text-2xl font-bold text-primary">Mercury</span>
-              </Link>
-            )}
-          </div>
+          <div className="flex items-center" aria-hidden="true" />
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-1 overflow-x-auto py-2">
