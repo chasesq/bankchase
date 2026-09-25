@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerFooter } from "@/components/ui/drawer"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -22,7 +22,18 @@ export function LinkExternalDrawer({ open, onOpenChange }: LinkExternalDrawerPro
   const [accountType, setAccountType] = useState("Checking")
   const [isVerifying, setIsVerifying] = useState(false)
   const [verificationStep, setVerificationStep] = useState(0)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const verificationTimers = useRef<ReturnType<typeof setTimeout>[]>([])
   const { toast } = useToast()
+
+  useEffect(() => {
+    return () => verificationTimers.current.forEach((timer) => clearTimeout(timer))
+  }, [])
+
+  const clearVerificationTimers = () => {
+    verificationTimers.current.forEach((timer) => clearTimeout(timer))
+    verificationTimers.current = []
+  }
   const { addAccount, addNotification } = useBanking()
 
   const usBanks = [
@@ -213,6 +224,8 @@ export function LinkExternalDrawer({ open, onOpenChange }: LinkExternalDrawerPro
   ]
 
   const handleLink = () => {
+    if (isSubmitting) return
+
     if (!bankName || !accountNumber || !routingNumber) {
       toast({
         title: "Missing Information",
@@ -240,48 +253,46 @@ export function LinkExternalDrawer({ open, onOpenChange }: LinkExternalDrawerPro
       return
     }
 
+    clearVerificationTimers()
+    setIsSubmitting(true)
     setIsVerifying(true)
     setVerificationStep(1)
 
-    setTimeout(() => {
-      setVerificationStep(2)
-    }, 1000)
+    verificationTimers.current = [
+      setTimeout(() => setVerificationStep(2), 1000),
+      setTimeout(() => setVerificationStep(3), 2000),
+      setTimeout(() => {
+        addAccount({
+          name: `${bankName} ${accountType}`,
+          type: "External",
+          balance: 0,
+          accountNumber: `...${accountNumber.slice(-4)}`,
+          routingNumber,
+        })
 
-    setTimeout(() => {
-      setVerificationStep(3)
-    }, 2000)
+        addNotification({
+          title: "External Account Linked",
+          message: `Your ${bankName} ${accountType} account has been successfully linked.`,
+          type: "success",
+          category: "Accounts",
+        })
 
-    setTimeout(() => {
-      const randomBalance = Math.floor(Math.random() * 15000) + 500
+        toast({
+          title: "Account Linked Successfully!",
+          description: `${bankName} ${accountType} has been added to your accounts`,
+        })
 
-      addAccount({
-        name: `${bankName} ${accountType}`,
-        type: "External",
-        balance: randomBalance,
-        accountNumber: `...${accountNumber.slice(-4)}`,
-        routingNumber: routingNumber,
-      })
-
-      addNotification({
-        title: "External Account Linked",
-        message: `Your ${bankName} ${accountType} account has been successfully linked.`,
-        type: "success",
-        category: "Accounts",
-      })
-
-      toast({
-        title: "Account Linked Successfully!",
-        description: `${bankName} ${accountType} has been added to your accounts`,
-      })
-
-      setBankName("")
-      setAccountNumber("")
-      setRoutingNumber("")
-      setAccountType("Checking")
-      setIsVerifying(false)
-      setVerificationStep(0)
-      onOpenChange(false)
-    }, 3500)
+        setBankName("")
+        setAccountNumber("")
+        setRoutingNumber("")
+        setAccountType("Checking")
+        setIsVerifying(false)
+        setIsSubmitting(false)
+        setVerificationStep(0)
+        clearVerificationTimers()
+        onOpenChange(false)
+      }, 3500),
+    ]
   }
 
   return (
@@ -387,8 +398,8 @@ export function LinkExternalDrawer({ open, onOpenChange }: LinkExternalDrawerPro
               </div>
             </div>
             <DrawerFooter>
-              <Button onClick={handleLink} className="bg-[#0a4fa6] hover:bg-[#083d82]">
-                Link Account
+              <Button onClick={handleLink} disabled={isSubmitting} className="bg-[#0a4fa6] hover:bg-[#083d82]">
+                {isSubmitting ? "Connecting..." : "Link Account"}
               </Button>
               <Button variant="outline" onClick={() => onOpenChange(false)}>
                 Cancel
