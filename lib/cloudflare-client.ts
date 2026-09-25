@@ -19,12 +19,9 @@ async function cloudflareRequest(
   options: CloudflareRequestOptions = {}
 ) {
   const token = process.env.CLOUDFLARE_API_TOKEN;
-  const accountId = process.env.CLOUDFLARE_ACCOUNT_ID;
 
-  if (!token || !accountId) {
-    throw new Error(
-      "Missing Cloudflare credentials: CLOUDFLARE_API_TOKEN or CLOUDFLARE_ACCOUNT_ID"
-    );
+  if (!token) {
+    throw new Error("Missing Cloudflare credential: CLOUDFLARE_API_TOKEN");
   }
 
   const url = endpoint.startsWith("http")
@@ -51,6 +48,14 @@ async function cloudflareRequest(
   }
 
   return response.json();
+}
+
+/**
+ * List zones available to the authenticated Cloudflare token.
+ */
+export async function getZones() {
+  const result = await cloudflareRequest("/zones?per_page=100");
+  return result.result || [];
 }
 
 /**

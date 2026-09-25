@@ -7,7 +7,7 @@ import { FeaturesGrid } from '@/components/features-grid'
 import { FeaturesWithImage } from '@/components/features-with-image'
 import { FeaturesAlternating } from '@/components/features-alternating'
 import Link from 'next/link'
-import { ArrowRight, CheckCircle } from 'lucide-react'
+import { ArrowRight, CheckCircle, ExternalLink } from 'lucide-react'
 
 export default function LandingPage() {
 
@@ -103,6 +103,31 @@ export default function LandingPage() {
               </button>
             </Link>
           </div>
+        </div>
+      </section>
+
+      {/* Hosting partner referral */}
+      <section aria-labelledby="hosting-partner-heading" className="border-y border-border/40 bg-card/50 px-6 py-12 lg:px-8">
+        <div className="mx-auto flex max-w-4xl flex-col items-start justify-between gap-6 sm:flex-row sm:items-center">
+          <div>
+            <p className="text-sm font-semibold uppercase tracking-[0.18em] text-primary">Recommended hosting</p>
+            <h2 id="hosting-partner-heading" className="mt-2 text-2xl font-bold tracking-tight text-foreground">
+              Build more with InterServer
+            </h2>
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
+              Get reliable hosting for your next project through our partner link. This is an affiliate link, so we may earn a commission at no extra cost to you.
+            </p>
+          </div>
+          <a
+            href="https://interserver.net/r/1139215"
+            rel="sponsored noreferrer"
+            aria-label="Visit InterServer hosting"
+            className="inline-flex shrink-0 items-center gap-2 rounded-md bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground shadow-sm transition hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+          >
+            Visit InterServer
+            <ExternalLink aria-hidden="true" className="h-4 w-4" />
+            <span className="sr-only"> (opens in a new tab)</span>
+          </a>
         </div>
       </section>
 
