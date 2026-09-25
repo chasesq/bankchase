@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
-import { Navigation } from '@/components/Navigation';
 import { useBanking } from '@/lib/banking-context';
 import { CreditCard, Lock, Eye, EyeOff, Plus, MoreVertical, Check, Clock, Send } from 'lucide-react';
 import Link from 'next/link';
@@ -35,7 +34,7 @@ interface Card {
 }
 
 function CardsContent() {
-  const { isLoaded, userProfile } = useBanking();
+  const { isLoaded, userProfile, accounts } = useBanking();
   const userId = userProfile?.id;
   const [cards, setCards] = useState<Card[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -47,33 +46,46 @@ function CardsContent() {
   const [activationData, setActivationData] = useState({ lastFourDigits: '' });
 
   // Fetch cards
-  const fetchCards = useCallback(async () => {
+  const fetchCards = useCallback(async (showLoading = false) => {
     if (!userId || !isLoaded) return;
 
-    setIsLoading(true);
+    if (showLoading) setIsLoading(true);
     setError(null);
 
     try {
-      const response = await fetch(`/api/cards?userId=${userId}`);
+      const response = await fetch(`/api/cards?userId=${encodeURIComponent(userId)}`, { cache: 'no-store' });
+      const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        throw new Error('Failed to fetch cards');
+        throw new Error(typeof data.error === 'string' ? data.error : 'Failed to fetch cards');
       }
-      const data = await response.json();
-      setCards(data.cards || []);
+      const nextCards = Array.isArray(data.cards) ? data.cards : [];
+      setCards(nextCards.map((card: Partial<Card>) => ({
+        ...card,
+        balance: typeof card.balance === 'number' && Number.isFinite(card.balance) ? card.balance : 0,
+        currency: typeof card.currency === 'string' && card.currency ? card.currency : 'USD',
+        spendingControls: {
+          dailyLimit: Number(card.spendingControls?.dailyLimit) || 0,
+          monthlyLimit: Number(card.spendingControls?.monthlyLimit) || 0,
+          singleTransactionLimit: Number(card.spendingControls?.singleTransactionLimit) || 0,
+        },
+      })));
     } catch (err) {
       console.error('[v0] Error fetching cards:', err);
       setError(err instanceof Error ? err.message : 'Failed to fetch cards');
     } finally {
-      setIsLoading(false);
+      if (showLoading) setIsLoading(false);
     }
   }, [userId, isLoaded]);
 
   useEffect(() => {
     if (!userId || !isLoaded) return;
 
-    void fetchCards();
-    const interval = window.setInterval(() => void fetchCards(), 5000);
-    return () => window.clearInterval(interval);
+    const initialLoad = window.setTimeout(() => void fetchCards(true), 0);
+    const interval = window.setInterval(() => void fetchCards(false), 15000);
+    return () => {
+      window.clearTimeout(initialLoad);
+      window.clearInterval(interval);
+    };
   }, [fetchCards, isLoaded, userId]);
 
   const handleActivateCard = (card: Card) => {
@@ -317,10 +329,18 @@ function CardsContent() {
 
                 {/* Card Info */}
                 <div className="mt-4 space-y-3">
-                  {/* Balance */}
+                  <Link
+                    href={`/cards/${encodeURIComponent(card.id)}`}
+                    className="flex w-full items-center justify-center rounded-lg border border-border bg-card py-2 text-sm font-medium text-foreground transition hover:border-primary hover:text-primary"
+                  >
+                    View card details
+                  </Link>
+                  {/* Linked account and balance */}
                   <div className="bg-card border border-border rounded-lg p-4">
-                    <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Available Balance</p>
-                    <p className="text-2xl font-bold text-foreground">${card.balance.toFixed(2)}</p>
+                    <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Linked account</p>
+                    <p className="font-semibold text-foreground">{accounts.find((account) => account.id === card.accountId)?.name ?? 'Account unavailable'}</p>
+                    <p className="mt-3 text-xs text-muted-foreground uppercase tracking-wider mb-1">Available balance</p>
+                    <p className="text-2xl font-bold text-foreground">${(accounts.find((account) => account.id === card.accountId)?.balance ?? card.balance).toFixed(2)}</p>
                     <p className="text-xs text-muted-foreground mt-2">{card.currency}</p>
                   </div>
 
@@ -414,7 +434,6 @@ function CardsContent() {
 export default function CardsPage() {
   return (
     <ProtectedRoute>
-      <Navigation />
       <CardsContent />
     </ProtectedRoute>
   );

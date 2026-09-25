@@ -22,15 +22,30 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { fromAccountId, toAccountNumber, toBankCode, amount, narration, recipientName, recipientPhone, recipientEmail, transferType } = body
+    const {
+      fromAccountId,
+      fromAccountNumber,
+      toAccountNumber,
+      toBankCode,
+      amount,
+      narration,
+      idempotencyKey,
+      recipientName = toAccountNumber,
+      recipientPhone,
+      recipientEmail,
+      transferType,
+    } = body
 
-    // Validate required fields
-    if (!fromAccountId || !toAccountNumber || !toBankCode || !amount || !recipientName) {
-      console.error('[v0] Missing required transfer fields:', { fromAccountId, toAccountNumber, toBankCode, amount, recipientName })
+    const sourceAccountSelector = fromAccountId || fromAccountNumber
+    const sourceAccountField = fromAccountId ? 'id' : 'account_number'
+
+    // Validate required fields. Callers may identify the source account by id or number.
+    if (!sourceAccountSelector || !toAccountNumber || !toBankCode || !amount || !recipientName) {
+      console.error('[v0] Missing required transfer fields:', { fromAccountId, fromAccountNumber, toAccountNumber, toBankCode, amount, recipientName })
       return NextResponse.json(
         {
           success: false,
-          error: 'Missing required fields: fromAccountId, toAccountNumber, toBankCode, amount, recipientName'
+          error: 'Missing required fields: fromAccountId or fromAccountNumber, toAccountNumber, toBankCode, amount, recipientName'
         },
         { status: 400 }
       )
@@ -55,7 +70,7 @@ export async function POST(request: NextRequest) {
     const { data: sourceAccount, error: sourceAccountError } = await supabase
       .from('accounts')
       .select('id, user_id, balance')
-      .eq('id', fromAccountId)
+      .eq(sourceAccountField, sourceAccountSelector)
       .eq('user_id', user.id)
       .maybeSingle()
 
@@ -74,28 +89,14 @@ export async function POST(request: NextRequest) {
       toAccountNumber
     })
 
-    // Check wallet balance
-    const { data: userProfile, error: profileError } = await supabase
-      .from('profiles')
-      .select('wallet_balance')
-      .eq('id', user.id)
-      .single()
-
-    if (profileError || !userProfile) {
-      return NextResponse.json(
-        { success: false, error: 'User profile not found' },
-        { status: 404 }
-      )
-    }
-
-    const walletBalance = parseFloat(userProfile.wallet_balance || '0')
-    if (walletBalance < parsedAmount) {
+    const sourceBalance = Number(sourceAccount.balance ?? 0)
+    if (!Number.isFinite(sourceBalance) || sourceBalance < parsedAmount) {
       return NextResponse.json(
         {
           success: false,
-          error: `Insufficient balance. Available: ₦${walletBalance.toFixed(2)}, Required: ₦${parsedAmount.toFixed(2)}`
+          error: `Insufficient funds in the selected account. Available: $${Math.max(0, sourceBalance).toFixed(2)}, Required: $${parsedAmount.toFixed(2)}`
         },
-        { status: 400 }
+        { status: 402 }
       )
     }
 

@@ -2,6 +2,7 @@
 
 import type React from "react"
 import Image from "next/image"
+import Link from "next/link"
 
 import { useState, useEffect } from "react"
 import {
@@ -186,8 +187,9 @@ export function LoginPage({ onLogin }: LoginPageProps) {
         localStorage.removeItem("chase_username")
       }
 
-      // Redirect to dashboard
-      router.push("/dashboard")
+      // Replace the sign-in route so the browser cannot return to it as the
+      // active page while the dashboard session is being restored.
+      router.replace("/dashboard")
     } catch (err) {
       setError("The username or password you entered is incorrect. Please try again.")
     } finally {
@@ -1216,13 +1218,13 @@ export function LoginPage({ onLogin }: LoginPageProps) {
                         />
                         <span className="text-sm text-muted-foreground">
                           I agree to the{" "}
-                          <a href="#" className="text-[#117aca] hover:underline">
+                          <Link href="/terms-of-service" className="text-[#117aca] hover:underline">
                             Terms of Service
-                          </a>{" "}
+                          </Link>{" "}
                           and{" "}
-                          <a href="#" className="text-[#117aca] hover:underline">
+                          <Link href="/privacy-security" className="text-[#117aca] hover:underline">
                             Privacy Policy
-                          </a>
+                          </Link>
                         </span>
                       </label>
                       <label className="flex items-start gap-3 cursor-pointer">

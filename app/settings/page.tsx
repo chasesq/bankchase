@@ -1,11 +1,11 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useTheme } from 'next-themes'
 
 import { ProtectedRoute } from '@/components/ProtectedRoute'
-import { Navigation } from '@/components/Navigation'
 import { useBanking } from '@/lib/banking-context'
-import { ArrowLeft, Bell, Lock, Globe, Moon, Save, AlertCircle, Zap, WalletCards, CheckCircle2 } from 'lucide-react'
+import { ArrowLeft, Bell, Lock, Globe, Moon, Save, AlertCircle, Zap } from 'lucide-react'
 import { toast } from 'sonner'
 import Link from 'next/link'
 
@@ -40,17 +40,11 @@ interface AppSettings {
     currency: string
     timezone: string
   }
-  payouts: {
-    provider: 'paystack'
-    currency: string
-    destination: string
-    automaticPayouts: boolean
-    environment: 'test' | 'live'
-  }
 }
 
 function SettingsContent() {
   const { isLoaded, userProfile } = useBanking()
+  const { setTheme } = useTheme()
   const userId = userProfile.id
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -84,13 +78,6 @@ function SettingsContent() {
       currency: 'USD',
       timezone: 'America/New_York',
     },
-    payouts: {
-      provider: 'paystack',
-      currency: 'NGN',
-      destination: 'Primary Paystack settlement account',
-      automaticPayouts: false,
-      environment: 'test',
-    },
   })
 
   // Fetch user settings
@@ -101,9 +88,11 @@ function SettingsContent() {
       try {
         setLoading(true)
         const response = await fetch(`/api/user/settings?userId=${userId}`)
+        const data = await response.json().catch(() => ({}))
         if (response.ok) {
-          const data = await response.json()
-          setSettings(data.settings || settings)
+          const nextSettings = data.settings || settings
+          setSettings(nextSettings)
+          setTheme(nextSettings.display?.theme === 'auto' ? 'system' : nextSettings.display?.theme === 'light' ? 'light' : 'dark')
         }
       } catch (err) {
         console.error('[v0] Failed to fetch settings:', err)
@@ -136,6 +125,15 @@ function SettingsContent() {
   }
 
   const handleSelectChange = (category: string, key: string, value: string | number) => {
+    if (category === 'display' && key === 'theme' && typeof value === 'string') {
+      setTheme(value === 'auto' ? 'system' : value)
+      setSettings((prev) => ({
+        ...prev,
+        display: { ...prev.display, theme: value, darkMode: value === 'dark' },
+      }))
+      return
+    }
+
     setSettings((prev) => ({
       ...prev,
       [category]: {
@@ -146,13 +144,20 @@ function SettingsContent() {
   }
 
   const handleDisplayToggle = (key: string) => {
-    setSettings((prev) => ({
-      ...prev,
-      display: {
-        ...prev.display,
-        [key]: !prev.display[key as keyof typeof prev.display],
-      },
-    }))
+    setSettings((prev) => {
+      const nextValue = !prev.display[key as keyof typeof prev.display]
+      if (key === 'darkMode') {
+        setTheme(nextValue ? 'dark' : 'light')
+      }
+      return {
+        ...prev,
+        display: {
+          ...prev.display,
+          [key]: nextValue,
+          ...(key === 'darkMode' ? { theme: nextValue ? 'dark' : 'light' } : {}),
+        },
+      }
+    })
   }
 
   const handleSecurityToggle = (key: string) => {
@@ -212,7 +217,6 @@ function SettingsContent() {
 
   return (
     <main className="min-h-screen bg-background pb-24 md:pb-8">
-      <Navigation />
       <div className="max-w-4xl mx-auto p-4 md:p-8">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
@@ -527,68 +531,6 @@ function SettingsContent() {
               </div>
             </div>
 
-            {/* Payouts Section */}
-            <div className="bg-card border border-border rounded-xl p-6 md:p-8">
-              <h2 className="text-2xl font-bold text-foreground mb-2 flex items-center gap-2">
-                <WalletCards className="w-6 h-6 text-primary" />
-                Payouts
-              </h2>
-              <p className="text-muted-foreground mb-6">Payment earnings are collected and settled through Paystack. Stripe is disabled for this project.</p>
-              <div className="rounded-lg border border-primary/20 bg-primary/5 p-4 mb-6 flex items-start gap-3">
-                <CheckCircle2 className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
-                <div>
-                  <p className="font-medium text-foreground">Paystack is active</p>
-                  <p className="text-sm text-muted-foreground">No payout is initiated automatically from this screen. Transfers require an explicit server-side action.</p>
-                </div>
-              </div>
-              <div className="grid gap-4 md:grid-cols-2">
-                <label className="flex flex-col gap-2 text-sm font-medium text-foreground">
-                  Settlement currency
-                  <select
-                    value={settings.payouts.currency}
-                    onChange={(e) => handleSelectChange('payouts', 'currency', e.target.value)}
-                    className="w-full px-3 py-2 border border-border rounded-lg bg-background"
-                  >
-                    <option value="NGN">NGN — Nigerian Naira</option>
-                    <option value="GHS">GHS — Ghanaian Cedi</option>
-                    <option value="KES">KES — Kenyan Shilling</option>
-                    <option value="ZAR">ZAR — South African Rand</option>
-                    <option value="XOF">XOF — West African CFA Franc</option>
-                    <option value="USD">USD — US Dollar</option>
-                  </select>
-                </label>
-                <label className="flex flex-col gap-2 text-sm font-medium text-foreground">
-                  Payout environment
-                  <select
-                    value={settings.payouts.environment}
-                    onChange={(e) => handleSelectChange('payouts', 'environment', e.target.value)}
-                    className="w-full px-3 py-2 border border-border rounded-lg bg-background"
-                  >
-                    <option value="test">Test mode</option>
-                    <option value="live">Live mode</option>
-                  </select>
-                </label>
-                <label className="flex flex-col gap-2 text-sm font-medium text-foreground md:col-span-2">
-                  Settlement destination
-                  <input
-                    value={settings.payouts.destination}
-                    onChange={(e) => handleSelectChange('payouts', 'destination', e.target.value)}
-                    className="w-full px-3 py-2 border border-border rounded-lg bg-background"
-                    placeholder="Describe the verified Paystack settlement account"
-                    maxLength={120}
-                  />
-                </label>
-              </div>
-              <div className="mt-4 border-t border-border pt-4">
-                <ToggleOption
-                  title="Automatic payouts"
-                  description="Keep disabled until a verified Paystack settlement destination and approval workflow are configured."
-                  checked={settings.payouts.automaticPayouts}
-                  onChange={() => setSettings((prev) => ({ ...prev, payouts: { ...prev.payouts, automaticPayouts: !prev.payouts.automaticPayouts } }))}
-                />
-              </div>
-            </div>
-
             {/* Save Button */}
             <div className="flex gap-3 justify-end">
               <Link href="/accounts">
@@ -630,7 +572,10 @@ function ToggleOption({
         <p className="text-muted-foreground text-sm">{description}</p>
       </div>
       <button
+        type="button"
         onClick={onChange}
+        aria-label={`${title}: ${checked ? 'On' : 'Off'}`}
+        aria-pressed={checked}
         className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
           checked ? 'bg-blue-600' : 'bg-gray-300 dark:bg-gray-600'
         }`}

@@ -7,7 +7,7 @@ import { FeaturesGrid } from '@/components/features-grid'
 import { FeaturesWithImage } from '@/components/features-with-image'
 import { FeaturesAlternating } from '@/components/features-alternating'
 import Link from 'next/link'
-import { ArrowRight, CheckCircle } from 'lucide-react'
+import { ArrowRight, CheckCircle, ExternalLink } from 'lucide-react'
 
 export default function LandingPage() {
 
@@ -106,6 +106,31 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* Hosting partner referral */}
+      <section aria-labelledby="hosting-partner-heading" className="border-y border-border/40 bg-card/50 px-6 py-12 lg:px-8">
+        <div className="mx-auto flex max-w-4xl flex-col items-start justify-between gap-6 sm:flex-row sm:items-center">
+          <div>
+            <p className="text-sm font-semibold uppercase tracking-[0.18em] text-primary">Recommended hosting</p>
+            <h2 id="hosting-partner-heading" className="mt-2 text-2xl font-bold tracking-tight text-foreground">
+              Build more with InterServer
+            </h2>
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
+              Get reliable hosting for your next project through our partner link. This is an affiliate link, so we may earn a commission at no extra cost to you.
+            </p>
+          </div>
+          <a
+            href="https://interserver.net/r/1139215"
+            rel="sponsored noreferrer"
+            aria-label="Visit InterServer hosting"
+            className="inline-flex shrink-0 items-center gap-2 rounded-md bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground shadow-sm transition hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+          >
+            Visit InterServer
+            <ExternalLink aria-hidden="true" className="h-4 w-4" />
+            <span className="sr-only"> (opens in a new tab)</span>
+          </a>
+        </div>
+      </section>
+
       {/* Footer */}
       <footer className="border-t border-border/40 py-12">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
@@ -113,25 +138,25 @@ export default function LandingPage() {
             <div>
               <h3 className="font-semibold text-foreground mb-4">Product</h3>
               <ul className="space-y-2">
-                <li><Link href="#" className="text-muted-foreground hover:text-foreground">Features</Link></li>
-                <li><Link href="#" className="text-muted-foreground hover:text-foreground">Pricing</Link></li>
-                <li><Link href="#" className="text-muted-foreground hover:text-foreground">Security</Link></li>
+                <li><Link href="/home" className="text-muted-foreground hover:text-foreground">Features</Link></li>
+                <li><Link href="/offers" className="text-muted-foreground hover:text-foreground">Pricing</Link></li>
+                <li><Link href="/security" className="text-muted-foreground hover:text-foreground">Security</Link></li>
               </ul>
             </div>
             <div>
               <h3 className="font-semibold text-foreground mb-4">Company</h3>
               <ul className="space-y-2">
-                <li><Link href="#" className="text-muted-foreground hover:text-foreground">About</Link></li>
-                <li><Link href="#" className="text-muted-foreground hover:text-foreground">Blog</Link></li>
-                <li><Link href="#" className="text-muted-foreground hover:text-foreground">Careers</Link></li>
+                <li><Link href="/home" className="text-muted-foreground hover:text-foreground">About</Link></li>
+                <li><Link href="/help" className="text-muted-foreground hover:text-foreground">Blog</Link></li>
+                <li><Link href="/help" className="text-muted-foreground hover:text-foreground">Careers</Link></li>
               </ul>
             </div>
             <div>
               <h3 className="font-semibold text-foreground mb-4">Legal</h3>
               <ul className="space-y-2">
                 <li><Link href="/terms-of-service" className="text-muted-foreground hover:text-foreground">Terms</Link></li>
-                <li><Link href="#" className="text-muted-foreground hover:text-foreground">Privacy</Link></li>
-                <li><Link href="#" className="text-muted-foreground hover:text-foreground">Cookies</Link></li>
+                <li><Link href="/privacy-security" className="text-muted-foreground hover:text-foreground">Privacy</Link></li>
+                <li><Link href="/privacy-security" className="text-muted-foreground hover:text-foreground">Cookies</Link></li>
               </ul>
             </div>
             <div>

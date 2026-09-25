@@ -19,10 +19,8 @@ export default function GlobalError({
   }, [error]);
 
   return (
-    <html>
-      <body>
-        <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-destructive/10 to-background px-4">
-          <div className="max-w-md w-full space-y-6 text-center">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-destructive/10 to-background px-4">
+      <div className="max-w-md w-full space-y-6 text-center">
             <div className="flex justify-center">
               <div className="bg-destructive/20 p-4 rounded-full">
                 <AlertTriangle className="w-8 h-8 text-destructive" />
@@ -70,9 +68,7 @@ export default function GlobalError({
                 Go Home
               </Button>
             </div>
-          </div>
-        </div>
-      </body>
-    </html>
+      </div>
+    </div>
   );
 }

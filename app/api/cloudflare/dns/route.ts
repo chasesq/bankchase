@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getDNSRecords, createDNSRecord, updateDNSRecord, deleteDNSRecord } from "@/lib/cloudflare-client";
+import { getDNSRecords, getZones, createDNSRecord, updateDNSRecord, deleteDNSRecord } from "@/lib/cloudflare-client";
 
 /**
  * GET /api/cloudflare/dns
@@ -10,6 +10,11 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const zoneId = searchParams.get("zoneId");
     const type = searchParams.get("type");
+
+    if (searchParams.get("action") === "zones") {
+      const zones = await getZones();
+      return NextResponse.json({ success: true, zones });
+    }
 
     if (!zoneId) {
       return NextResponse.json(
