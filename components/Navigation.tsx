@@ -26,7 +26,7 @@ export function Navigation({ hideBrand = false, hideBackButton = false }: Naviga
     { label: 'Dashboard', href: '/', icon: LayoutDashboard },
     { label: 'Send | Zelle®', href: '/send-money', icon: Send },
     { label: 'Transfer', href: '/transfer', icon: ArrowRightLeft },
-    { label: 'Deposit', href: '/deposit', icon: Wallet },
+    { label: 'Deposit', href: '/add-funds', icon: Wallet },
     { label: 'Pay bills', href: '/bill-pay', icon: ReceiptText },
     { label: 'Accounts', href: '/accounts', icon: Wallet },
     { label: 'Transactions', href: '/transactions', icon: ReceiptText },
