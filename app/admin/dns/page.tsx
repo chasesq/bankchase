@@ -6,7 +6,13 @@ import { Button } from '@/components/ui/button'
 import { DNSRecordsTable } from '@/components/dns-records-table'
 import { DNSRecordDrawer } from '@/components/dns-record-drawer'
 import { useCloudflareDNS } from '@/lib/hooks/use-cloudflare'
-import { Plus, RefreshCw, AlertCircle, CheckCircle2 } from 'lucide-react'
+import { Plus, RefreshCw, AlertCircle, CheckCircle2, Copy, Check } from 'lucide-react'
+
+const recommendedNameservers = [
+  { label: 'Primary', hostname: 'cdns1.interserver.net', ip: '216.158.228.164' },
+  { label: 'Secondary', hostname: 'cdns2.interserver.net', ip: '216.158.234.243' },
+  { label: 'Tertiary', hostname: 'cdns3.interserver.net', ip: '199.231.191.75' },
+]
 
 interface DNSRecord {
   id: string
@@ -23,6 +29,7 @@ export default function DNSManagementPage() {
   const [selectedZone, setSelectedZone] = useState('')
   const [zones, setZones] = useState<any[]>([])
   const [records, setRecords] = useState<any[]>([])
+  const [copiedNameserver, setCopiedNameserver] = useState<string | null>(null)
   
   const {
     loading,
@@ -103,6 +110,16 @@ export default function DNSManagementPage() {
     }
   }
 
+  const copyNameserver = async (value: string) => {
+    try {
+      await navigator.clipboard.writeText(value)
+      setCopiedNameserver(value)
+      window.setTimeout(() => setCopiedNameserver(null), 1800)
+    } catch {
+      setCopiedNameserver(null)
+    }
+  }
+
   return (
     <main className="min-h-screen bg-background text-foreground">
       {/* Header */}
@@ -117,6 +134,35 @@ export default function DNSManagementPage() {
 
       {/* Main Content */}
       <div className="container mx-auto px-4 py-8">
+        <Card className="mb-6 border-border bg-card p-6">
+          <div className="mb-5">
+            <h2 className="text-xl font-semibold">Recommended DNS Servers</h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Use these nameservers when delegating domains to InterServer.
+            </p>
+          </div>
+          <div className="grid gap-3 md:grid-cols-3">
+            {recommendedNameservers.map((nameserver) => (
+              <div key={nameserver.hostname} className="rounded-lg border border-border bg-muted/30 p-4">
+                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{nameserver.label}</p>
+                <div className="mt-2 flex items-center justify-between gap-3">
+                  <code className="truncate text-sm font-medium">{nameserver.hostname}</code>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    aria-label={`Copy ${nameserver.hostname}`}
+                    onClick={() => copyNameserver(nameserver.hostname)}
+                  >
+                    {copiedNameserver === nameserver.hostname ? <Check data-icon="inline-start" /> : <Copy data-icon="inline-start" />}
+                  </Button>
+                </div>
+                <p className="mt-2 font-mono text-xs text-muted-foreground">{nameserver.ip}</p>
+              </div>
+            ))}
+          </div>
+        </Card>
+
         {error && (
           <Card className="bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 p-4 mb-6 flex items-start gap-3">
             <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
