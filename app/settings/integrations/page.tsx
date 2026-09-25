@@ -2,24 +2,19 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { ArrowUpRight, Check, ChevronRight, Plug, Search } from 'lucide-react'
+import { ArrowUpRight, ChevronRight, ExternalLink, Plug, Search } from 'lucide-react'
 import { Navigation } from '@/components/Navigation'
 
 const apps = [
   { name: 'Finch', description: 'Connect payroll and HR data securely.', href: '/settings/integrations/finch', providerUrl: 'https://www.tryfinch.com/', category: 'Payroll' },
-  { name: 'QuickBooks', description: 'Sync transactions and account activity.', href: '#', providerUrl: 'https://quickbooks.intuit.com/', category: 'Accounting' },
-  { name: 'Xero', description: 'Keep your books and banking in sync.', href: '#', providerUrl: 'https://www.xero.com/', category: 'Accounting' },
-  { name: 'Gusto', description: 'Manage payroll funding and employee payments.', href: '#', providerUrl: 'https://gusto.com/', category: 'Payroll' },
+  { name: 'QuickBooks', description: 'Sync transactions and account activity.', href: '#', providerUrl: 'https://quickbooks.intuit.com/signup/', providerSiteUrl: 'https://quickbooks.intuit.com/', category: 'Accounting' },
+  { name: 'Xero', description: 'Keep your books and banking in sync.', href: '#', providerUrl: 'https://www.xero.com/signup/', providerSiteUrl: 'https://www.xero.com/', category: 'Accounting' },
+  { name: 'Gusto', description: 'Manage payroll funding and employee payments.', href: '#', providerUrl: 'https://gusto.com/signup', providerSiteUrl: 'https://gusto.com/', category: 'Payroll' },
 ]
 
 export default function IntegrationsPage() {
   const [query, setQuery] = useState('')
-  const [connected, setConnected] = useState<string[]>([])
   const visibleApps = apps.filter((app) => `${app.name} ${app.category}`.toLowerCase().includes(query.toLowerCase()))
-
-  function toggleConnection(name: string) {
-    setConnected((current) => current.includes(name) ? current.filter((item) => item !== name) : [...current, name])
-  }
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -37,7 +32,6 @@ export default function IntegrationsPage() {
         </div>
         <section className="grid gap-4 sm:grid-cols-2" aria-label="Available integrations">
           {visibleApps.map((app) => {
-            const isConnected = connected.includes(app.name)
             return (
               <article key={app.name} className="flex flex-col gap-5 rounded-xl border bg-card p-5 shadow-sm">
                 <div className="flex items-start justify-between gap-4">
@@ -45,12 +39,11 @@ export default function IntegrationsPage() {
                     <div className="flex size-10 items-center justify-center rounded-lg bg-muted"><Plug className="size-5" aria-hidden="true" /></div>
                     <div><h2 className="font-semibold">{app.name}</h2><p className="text-sm text-muted-foreground">{app.category}</p></div>
                   </div>
-                  {isConnected && <span className="inline-flex items-center gap-1 text-sm text-primary"><Check className="size-4" />Connected</span>}
                 </div>
                 <p className="text-sm text-muted-foreground">{app.description}</p>
                 <div className="mt-auto flex items-center justify-between gap-3">
-                  {app.href !== '#' ? <Link href={app.href} className="inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline">View details <ChevronRight className="size-4" /></Link> : <span />}
-                  <button type="button" onClick={() => { if (isConnected) toggleConnection(app.name); else window.open(app.providerUrl, '_blank', 'noopener,noreferrer') }} className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:opacity-90">{isConnected ? 'Disconnect' : 'Connect'} <ArrowUpRight className="size-4" /></button>
+                  {app.href !== '#' ? <Link href={app.href} className="inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline">View details <ChevronRight className="size-4" /></Link> : <a href={app.providerSiteUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline">Visit website <ExternalLink className="size-4" /></a>}
+                  <a href={app.providerUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:opacity-90">Create account <ArrowUpRight className="size-4" /></a>
                 </div>
               </article>
             )
