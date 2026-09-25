@@ -73,7 +73,12 @@ export function AccountsSection({
   return (
     <section className="space-y-4">
       <div className="flex items-center justify-between px-1">
-        <h2 className="text-lg font-bold text-primary">Accounts</h2>
+        <div>
+          <h2 className="text-lg font-bold text-primary">Your Accounts</h2>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            {accounts.length} account{accounts.length === 1 ? "" : "s"} connected
+          </p>
+        </div>
         <Button
           variant="ghost"
           size="sm"
@@ -102,7 +107,10 @@ export function AccountsSection({
 
       <Card className="dashboard-card-shadow border-0 overflow-hidden">
         <div className="bg-[#0a4fa6] px-4 py-2">
-          <h3 className="text-background font-medium text-sm">Bank Accounts ({accounts.length})</h3>
+          <div className="flex items-center justify-between">
+            <h3 className="text-background font-medium text-sm">All accounts</h3>
+            <span className="text-background/75 text-xs">Updated live</span>
+          </div>
         </div>
         <CardContent className="p-0 divide-y divide-border">
           {accounts.map((account) => {

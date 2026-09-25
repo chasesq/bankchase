@@ -6,15 +6,25 @@ import { ArrowUpRight, Check, ChevronRight, Plug, Search } from 'lucide-react'
 import { Navigation } from '@/components/Navigation'
 
 const apps = [
-  { name: 'Finch', description: 'Connect payroll and HR data securely.', href: '/settings/integrations/finch', providerUrl: 'https://www.tryfinch.com/', category: 'Payroll' },
-  { name: 'QuickBooks', description: 'Sync transactions and account activity.', href: '#', providerUrl: 'https://quickbooks.intuit.com/', category: 'Accounting' },
-  { name: 'Xero', description: 'Keep your books and banking in sync.', href: '#', providerUrl: 'https://www.xero.com/', category: 'Accounting' },
-  { name: 'Gusto', description: 'Manage payroll funding and employee payments.', href: '#', providerUrl: 'https://gusto.com/', category: 'Payroll' },
+  { name: 'GitHub', description: 'Manage repository access and project delivery.', href: '#', providerUrl: 'https://github.com/', category: 'Developer tools' },
+  { name: 'Stripe', description: 'Accept card payments on invoices.', href: '#', providerUrl: 'https://dashboard.stripe.com/', category: 'Payments' },
+  { name: 'Supabase', description: 'Connect application data and backend services.', href: '#', providerUrl: 'https://supabase.com/dashboard/', category: 'Data' },
+  { name: 'ClickHouse', description: 'Explore product and business analytics.', href: '#', providerUrl: 'https://clickhouse.cloud/', category: 'Analytics' },
+  { name: 'Gmail', description: 'Automatically match receipts to your transactions.', href: '#', providerUrl: 'https://mail.google.com/', category: 'Productivity' },
+  { name: 'Zapier', description: 'Link your automated workflows.', href: '#', providerUrl: 'https://zapier.com/app/connections', category: 'Automation' },
+  { name: 'Finch', description: 'Connect payroll and HR data securely.', href: '/settings/integrations/finch', providerUrl: 'https://www.tryfinch.com/', category: 'Team management' },
+  { name: 'QuickBooks', description: 'Categorize transactions and sync your bank feed.', href: '#', providerUrl: 'https://quickbooks.intuit.com/', category: 'Accounting' },
+  { name: 'Xero', description: 'Categorize transactions and sync your bank feed.', href: '#', providerUrl: 'https://www.xero.com/', category: 'Accounting' },
+  { name: 'NetSuite', description: 'Categorize transactions and sync your bank feed.', href: '#', providerUrl: 'https://www.netsuite.com/', category: 'Accounting' },
+  { name: 'Payroll or HR', description: 'Sync and invite team members.', href: '#', providerUrl: 'https://www.tryfinch.com/', category: 'Team management' },
+  { name: 'Slack', description: 'Payment approval notifications and balance checks.', href: '#', providerUrl: 'https://slack.com/', category: 'Payments' },
+  { name: 'Finicity', description: 'Connect your accounts to financial institutions and third-party applications.', href: '#', providerUrl: 'https://www.finicity.com/', category: 'Financial data' },
+  { name: 'Plaid', description: 'Connect your accounts to financial institutions and third-party applications.', href: '#', providerUrl: 'https://plaid.com/', category: 'Financial data' },
 ]
 
 export default function IntegrationsPage() {
   const [query, setQuery] = useState('')
-  const [connected, setConnected] = useState<string[]>([])
+  const [connected, setConnected] = useState<string[]>(['Gmail', 'Zapier'])
   const visibleApps = apps.filter((app) => `${app.name} ${app.category}`.toLowerCase().includes(query.toLowerCase()))
 
   function toggleConnection(name: string) {
