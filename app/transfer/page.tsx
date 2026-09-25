@@ -29,7 +29,13 @@ interface TransferStatus {
 }
 
 function TransferContent() {
-  const { isLoaded, userProfile, accounts: bankingAccounts } = useBanking();
+  const {
+    isLoaded,
+    userProfile,
+    accounts: bankingAccounts,
+    addTransaction,
+    updateBalance,
+  } = useBanking();
   const userId = userProfile?.id;
   const searchParams = useSearchParams();
   const cardId = searchParams.get('cardId');
@@ -62,74 +68,22 @@ function TransferContent() {
     currency: 'USD',
   })), [bankingAccounts]);
 
-  // Fetch accounts
-  const fetchAccounts = useCallback(async () => {
-    if (!userId || !isLoaded) return;
-
-    setIsLoadingAccounts(true);
-    try {
-      const response = await fetch('/api/accounts', { cache: 'no-store' });
-      const data = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(data.error || 'Failed to fetch accounts');
-
-      const loadedAccounts: Account[] = (Array.isArray(data.accounts) ? data.accounts : []).map((account: Record<string, unknown>) => ({
-        id: String(account.id),
-        name: String(account.account_name ?? account.name ?? account.account_type ?? 'Bank account'),
-        accountNumber: String(account.account_number ?? account.accountNumber ?? ''),
-        accountType: String(account.account_type ?? account.accountType ?? 'checking'),
-        balance: Number(account.balance ?? 0),
-        currency: String(account.currency ?? 'USD'),
-      }));
-      const availableAccounts = loadedAccounts.length > 0 ? loadedAccounts : dashboardAccounts;
-      setAccounts(availableAccounts);
-
-      if (availableAccounts.length > 0) {
-        setFormData(prev => ({
-          ...prev,
-          fromAccountId: availableAccounts.some((account) => account.id === prev.fromAccountId)
-            ? prev.fromAccountId
-            : availableAccounts[0].id,
-        }));
-      }
-    } catch (err) {
-      console.error('[v0] Error fetching accounts:', err);
-      if (dashboardAccounts.length > 0) {
-        setAccounts(dashboardAccounts);
-        setFormData((prev) => ({ ...prev, fromAccountId: prev.fromAccountId || dashboardAccounts[0].id }));
-      } else {
-        toast.error('Failed to load accounts');
-      }
-    } finally {
-      setIsLoadingAccounts(false);
-    }
-  }, [dashboardAccounts, userId, isLoaded]);
-
-  // Fetch transfer history
-  const fetchTransferHistory = useCallback(async () => {
-    if (!userId || !isLoaded) return;
-
-    try {
-      const response = await fetch(`/api/transfers/status?userId=${userId}`);
-      if (response.ok) {
-        const data = await response.json();
-        setRecentTransfers(data.transfers || []);
-      }
-    } catch (err) {
-      console.error('[v0] Error fetching transfer history:', err);
-    }
-  }, [userId, isLoaded]);
+  // Accounts are shared with the dashboard context so selection and balances stay in sync.
+  const fetchAccounts = useCallback(() => {
+    setAccounts(dashboardAccounts);
+    setFormData((prev) => ({
+      ...prev,
+      fromAccountId: dashboardAccounts.some((account) => account.id === prev.fromAccountId)
+        ? prev.fromAccountId
+        : dashboardAccounts[0]?.id || '',
+    }));
+    setIsLoadingAccounts(false);
+  }, [dashboardAccounts]);
 
   useEffect(() => {
-    const initialLoad = window.setTimeout(() => {
-      void fetchAccounts();
-      void fetchTransferHistory();
-    }, 0);
-    const interval = window.setInterval(() => void fetchTransferHistory(), 3000);
-    return () => {
-      window.clearTimeout(initialLoad);
-      window.clearInterval(interval);
-    };
-  }, [fetchAccounts, fetchTransferHistory]);
+    const initialLoad = window.setTimeout(fetchAccounts, 0);
+    return () => window.clearTimeout(initialLoad);
+  }, [fetchAccounts]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -176,41 +130,38 @@ function TransferContent() {
 
     setIsTransferring(true);
     try {
-      const response = await fetch('/api/transfers/send', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          fromAccountId: formData.fromAccountId,
-          toAccountNumber: formData.receiverBankAccount,
-          toBankCode: formData.receiverBankCode,
-          amount: parseFloat(formData.amount),
-          narration: formData.narration || `Transfer to ${formData.receiverName}`,
-          recipientName: formData.receiverName,
-          recipientPhone: formData.recipientPhone || undefined,
-          recipientEmail: formData.recipientEmail || undefined,
-          transferType: formData.receiverBankCode === 'ZELLE' ? 'zelle' : 'bank_transfer'
-        })
+      const amount = parseFloat(formData.amount);
+      const source = accounts.find((account) => account.id === formData.fromAccountId);
+      if (!source) throw new Error('Select a valid source account');
+
+      updateBalance(source.id, -amount);
+      const transaction = addTransaction({
+        description: formData.narration || `Transfer to ${formData.receiverName}`,
+        amount,
+        type: 'debit',
+        category: 'Transfer',
+        status: 'pending',
+        recipientName: formData.receiverName,
+        recipientAccount: formData.receiverBankAccount,
+        recipientBank: formData.receiverBankCode,
+        accountFrom: source.name,
+        accountId: source.id,
+        reference: `TRF-${Date.now()}`,
       });
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Transfer failed');
-      }
-
-      // Show result
       const result: TransferStatus = {
-        id: data.transaction?.id || '',
-        status: data.status === 'processing' ? 'processing' : 'pending',
-        amount: parseFloat(formData.amount),
-        fromAccount: formData.fromAccountId,
+        id: transaction.id,
+        status: 'pending',
+        amount,
+        fromAccount: source.name,
         toAccount: formData.receiverBankAccount,
         receiverName: formData.receiverName,
         timestamp: new Date().toISOString(),
-        transactionId: data.transaction?.id || ''
+        transactionId: transaction.id
       };
 
       setTransferResult(result);
+      setRecentTransfers((previous) => [result, ...previous].slice(0, 10));
       toast.success('Transfer initiated successfully');
 
       // Reset form
@@ -225,11 +176,7 @@ function TransferContent() {
         narration: ''
       });
 
-      // Refresh transfer history
-      setTimeout(fetchTransferHistory, 2000);
-
-      // Refresh accounts to update balance
-      setTimeout(fetchAccounts, 2000);
+      // The shared banking context updates the dashboard balance immediately.
     } catch (error: any) {
       console.error('[v0] Transfer error:', error);
       toast.error(error.message || 'Transfer failed');
