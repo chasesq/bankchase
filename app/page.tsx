@@ -123,9 +123,9 @@ export default function BankingDashboard() {
           <div className="flex flex-col gap-5 pb-24">
             <QuickActions
               onSendMoney={() => setSendMoneyOpen(true)}
-              onDepositChecks={() => router.push("/add-funds/check/details")}
+              onDepositChecks={() => router.push("/add-funds")}
               onPayBills={() => setPayBillsOpen(true)}
-              onTransfer={() => setTransferOpen(true)}
+              onTransfer={() => router.push("/send-money/transfer")}
             />
             <AccountsSection
               onViewAccount={() => setAccountDetailsOpen(true)}
@@ -141,7 +141,7 @@ export default function BankingDashboard() {
           <PayTransferView
             onSendMoney={() => setSendMoneyOpen(true)}
             onPayBills={() => setPayBillsOpen(true)}
-            onTransfer={() => setTransferOpen(true)}
+            onTransfer={() => router.push("/send-money/transfer")}
             onWire={() => setWireOpen(true)}
             onReceiptOpen={handleOpenReceipt}
           />

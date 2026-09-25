@@ -1,13 +1,11 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
-import { Navigation } from '@/components/Navigation';
 import { useBanking } from '@/lib/banking-context';
 import { Send, Clock, CheckCircle, AlertCircle, Loader } from 'lucide-react';
 import Link from 'next/link';
-import { ContextualBackButton } from '@/components/contextual-back-button';
 import { toast } from 'sonner';
 
 interface Account {
@@ -31,7 +29,13 @@ interface TransferStatus {
 }
 
 function TransferContent() {
-  const { isLoaded, userProfile } = useBanking();
+  const {
+    isLoaded,
+    userProfile,
+    accounts: bankingAccounts,
+    addTransaction,
+    updateBalance,
+  } = useBanking();
   const userId = userProfile?.id;
   const searchParams = useSearchParams();
   const cardId = searchParams.get('cardId');
@@ -55,72 +59,41 @@ function TransferContent() {
   const [transferResult, setTransferResult] = useState<TransferStatus | null>(null);
   const selectedAccount = accounts.find((account) => account.id === formData.fromAccountId);
 
-  // Fetch accounts
-  const fetchAccounts = useCallback(async () => {
-    if (!userId || !isLoaded) return;
+  const dashboardAccounts = useMemo<Account[]>(() => bankingAccounts.map((account) => ({
+    id: account.id,
+    accountNumber: account.accountNumber,
+    accountType: account.type,
+    name: account.name,
+    balance: account.balance,
+    currency: 'USD',
+  })), [bankingAccounts]);
 
-    setIsLoadingAccounts(true);
-    try {
-      const response = await fetch(`/api/accounts?userId=${encodeURIComponent(userId)}`, { cache: 'no-store' });
-      const data = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(data.error || 'Failed to fetch accounts');
-
-      const loadedAccounts: Account[] = (Array.isArray(data.accounts) ? data.accounts : []).map((account: Record<string, unknown>) => ({
-        id: String(account.id),
-        name: String(account.account_name ?? account.name ?? account.account_type ?? 'Bank account'),
-        accountNumber: String(account.account_number ?? account.accountNumber ?? ''),
-        accountType: String(account.account_type ?? account.accountType ?? 'checking'),
-        balance: Number(account.balance ?? 0),
-        currency: String(account.currency ?? 'USD'),
-      }));
-      setAccounts(loadedAccounts);
-
-      if (loadedAccounts.length > 0) {
-        setFormData(prev => ({
-          ...prev,
-          fromAccountId: loadedAccounts.some((account) => account.id === prev.fromAccountId)
-            ? prev.fromAccountId
-            : loadedAccounts[0].id,
-        }));
-      }
-    } catch (err) {
-      console.error('[v0] Error fetching accounts:', err);
-      toast.error('Failed to load accounts');
-    } finally {
-      setIsLoadingAccounts(false);
-    }
-  }, [userId, isLoaded]);
-
-  // Fetch transfer history
-  const fetchTransferHistory = useCallback(async () => {
-    if (!userId || !isLoaded) return;
-
-    try {
-      const response = await fetch(`/api/transfers/status?userId=${userId}`);
-      if (response.ok) {
-        const data = await response.json();
-        setRecentTransfers(data.transfers || []);
-      }
-    } catch (err) {
-      console.error('[v0] Error fetching transfer history:', err);
-    }
-  }, [userId, isLoaded]);
+  // Accounts are shared with the dashboard context so selection and balances stay in sync.
+  const fetchAccounts = useCallback(() => {
+    setAccounts(dashboardAccounts);
+    setFormData((prev) => ({
+      ...prev,
+      fromAccountId: dashboardAccounts.some((account) => account.id === prev.fromAccountId)
+        ? prev.fromAccountId
+        : dashboardAccounts[0]?.id || '',
+    }));
+    setIsLoadingAccounts(false);
+  }, [dashboardAccounts]);
 
   useEffect(() => {
-    const initialLoad = window.setTimeout(() => {
-      void fetchAccounts();
-      void fetchTransferHistory();
-    }, 0);
-    const interval = window.setInterval(() => void fetchTransferHistory(), 3000);
-    return () => {
-      window.clearTimeout(initialLoad);
-      window.clearInterval(interval);
-    };
-  }, [fetchAccounts, fetchTransferHistory]);
+    const initialLoad = window.setTimeout(fetchAccounts, 0);
+    return () => window.clearTimeout(initialLoad);
+  }, [fetchAccounts]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleAccountChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const accountId = e.target.value;
+    setFormData(prev => ({ ...prev, fromAccountId: accountId }));
+    setTransferResult(null);
   };
 
   const validateTransfer = (): boolean => {
@@ -157,41 +130,38 @@ function TransferContent() {
 
     setIsTransferring(true);
     try {
-      const response = await fetch('/api/transfers/send', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          fromAccountId: formData.fromAccountId,
-          toAccountNumber: formData.receiverBankAccount,
-          toBankCode: formData.receiverBankCode,
-          amount: parseFloat(formData.amount),
-          narration: formData.narration || `Transfer to ${formData.receiverName}`,
-          recipientName: formData.receiverName,
-          recipientPhone: formData.recipientPhone || undefined,
-          recipientEmail: formData.recipientEmail || undefined,
-          transferType: formData.receiverBankCode === 'ZELLE' ? 'zelle' : 'bank_transfer'
-        })
+      const amount = parseFloat(formData.amount);
+      const source = accounts.find((account) => account.id === formData.fromAccountId);
+      if (!source) throw new Error('Select a valid source account');
+
+      updateBalance(source.id, -amount);
+      const transaction = addTransaction({
+        description: formData.narration || `Transfer to ${formData.receiverName}`,
+        amount,
+        type: 'debit',
+        category: 'Transfer',
+        status: 'pending',
+        recipientName: formData.receiverName,
+        recipientAccount: formData.receiverBankAccount,
+        recipientBank: formData.receiverBankCode,
+        accountFrom: source.name,
+        accountId: source.id,
+        reference: `TRF-${Date.now()}`,
       });
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Transfer failed');
-      }
-
-      // Show result
       const result: TransferStatus = {
-        id: data.transaction?.id || '',
-        status: data.status === 'processing' ? 'processing' : 'pending',
-        amount: parseFloat(formData.amount),
-        fromAccount: formData.fromAccountId,
+        id: transaction.id,
+        status: 'pending',
+        amount,
+        fromAccount: source.name,
         toAccount: formData.receiverBankAccount,
         receiverName: formData.receiverName,
         timestamp: new Date().toISOString(),
-        transactionId: data.transaction?.id || ''
+        transactionId: transaction.id
       };
 
       setTransferResult(result);
+      setRecentTransfers((previous) => [result, ...previous].slice(0, 10));
       toast.success('Transfer initiated successfully');
 
       // Reset form
@@ -206,11 +176,7 @@ function TransferContent() {
         narration: ''
       });
 
-      // Refresh transfer history
-      setTimeout(fetchTransferHistory, 2000);
-
-      // Refresh accounts to update balance
-      setTimeout(fetchAccounts, 2000);
+      // The shared banking context updates the dashboard balance immediately.
     } catch (error: any) {
       console.error('[v0] Transfer error:', error);
       toast.error(error.message || 'Transfer failed');
@@ -258,24 +224,29 @@ function TransferContent() {
 
   return (
     <main className="min-h-screen bg-background pb-24 md:pb-8">
-      <div className="max-w-4xl mx-auto p-4 md:p-8">
-        {/* Header */}
-        <div className="mb-8 flex items-start gap-4">
-          <ContextualBackButton />
+      <div className="mx-auto max-w-5xl px-4 py-6 md:px-8 md:py-10">
+        <div className="mb-8 flex items-center gap-4">
           <div>
-            <div className="mb-2 flex items-center gap-3">
-              <Send className="h-8 w-8 text-primary" aria-hidden="true" />
-              <h1 className="text-4xl font-bold text-foreground">Send Money</h1>
+            <div className="mb-1 flex items-center gap-3">
+              <Send className="size-6 text-primary" aria-hidden="true" />
+              <h1 className="text-3xl font-semibold tracking-tight text-foreground">Transfer funds</h1>
             </div>
-            <p className="text-muted-foreground">Transfer funds to bank accounts instantly</p>
+            <p className="text-sm text-muted-foreground">Move money between your accounts or send it to someone else.</p>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
           {/* Transfer Form */}
           <div className="lg:col-span-2">
-            <div className="bg-card border border-border rounded-xl p-6">
-              <form onSubmit={handleTransfer} className="space-y-6">
+            <div className="rounded-2xl border border-border bg-card p-6 shadow-sm md:p-8">
+              <div className="mb-6 flex items-center justify-between gap-4">
+                <div>
+                  <h2 className="text-lg font-semibold text-foreground">One-time transfer</h2>
+                  <p className="mt-1 text-sm text-muted-foreground">Send funds securely from an eligible account.</p>
+                </div>
+                <span className="rounded-full bg-muted px-3 py-1 text-xs font-medium text-muted-foreground">Secure</span>
+              </div>
+              <form onSubmit={handleTransfer} className="flex flex-col gap-6">
                 {/* Source Account Selection */}
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-2">
@@ -287,8 +258,10 @@ function TransferContent() {
                     <select
                       name="fromAccountId"
                       value={formData.fromAccountId}
-                      onChange={handleInputChange}
-                      className="w-full px-4 py-3 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                      onChange={handleAccountChange}
+                      disabled={accounts.length === 0}
+                      aria-label="From Account"
+                      className="w-full px-4 py-3 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary disabled:cursor-not-allowed disabled:opacity-60"
                     >
                       <option value="">Select an account</option>
                       {accounts.map(account => (
@@ -513,8 +486,7 @@ function TransferContent() {
 export default function TransferPage() {
   return (
     <ProtectedRoute>
-      <Navigation />
-      <TransferContent />
+    <TransferContent />
     </ProtectedRoute>
   );
 }

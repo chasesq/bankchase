@@ -47,7 +47,7 @@ export default function RootLayout({
     <html lang="en" className="bg-background" suppressHydrationWarning>
       <head></head>
       <body className={`font-sans antialiased`}>
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
             <StatsigWrapper>
               <AuthProvider>
                 <DeviceIntelligenceProvider>

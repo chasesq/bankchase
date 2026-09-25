@@ -3,11 +3,16 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Menu, X, LogOut, LayoutDashboard, Wallet, Send, User, ReceiptText, Bell, Users, CreditCard, FileText, Landmark, ArrowRightLeft } from 'lucide-react';
+import { Menu, X, LogOut, LayoutDashboard, Wallet, Send, User, ReceiptText, Bell, Users, CreditCard, FileText, Landmark, ArrowRightLeft, Plug } from 'lucide-react';
 import { useAuth } from '@/lib/auth-context';
 import { ContextualBackButton } from '@/components/contextual-back-button';
 
-export function Navigation() {
+interface NavigationProps {
+  hideBrand?: boolean;
+  hideBackButton?: boolean;
+}
+
+export function Navigation({ hideBrand = false, hideBackButton = false }: NavigationProps) {
   const [isOpen, setIsOpen] = useState(false);
   const router = useRouter();
   const { logout } = useAuth();
@@ -21,7 +26,7 @@ export function Navigation() {
     { label: 'Dashboard', href: '/', icon: LayoutDashboard },
     { label: 'Send | Zelle®', href: '/send-money', icon: Send },
     { label: 'Transfer', href: '/transfer', icon: ArrowRightLeft },
-    { label: 'Deposit', href: '/deposit', icon: Wallet },
+    { label: 'Deposit', href: '/add-funds', icon: Wallet },
     { label: 'Pay bills', href: '/bill-pay', icon: ReceiptText },
     { label: 'Accounts', href: '/accounts', icon: Wallet },
     { label: 'Transactions', href: '/transactions', icon: ReceiptText },
@@ -35,22 +40,18 @@ export function Navigation() {
     { label: 'My profile', href: '/settings/my-profile', icon: User },
     { label: 'Company profile', href: '/settings/company-profile', icon: Landmark },
     { label: 'Settings', href: '/settings', icon: User },
+    { label: 'Integrations', href: '/settings/integrations', icon: Plug },
   ];
 
   return (
     <nav className="bg-background shadow">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
-          {/* Logo */}
-          <div className="flex items-center">
-            <Link href="/" className="flex items-center">
-              <span className="text-2xl font-bold text-primary">Chase</span>
-            </Link>
-          </div>
+          <div className="flex items-center" aria-hidden="true" />
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-1 overflow-x-auto py-2">
-            <ContextualBackButton />
+            {!hideBackButton && <ContextualBackButton />}
             {navItems.map((item) => {
               const Icon = item.icon;
               return (
@@ -90,7 +91,7 @@ export function Navigation() {
       {isOpen && (
         <div className="md:hidden bg-card border-t border-border">
           <div className="px-2 pt-2 pb-3 space-y-1">
-            <ContextualBackButton />
+            {!hideBackButton && <ContextualBackButton />}
             {navItems.map((item) => {
               const Icon = item.icon;
               return (

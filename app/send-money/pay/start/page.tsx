@@ -22,15 +22,15 @@ export default function PayStartPage() {
   }
 
   return (
-    <main className="min-h-screen bg-muted/30 px-4 py-6 md:px-8 md:py-10">
-      <div className="mx-auto flex max-w-5xl flex-col gap-8">
+    <main className="min-h-screen bg-background px-4 py-6 md:px-8 md:py-10">
+      <div className="mx-auto flex max-w-6xl flex-col gap-8">
         <header className="flex items-start gap-4">
           <ContextualBackButton />
           <div className="min-w-0">
             <p className="text-sm font-medium text-primary">Send money</p>
-            <h1 className="text-3xl font-semibold tracking-tight md:text-4xl">Send or pay</h1>
+            <h1 className="text-3xl font-semibold tracking-tight md:text-4xl">Send | Zelle®</h1>
             <p className="mt-2 max-w-2xl text-muted-foreground">
-              Choose a secure way to move money from your connected account. You can review every transfer before it is submitted.
+              Send money to people you know and trust, or move funds between your connected accounts.
             </p>
           </div>
         </header>
@@ -40,38 +40,50 @@ export default function PayStartPage() {
             <ShieldCheck className="h-4 w-4" />
             <AlertTitle>Connect an account to continue</AlertTitle>
             <AlertDescription>
-              Add a funding account before starting a payment or transfer. Your money movement options will appear here once an account is available.
+              Add a funding account before sending money. Your connected accounts will appear in the secure review step.
             </AlertDescription>
           </Alert>
         )}
 
-        <section aria-labelledby="payment-options" className="grid gap-4 md:grid-cols-3">
-          <h2 id="payment-options" className="sr-only">Payment options</h2>
-          <Card className="flex flex-col border-primary/20 bg-card shadow-sm">
-            <CardHeader className="flex-1">
-              <Smartphone className="mb-2 h-5 w-5 text-primary" aria-hidden="true" />
-              <CardTitle>Send with Zelle®</CardTitle>
-              <CardDescription>Send money quickly to friends and family using their email address.</CardDescription>
+        <section aria-labelledby="payment-options" className="grid gap-5 md:grid-cols-3">
+          <h2 id="payment-options" className="sr-only">Ways to send money</h2>
+          <Card className="flex flex-col border-primary/30 bg-primary/[0.04] shadow-sm">
+            <CardHeader className="flex-1 gap-3">
+              <div className="flex size-10 items-center justify-center rounded-full bg-primary/10 text-primary">
+                <Smartphone aria-hidden="true" />
+              </div>
+              <div className="flex flex-col gap-1">
+                <CardTitle>Send with Zelle®</CardTitle>
+                <CardDescription>Send money in minutes using a recipient&apos;s email or mobile number.</CardDescription>
+              </div>
             </CardHeader>
             <CardContent>
-              <Button className="w-full" disabled={accounts.length === 0} onClick={() => openTransfer('zelle')}>Start Zelle transfer</Button>
+              <Button className="w-full" disabled={accounts.length === 0} onClick={() => openTransfer('zelle')}>Send with Zelle®</Button>
             </CardContent>
           </Card>
           <Card className="flex flex-col bg-card shadow-sm">
-            <CardHeader className="flex-1">
-              <Banknote className="mb-2 h-5 w-5 text-primary" aria-hidden="true" />
-              <CardTitle>Transfer money</CardTitle>
-              <CardDescription>Move money between your connected accounts with a clear review step.</CardDescription>
+            <CardHeader className="flex-1 gap-3">
+              <div className="flex size-10 items-center justify-center rounded-full bg-muted text-foreground">
+                <Banknote aria-hidden="true" />
+              </div>
+              <div className="flex flex-col gap-1">
+                <CardTitle>Between accounts</CardTitle>
+                <CardDescription>Move money between two connected accounts with a clear review step.</CardDescription>
+              </div>
             </CardHeader>
             <CardContent>
-              <Button className="w-full" variant="outline" disabled={accounts.length < 2} onClick={() => openTransfer('internal')}>Start transfer</Button>
+              <Button className="w-full" variant="outline" disabled={accounts.length < 2} onClick={() => openTransfer('internal')}>Transfer funds</Button>
             </CardContent>
           </Card>
           <Card className="flex flex-col bg-card shadow-sm">
-            <CardHeader className="flex-1">
-              <Receipt className="mb-2 h-5 w-5 text-primary" aria-hidden="true" />
-              <CardTitle>Pay bills</CardTitle>
-              <CardDescription>Pay a bill now or open bill pay to schedule a future payment.</CardDescription>
+            <CardHeader className="flex-1 gap-3">
+              <div className="flex size-10 items-center justify-center rounded-full bg-muted text-foreground">
+                <Receipt aria-hidden="true" />
+              </div>
+              <div className="flex flex-col gap-1">
+                <CardTitle>Pay a bill</CardTitle>
+                <CardDescription>Pay a bill now or schedule a future payment from your account.</CardDescription>
+              </div>
             </CardHeader>
             <CardContent>
               <Button className="w-full" variant="outline" onClick={() => setBillsOpen(true)}>Open bill pay</Button>
@@ -81,8 +93,8 @@ export default function PayStartPage() {
 
         <Card className="bg-card shadow-sm">
           <CardHeader>
-            <CardTitle>Need a bank wire?</CardTitle>
-            <CardDescription>Send funds to an external bank account with the same secure review flow.</CardDescription>
+            <CardTitle>Send to a bank account</CardTitle>
+            <CardDescription>Use a bank transfer when you need to send funds outside your connected accounts.</CardDescription>
           </CardHeader>
           <CardContent>
             <Button variant="secondary" disabled={accounts.length === 0} onClick={() => openTransfer('bank_transfer')}>Start bank transfer</Button>
