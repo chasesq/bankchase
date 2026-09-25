@@ -5,7 +5,6 @@ import Link from 'next/link'
 import { Bell, Globe, Lock, Moon, Save } from 'lucide-react'
 import { toast } from 'sonner'
 import { ProtectedRoute } from '@/components/ProtectedRoute'
-import { Navigation } from '@/components/Navigation'
 import { useBanking } from '@/lib/banking-context'
 import { useTheme } from 'next-themes'
 
@@ -38,7 +37,7 @@ function SettingsContent() {
 
   if (!isLoaded) return <main className="flex min-h-screen items-center justify-center bg-background text-muted-foreground">Loading settings...</main>
 
-  return <main className="min-h-screen bg-background pb-24 md:pb-8"><Navigation /><div className="mx-auto max-w-4xl p-4 md:p-8">
+  return <main className="min-h-screen bg-background pb-24 md:pb-8"><div className="mx-auto max-w-4xl p-4 md:p-8">
     <div className="flex flex-wrap items-end justify-between gap-4"><div><p className="text-sm font-semibold uppercase tracking-widest text-primary">Account preferences</p><h1 className="mt-2 text-4xl font-bold text-foreground">Settings</h1><p className="mt-2 text-muted-foreground">Manage your preferences and notification settings.</p></div><button onClick={save} disabled={saving} className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground disabled:opacity-60"><Save className="size-4" aria-hidden="true" />{saving ? 'Saving...' : 'Save changes'}</button></div>
     <div className="mt-8 flex flex-col gap-6">
       <section className="rounded-xl border border-border bg-card p-6"><h2 className="flex items-center gap-2 text-xl font-semibold text-foreground"><Bell className="size-5 text-primary" />Notifications</h2><div className="mt-4 divide-y divide-border"><Toggle title="Email Notifications" description="Receive updates via email" checked={draft.emailNotifications} onChange={() => toggle('emailNotifications')} /><Toggle title="SMS Notifications" description="Receive text messages for important alerts" checked={draft.smsAlerts} onChange={() => toggle('smsAlerts')} /><Toggle title="Push Notifications" description="Receive browser notifications" checked={draft.pushNotifications} onChange={() => toggle('pushNotifications')} /><Toggle title="Transaction Alerts" description="Get notified when money moves in or out of your accounts" checked={draft.transactionAlerts} onChange={() => toggle('transactionAlerts')} /><Toggle title="Low Balance Alert" description="Be notified when your balance falls below a threshold" checked={draft.balanceAlerts} onChange={() => toggle('balanceAlerts')} />{draft.balanceAlerts && <label className="flex items-center justify-between gap-4 bg-muted/20 p-4 text-sm text-foreground">Alert below <span className="flex items-center gap-2"><span>$</span><input type="number" min="0" value={draft.balanceThreshold} onChange={(e) => update('balanceThreshold', Math.max(0, Number(e.target.value)))} className="w-28 rounded-md border border-border bg-background px-3 py-2" /></span></label>}<Toggle title="Marketing Emails" description="Promotional offers and product updates" checked={draft.marketingEmails} onChange={() => toggle('marketingEmails')} /><Toggle title="Paperless Statements" description="Receive statements digitally instead of by mail" checked={draft.paperlessStatements} onChange={() => toggle('paperlessStatements')} /></div></section>
