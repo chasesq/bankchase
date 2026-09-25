@@ -6,7 +6,7 @@ import { ArrowUpRight, ChevronRight, ExternalLink, Plug, Search } from 'lucide-r
 import { Navigation } from '@/components/Navigation'
 
 const apps = [
-  { name: 'Finch', description: 'Connect payroll and HR data securely.', href: '/settings/integrations/finch', providerUrl: 'https://www.tryfinch.com/', category: 'Payroll' },
+  { name: 'Finch', description: 'Connect payroll and HR data securely.', href: '/settings/integrations/finch', providerUrl: 'https://dashboard.tryfinch.com/signup', providerSiteUrl: 'https://www.tryfinch.com/', category: 'Payroll' },
   { name: 'QuickBooks', description: 'Sync transactions and account activity.', href: '#', providerUrl: 'https://quickbooks.intuit.com/signup/', providerSiteUrl: 'https://quickbooks.intuit.com/', category: 'Accounting' },
   { name: 'Xero', description: 'Keep your books and banking in sync.', href: '#', providerUrl: 'https://www.xero.com/signup/', providerSiteUrl: 'https://www.xero.com/', category: 'Accounting' },
   { name: 'Gusto', description: 'Manage payroll funding and employee payments.', href: '#', providerUrl: 'https://gusto.com/signup', providerSiteUrl: 'https://gusto.com/', category: 'Payroll' },
