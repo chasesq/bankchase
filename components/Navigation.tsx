@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Menu, X, LogOut, LayoutDashboard, Wallet, Send, User, ReceiptText, Bell, Users, CreditCard, FileText, Landmark, ArrowRightLeft } from 'lucide-react';
+import { Menu, X, LogOut, LayoutDashboard, Wallet, Send, User, ReceiptText, Bell, Users, CreditCard, FileText, Landmark, ArrowRightLeft, Plug } from 'lucide-react';
 import { useAuth } from '@/lib/auth-context';
 import { ContextualBackButton } from '@/components/contextual-back-button';
 
@@ -40,6 +40,7 @@ export function Navigation({ hideBrand = false, hideBackButton = false }: Naviga
     { label: 'My profile', href: '/settings/my-profile', icon: User },
     { label: 'Company profile', href: '/settings/company-profile', icon: Landmark },
     { label: 'Settings', href: '/settings', icon: User },
+    { label: 'Integrations', href: '/settings/integrations', icon: Plug },
   ];
 
   return (
