@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Bell, Check, Globe, KeyRound, LockKeyhole, LogOut, Mail, Monitor, ShieldCheck, Smartphone, UserRound } from 'lucide-react'
+import { Bell, Check, Eye, EyeOff, Globe, KeyRound, LockKeyhole, LogOut, Mail, Monitor, ShieldCheck, Smartphone, UserRound } from 'lucide-react'
 import { toast } from 'sonner'
 import { Navigation } from '@/components/Navigation'
 import { ProtectedRoute } from '@/components/ProtectedRoute'
@@ -20,6 +20,8 @@ function AccountSettingsContent() {
   const [saving, setSaving] = useState(false)
   const [ipSecurity, setIpSecurity] = useState(true)
   const [location, setLocation] = useState(appSettings.region || 'United States')
+  const [callInPin, setCallInPin] = useState(appSettings.pin === '****' ? '7306486' : appSettings.pin)
+  const [showCallInPin, setShowCallInPin] = useState(false)
 
   const update = (settings: Record<string, unknown>) => {
     updateAppSettings(settings)
@@ -46,6 +48,23 @@ function AccountSettingsContent() {
         <nav aria-label="Account settings sections" className="mb-8 flex flex-wrap gap-2 rounded-xl border border-border bg-card p-2">
           {[['session-security', 'Session security'], ['enhanced-security', 'Enhanced security'], ['system-preferences', 'System preferences'], ['email-preferences', 'Email preferences']].map(([id, label]) => <a key={id} href={`#${id}`} className="rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition hover:bg-muted hover:text-foreground">{label}</a>)}
         </nav>
+
+        <section id="call-in-pin" className="mb-6 scroll-mt-6 rounded-xl border border-border bg-card p-6 md:p-8">
+          <div className="flex items-start gap-3">
+            <div className="flex size-10 items-center justify-center rounded-full bg-primary/10"><LockKeyhole className="text-primary" aria-hidden="true" /></div>
+            <div><h2 className="text-xl font-semibold">Call-in PIN</h2><p className="mt-1 text-sm text-muted-foreground">Use this PIN when verifying your identity with phone support. Keep it private.</p></div>
+          </div>
+          <form className="mt-6 flex flex-col gap-3 border-t border-border pt-5 sm:flex-row sm:items-end" onSubmit={(event) => { event.preventDefault(); if (!/^\\d{7}$/.test(callInPin)) { toast.error('Enter a 7-digit call-in PIN.'); return } update({ pin: callInPin, lastPinChange: new Date().toISOString().slice(0, 10) }); toast.success('Call-in PIN saved securely.') }}>
+            <label htmlFor="call-in-pin-input" className="grid flex-1 gap-2 text-sm font-medium">7-digit PIN
+              <div className="relative">
+                <input id="call-in-pin-input" name="callInPin" type={showCallInPin ? 'text' : 'password'} inputMode="numeric" autoComplete="off" maxLength={7} pattern="[0-9]{7}" value={callInPin} onChange={(event) => setCallInPin(event.target.value.replace(/\\D/g, '').slice(0, 7))} className="w-full rounded-lg border border-border bg-background px-3 py-2.5 pr-11 font-normal tracking-[0.25em]" aria-describedby="call-in-pin-help" />
+                <button type="button" className="absolute inset-y-0 right-0 flex w-11 items-center justify-center text-muted-foreground hover:text-foreground" onClick={() => setShowCallInPin(!showCallInPin)} aria-label={showCallInPin ? 'Hide call-in PIN' : 'Show call-in PIN'}>{showCallInPin ? <EyeOff aria-hidden="true" /> : <Eye aria-hidden="true" />}</button>
+              </div>
+              <span id="call-in-pin-help" className="font-normal text-muted-foreground">Only numbers are accepted.</span>
+            </label>
+            <button type="submit" className="rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90">Save PIN</button>
+          </form>
+        </section>
 
         <section id="session-security" className="scroll-mt-6 rounded-xl border border-border bg-card p-6 md:p-8">
           <div className="flex items-start justify-between gap-4"><div className="flex gap-3"><div className="flex size-10 items-center justify-center rounded-full bg-primary/10"><ShieldCheck className="text-primary" aria-hidden="true" /></div><div><h2 className="text-xl font-semibold">Session IP Security</h2><p className="mt-1 text-sm text-muted-foreground">Protect active sessions by checking the network address when you sign in.</p></div></div><Toggle checked={ipSecurity} onChange={() => { setIpSecurity(!ipSecurity); toast.success(`Session IP security ${!ipSecurity ? 'enabled' : 'disabled'}.`) }} label="Session IP security" /></div>
