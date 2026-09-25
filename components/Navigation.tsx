@@ -2,9 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { Menu, X, LogOut, LayoutDashboard, Wallet, Send, User, ReceiptText, Bell, Users, CreditCard, FileText, Landmark, ArrowRightLeft, Plug } from 'lucide-react';
-import { useAuth } from '@/lib/auth-context';
+import { Menu, X, LayoutDashboard, Wallet, Send, ReceiptText, ArrowRightLeft } from 'lucide-react';
 import { ContextualBackButton } from '@/components/contextual-back-button';
 
 interface NavigationProps {
@@ -14,33 +12,11 @@ interface NavigationProps {
 
 export function Navigation({ hideBrand = false, hideBackButton = false }: NavigationProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const router = useRouter();
-  const { logout } = useAuth();
-
-  const handleLogout = async () => {
-    await logout();
-    router.replace('/sign-in');
-  };
-
   const navItems = [
     { label: 'Dashboard', href: '/', icon: LayoutDashboard },
     { label: 'Send | Zelle®', href: '/send-money', icon: Send },
     { label: 'Transfer', href: '/transfer', icon: ArrowRightLeft },
     { label: 'Deposit', href: '/add-funds', icon: Wallet },
-    { label: 'Pay bills', href: '/bill-pay', icon: ReceiptText },
-    { label: 'Accounts', href: '/accounts', icon: Wallet },
-    { label: 'Transactions', href: '/transactions', icon: ReceiptText },
-    { label: 'Cards', href: '/cards', icon: CreditCard },
-    { label: 'Team Spend', href: '/team-spend', icon: Users },
-    { label: 'Payments', href: '/payments', icon: Send },
-    { label: 'Invoicing', href: '/invoicing', icon: FileText },
-    { label: 'Accounting', href: '/accounting', icon: Landmark },
-    { label: 'Ops / Payroll', href: '/payroll', icon: Users },
-    { label: 'Notifications', href: '/settings/notifications', icon: Bell },
-    { label: 'My profile', href: '/settings/my-profile', icon: User },
-    { label: 'Company profile', href: '/settings/company-profile', icon: Landmark },
-    { label: 'Settings', href: '/settings', icon: User },
-    { label: 'Integrations', href: '/settings/integrations', icon: Plug },
   ];
 
   return (
@@ -65,13 +41,6 @@ export function Navigation({ hideBrand = false, hideBackButton = false }: Naviga
                 </Link>
               );
             })}
-            <button
-              onClick={handleLogout}
-              className="ml-4 flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-foreground hover:bg-muted/50 transition"
-            >
-              <LogOut className="w-4 h-4" />
-              <span className="hidden lg:inline">Logout</span>
-            </button>
           </div>
 
           {/* Mobile menu button */}
@@ -106,16 +75,6 @@ export function Navigation({ hideBrand = false, hideBackButton = false }: Naviga
                 </Link>
               );
             })}
-            <button
-              onClick={() => {
-                handleLogout();
-                setIsOpen(false);
-              }}
-              className="flex items-center gap-3 w-full mt-3 px-3 py-2 rounded-lg text-base font-medium text-foreground hover:bg-muted/50 transition"
-            >
-              <LogOut className="w-5 h-5" />
-              Logout
-            </button>
           </div>
         </div>
       )}
