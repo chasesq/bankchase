@@ -22,7 +22,6 @@ import { WireDrawer } from "@/components/wire-drawer"
 import { TransactionReceiptModal } from "@/components/transaction-receipt-modal"
 import { TransactionsDrawer } from "@/components/transactions-drawer"
 import { DisputeTransactionDrawer } from "@/components/dispute-transaction-drawer"
-import { PrepayBalanceCard } from "@/components/prepay-balance-card"
 import { useBanking } from "@/lib/banking-context"
 import { useAuth } from "@/lib/auth-context"
 
@@ -134,7 +133,6 @@ export default function BankingDashboard() {
               onSeeAllTransactions={() => setTransactionsOpen(true)}
               onReceiptOpen={handleOpenReceipt}
             />
-            <PrepayBalanceCard />
             <CreditJourneyCard onViewScore={() => setCreditScoreOpen(true)} />
           </div>
         )
