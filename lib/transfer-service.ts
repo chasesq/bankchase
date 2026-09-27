@@ -10,6 +10,10 @@ export interface TransferRequest {
   amount: number
   currency?: string
   narration?: string
+  senderId?: string
+  recipientName?: string
+  receiverAccountId?: string
+  transferType?: 'zelle' | 'bank_transfer' | 'internal'
 }
 
 export interface TransferResponse {
@@ -57,12 +61,17 @@ export async function sendTransfer(request: TransferRequest): Promise<TransferRe
         'idempotency-key': idempotencyKey
       },
       body: JSON.stringify({
-        fromAccountId: request.fromAccountId,
+        senderId: request.senderId,
+        senderAccountId: request.fromAccountId,
+        receiverAccountId: request.receiverAccountId,
+        recipientEmail: undefined,
+        recipientName: request.recipientName || request.toAccountNumber,
+        amount: request.amount,
+        description: request.narration,
+        transferType: request.transferType || 'bank_transfer',
         toAccountNumber: request.toAccountNumber,
         toBankCode: request.toBankCode,
-        amount: request.amount,
-        currency: request.currency || 'USD',
-        narration: request.narration
+        currency: request.currency || 'USD'
       })
     })
 
@@ -80,8 +89,8 @@ export async function sendTransfer(request: TransferRequest): Promise<TransferRe
     console.log('[v0] Transfer created:', data)
     return {
       success: true,
-      transactionId: data.transactionId,
-      status: data.status,
+      transactionId: data.transactionId || data.transferId,
+      status: data.status || 'completed',
       details: data.details
     }
   } catch (error: any) {

@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
   try {
     const body: TransferRequest = await request.json()
     
-    const {
+      const {
       senderId,
       senderAccountId,
       receiverAccountId,
