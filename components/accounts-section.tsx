@@ -154,7 +154,7 @@ export function AccountsSection({
       <Card className="dashboard-card-shadow border-0">
         <CardContent className="p-4">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="font-semibold text-primary">Recent Transactions</h3>
+            <h3 className="font-semibold text-primary">Transactions</h3>
             <Button
               variant="ghost"
               size="sm"

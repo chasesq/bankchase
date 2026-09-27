@@ -119,7 +119,7 @@ export default function StatementsPage() {
 
         {/* Statements List */}
         <div className="space-y-4">
-          <h2 className="text-2xl font-bold text-foreground mb-6">Recent Statements</h2>
+          <h2 className="text-2xl font-bold text-foreground mb-6">Statements</h2>
           {statements.map((statement) => (
             <Card key={statement.id} className="p-6 hover:shadow-lg transition">
               <div className="flex items-center justify-between">

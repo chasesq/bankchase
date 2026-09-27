@@ -406,7 +406,7 @@ function TransferContent() {
             </div>
           </div>
 
-          {/* Sidebar - Recent Transfers */}
+          {/* Sidebar - Transfers */}
           <div>
             {/* Transfer Result Alert */}
             {transferResult && (
@@ -429,9 +429,9 @@ function TransferContent() {
               </div>
             )}
 
-            {/* Recent Transfers */}
+            {/* Transfers */}
             <div className="bg-card border border-border rounded-xl p-6">
-              <h3 className="text-lg font-semibold text-foreground mb-4">Recent Transfers</h3>
+              <h3 className="text-lg font-semibold text-foreground mb-4">Transfers</h3>
 
               {recentTransfers.length === 0 ? (
                 <p className="text-sm text-muted-foreground text-center py-8">

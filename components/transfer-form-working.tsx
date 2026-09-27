@@ -159,7 +159,7 @@ export function TransferFormWorking() {
       {/* Transaction History */}
       {transfer.transactions.length > 0 && (
         <Card className="p-6">
-          <h3 className="text-lg font-bold mb-4">Recent Transactions</h3>
+          <h3 className="text-lg font-bold mb-4">Transactions</h3>
           <div className="space-y-2">
             {transfer.transactions.map((tx) => (
               <div key={tx.id} className="flex justify-between items-center p-3 bg-gray-50 rounded">

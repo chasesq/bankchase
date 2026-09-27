@@ -1,12 +1,18 @@
 import axios from 'axios';
 import { createClient } from '@supabase/supabase-js';
 
-const PLAID_ENV = process.env.PLAID_ENV || 'production';
+const PLAID_ENV = process.env.PLAID_ENV === 'sandbox' ? 'sandbox' : 'production';
 const PLAID_CLIENT_ID = process.env.PLAID_CLIENT_ID;
 const PLAID_SECRET = process.env.PLAID_SECRET;
 const BASE_URL = PLAID_ENV === 'production'
   ? 'https://production.plaid.com'
   : 'https://sandbox.plaid.com';
+
+function assertPlaidConfiguration(secret: string) {
+  if (!PLAID_CLIENT_ID || !secret) {
+    throw new Error('Plaid is not configured. Add PLAID_CLIENT_ID and PLAID_SECRET before connecting a bank account.');
+  }
+}
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -93,6 +99,7 @@ export class PlaidService {
    * Create a link token for Plaid Link initialization
    */
   static async createLinkToken(userId: string, clientName: string = 'MyBank', plaidSecret: string = PLAID_SECRET || ''): Promise<LinkTokenResponse> {
+    assertPlaidConfiguration(plaidSecret);
     try {
       const response = await axios.post(`${BASE_URL}/link/token/create`, {
         client_id: PLAID_CLIENT_ID,
@@ -104,18 +111,28 @@ export class PlaidService {
         client_metadata: {
           client_app_version: '1.0.0',
         },
-        countryCodes: ['US'],
+        country_codes: ['US'],
         language: 'en',
         products: ['auth', 'transactions'],
-        account_subtypes: ['checking', 'savings', 'credit card'],
-        redirect_uri: `${process.env.NEXT_PUBLIC_APP_URL}/plaid/callback`,
+        required_if_supported_products: ['identity'],
+        transactions: {
+          days_requested: 90,
+        },
+        account_subtypes: ['checking', 'savings'],
+        ...(process.env.NEXT_PUBLIC_APP_URL
+          ? {
+              redirect_uri: `${process.env.NEXT_PUBLIC_APP_URL.replace(/\/$/, '')}/plaid/callback`,
+              webhook: `${process.env.NEXT_PUBLIC_APP_URL.replace(/\/$/, '')}/api/plaid/webhook`,
+            }
+          : {}),
       });
 
       console.log('[v0] Plaid link token created successfully');
       return response.data;
     } catch (error: any) {
       console.error('[v0] Error creating Plaid link token:', error.response?.data || error.message);
-      throw new Error(`Failed to create link token: ${error.message}`);
+      const plaidMessage = error.response?.data?.error_message || error.response?.data?.display_message;
+      throw new Error(plaidMessage || `Failed to create link token: ${error.message}`);
     }
   }
 
@@ -123,6 +140,8 @@ export class PlaidService {
    * Exchange public token for access token
    */
   static async exchangePublicToken(publicToken: string, plaidSecret: string = PLAID_SECRET || ''): Promise<ExchangeTokenResponse> {
+    if (!publicToken) throw new Error('A Plaid public token is required.');
+    assertPlaidConfiguration(plaidSecret);
     try {
       const response = await axios.post(`${BASE_URL}/item/public_token/exchange`, {
         client_id: PLAID_CLIENT_ID,
@@ -142,6 +161,8 @@ export class PlaidService {
    * Get accounts and balances for a linked item
    */
   static async getAccounts(accessToken: string, plaidSecret: string = PLAID_SECRET || ''): Promise<AccountsResponse> {
+    if (!accessToken) throw new Error('A Plaid access token is required.');
+    assertPlaidConfiguration(plaidSecret);
     try {
       const response = await axios.post(`${BASE_URL}/accounts/get`, {
         client_id: PLAID_CLIENT_ID,
@@ -158,6 +179,84 @@ export class PlaidService {
   }
 
   /**
+   * Create a public token for a custom Plaid Sandbox user.
+   */
+  static async createSandboxPublicToken(
+    configuration: Record<string, unknown> = {},
+    plaidSecret: string = PLAID_SECRET || ''
+  ) {
+    if (PLAID_ENV !== 'sandbox') {
+      throw new Error('Plaid Sandbox custom users require PLAID_ENV=sandbox.');
+    }
+    assertPlaidConfiguration(plaidSecret);
+
+    try {
+      const response = await axios.post(`${BASE_URL}/sandbox/public_token/create`, {
+        client_id: PLAID_CLIENT_ID,
+        secret: plaidSecret,
+        institution_id: 'ins_109508',
+        initial_products: ['auth', 'transactions'],
+        options: {
+          override_username: 'user_custom',
+          override_password: JSON.stringify(configuration),
+        },
+      });
+      return response.data;
+    } catch (error: any) {
+      const plaidMessage = error.response?.data?.error_message || error.response?.data?.display_message;
+      throw new Error(plaidMessage || `Failed to create Sandbox public token: ${error.message}`);
+    }
+  }
+
+  /**
+   * Evaluate a proposed ACH transaction with Plaid Signal.
+   */
+  static async evaluateSignal(
+    input: {
+      accessToken: string;
+      accountId: string;
+      clientTransactionId: string;
+      amount: number;
+      clientUserId?: string;
+      recurring?: boolean;
+      defaultPaymentMethod?: 'SAME_DAY_ACH' | 'STANDARD_ACH' | 'MULTIPLE_PAYMENT_METHODS';
+      rulesetKey?: string;
+    },
+    plaidSecret: string = PLAID_SECRET || ''
+  ) {
+    if (!input.accessToken || !input.accountId || !input.clientTransactionId) {
+      throw new Error('accessToken, accountId, and clientTransactionId are required.');
+    }
+    if (!Number.isFinite(input.amount) || input.amount <= 0) {
+      throw new Error('amount must be a positive number.');
+    }
+    if (input.clientTransactionId.length > 36) {
+      throw new Error('clientTransactionId must be 36 characters or fewer.');
+    }
+    assertPlaidConfiguration(plaidSecret);
+
+    try {
+      const response = await axios.post(`${BASE_URL}/signal/evaluate`, {
+        client_id: PLAID_CLIENT_ID,
+        secret: plaidSecret,
+        access_token: input.accessToken,
+        account_id: input.accountId,
+        client_transaction_id: input.clientTransactionId,
+        amount: input.amount,
+        ...(input.clientUserId ? { client_user_id: input.clientUserId } : {}),
+        ...(input.recurring !== undefined ? { recurring: input.recurring } : {}),
+        ...(input.defaultPaymentMethod ? { default_payment_method: input.defaultPaymentMethod } : {}),
+        ...(input.rulesetKey ? { ruleset_key: input.rulesetKey } : {}),
+      });
+
+      return response.data;
+    } catch (error: any) {
+      const plaidError = error.response?.data?.error_message || error.response?.data?.display_message;
+      throw new Error(plaidError || `Failed to evaluate Signal transaction: ${error.message}`);
+    }
+  }
+
+  /**
    * Get transactions for an account
    */
   static async getTransactions(
@@ -167,6 +266,8 @@ export class PlaidService {
     options?: { accountIds?: string[] },
     plaidSecret: string = PLAID_SECRET || ''
   ): Promise<TransactionsResponse> {
+    if (!accessToken) throw new Error('A Plaid access token is required.');
+    assertPlaidConfiguration(plaidSecret);
     try {
       const payload: any = {
         client_id: PLAID_CLIENT_ID,

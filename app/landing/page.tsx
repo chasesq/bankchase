@@ -118,16 +118,14 @@ export default function LandingPage() {
               Get reliable hosting for your next project through our partner link. This is an affiliate link, so we may earn a commission at no extra cost to you.
             </p>
           </div>
-          <a
-            href="https://interserver.net/r/1139215"
-            rel="sponsored noreferrer"
-            aria-label="Visit InterServer hosting"
+          <Link
+            href="/offers"
+            aria-label="View hosting options"
             className="inline-flex shrink-0 items-center gap-2 rounded-md bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground shadow-sm transition hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
           >
-            Visit InterServer
+            View hosting options
             <ExternalLink aria-hidden="true" className="h-4 w-4" />
-            <span className="sr-only"> (opens in a new tab)</span>
-          </a>
+          </Link>
         </div>
       </section>
 

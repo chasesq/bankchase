@@ -10,6 +10,10 @@ export interface TransferRequest {
   amount: number
   currency?: string
   narration?: string
+  senderId?: string
+  recipientName?: string
+  receiverAccountId?: string
+  transferType?: 'zelle' | 'bank_transfer' | 'internal'
 }
 
 export interface TransferResponse {
@@ -39,25 +43,39 @@ export interface TransactionStatus {
  */
 export async function sendTransfer(request: TransferRequest): Promise<TransferResponse> {
   try {
-    console.log('[v0] Sending transfer:', request)
+    if (!request.fromAccountId || !request.toAccountNumber || !request.toBankCode) {
+      return { success: false, error: 'A source account, destination account, and bank code are required.' }
+    }
+    if (!Number.isFinite(request.amount) || request.amount <= 0) {
+      return { success: false, error: 'Transfer amount must be greater than zero.' }
+    }
+
+    const idempotencyKey = typeof crypto !== 'undefined' && 'randomUUID' in crypto
+      ? crypto.randomUUID()
+      : `${Date.now()}-${Math.random().toString(36).slice(2)}`
 
     const response = await fetch('/api/transfers/process', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'idempotency-key': `${Date.now()}-${Math.random()}`
+        'idempotency-key': idempotencyKey
       },
       body: JSON.stringify({
-        fromAccountId: request.fromAccountId,
+        senderId: request.senderId,
+        senderAccountId: request.fromAccountId,
+        receiverAccountId: request.receiverAccountId,
+        recipientEmail: undefined,
+        recipientName: request.recipientName || request.toAccountNumber,
+        amount: request.amount,
+        description: request.narration,
+        transferType: request.transferType || 'bank_transfer',
         toAccountNumber: request.toAccountNumber,
         toBankCode: request.toBankCode,
-        amount: request.amount,
-        currency: request.currency || 'USD',
-        narration: request.narration
+        currency: request.currency || 'USD'
       })
     })
 
-    const data = await response.json()
+    const data = await response.json().catch(() => ({}))
 
     if (!response.ok) {
       console.error('[v0] Transfer error:', data)
@@ -71,8 +89,8 @@ export async function sendTransfer(request: TransferRequest): Promise<TransferRe
     console.log('[v0] Transfer created:', data)
     return {
       success: true,
-      transactionId: data.transactionId,
-      status: data.status,
+      transactionId: data.transactionId || data.transferId,
+      status: data.status || 'completed',
       details: data.details
     }
   } catch (error: any) {

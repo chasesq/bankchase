@@ -301,7 +301,7 @@ export function SendMoneyDrawer({ open, onOpenChange, onReceiptOpen }: SendMoney
               <div>
                 <div className="flex items-center gap-2 mb-3">
                   <Clock className="h-4 w-4 text-muted-foreground" />
-                  <Label className="text-sm text-muted-foreground">Recent & Saved Contacts</Label>
+                  <Label className="text-sm text-muted-foreground">Saved Contacts</Label>
                 </div>
                 <div className="space-y-2 max-h-[40vh] overflow-y-auto">
                   {filteredContacts.map((contact) => (

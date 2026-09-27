@@ -119,7 +119,7 @@ export function ActivityDrawer({ open, onOpenChange }: ActivityDrawerProps) {
           <div className="flex items-center justify-between">
             <DrawerTitle className="flex items-center gap-2">
               <Clock className="h-5 w-5 text-[#0a4fa6]" />
-              Recent Activity
+              Activity
             </DrawerTitle>
             <Button variant="outline" size="sm" onClick={handleExport}>
               <Download className="h-4 w-4 mr-1" />

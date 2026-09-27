@@ -88,10 +88,10 @@ function AccountsContent() {
           </div>
         </div>
 
-        {/* Recent Transactions */}
+        {/* Transactions */}
         <div>
           <div className="flex justify-between items-center mb-4">
-            <h3 className="text-2xl font-bold text-foreground">Recent Transactions</h3>
+            <h3 className="text-2xl font-bold text-foreground">Transactions</h3>
             <Link href="/transactions" className="text-sm text-primary hover:underline">
               View All
             </Link>

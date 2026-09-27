@@ -129,7 +129,7 @@ export default function DocumentsUploadPage() {
                 4
               </div>
               <p>
-                <strong className="text-gray-900">Recent Documents:</strong> Ensure documents are current and not
+                <strong className="text-gray-900">Documents:</strong> Ensure documents are current and not
                 expired.
               </p>
             </div>

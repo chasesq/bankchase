@@ -37,9 +37,9 @@ export function PlaidAccountsManager() {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      if (!response.ok) throw new Error('Failed to fetch accounts');
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.error || 'Failed to fetch accounts');
 
-      const data = await response.json();
       setAccounts(data.accounts || []);
 
       // Calculate total balance
@@ -134,7 +134,7 @@ export function PlaidAccountsManager() {
                   </span>
                 </div>
 
-                {account.balance_available && (
+                {account.balance_available != null && (
                   <div className="flex justify-between items-center">
                     <span className="text-sm text-muted-foreground">Available Balance</span>
                     <span>

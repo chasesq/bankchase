@@ -672,7 +672,7 @@ export function MoreView({ onLogout }: MoreViewProps) {
       view: "help" as ViewType,
       href: "/help",
     },
-    { label: "Recent Activity", description: "View your activity log", icon: History, view: "activity" as ViewType },
+    { label: "Activity", description: "View your activity log", icon: History, view: "activity" as ViewType },
     { label: "Linked Devices", description: "Manage logged-in devices", icon: Smartphone, view: "devices" as ViewType },
     { label: "Login History", description: "View your login activity", icon: Clock, view: "loginHistory" as ViewType },
   ]
@@ -800,7 +800,7 @@ export function MoreView({ onLogout }: MoreViewProps) {
           <Button variant="ghost" size="icon" onClick={() => setCurrentView("main")}>
             <ChevronLeft className="h-5 w-5" />
           </Button>
-          <h2 className="text-2xl font-semibold">Recent Activity</h2>
+          <h2 className="text-2xl font-semibold">Activity</h2>
         </div>
 
         <Card className="p-4">

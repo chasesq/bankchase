@@ -109,10 +109,10 @@ export function RiskAdjustmentMetrics({
             </div>
           </div>
 
-          {/* Recent Drift Score */}
+          {/* Drift Score */}
           <div className="space-y-2">
             <div className="flex justify-between text-sm">
-              <span className="font-medium">Recent Drift Score (EMA)</span>
+              <span className="font-medium">Drift Score (EMA)</span>
               <span className="font-mono font-bold">
                 {(metrics.recent_drift_score * 100).toFixed(1)}%
               </span>
