@@ -39,13 +39,22 @@ export interface TransactionStatus {
  */
 export async function sendTransfer(request: TransferRequest): Promise<TransferResponse> {
   try {
-    console.log('[v0] Sending transfer:', request)
+    if (!request.fromAccountId || !request.toAccountNumber || !request.toBankCode) {
+      return { success: false, error: 'A source account, destination account, and bank code are required.' }
+    }
+    if (!Number.isFinite(request.amount) || request.amount <= 0) {
+      return { success: false, error: 'Transfer amount must be greater than zero.' }
+    }
+
+    const idempotencyKey = typeof crypto !== 'undefined' && 'randomUUID' in crypto
+      ? crypto.randomUUID()
+      : `${Date.now()}-${Math.random().toString(36).slice(2)}`
 
     const response = await fetch('/api/transfers/process', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'idempotency-key': `${Date.now()}-${Math.random()}`
+        'idempotency-key': idempotencyKey
       },
       body: JSON.stringify({
         fromAccountId: request.fromAccountId,
@@ -57,7 +66,7 @@ export async function sendTransfer(request: TransferRequest): Promise<TransferRe
       })
     })
 
-    const data = await response.json()
+    const data = await response.json().catch(() => ({}))
 
     if (!response.ok) {
       console.error('[v0] Transfer error:', data)
