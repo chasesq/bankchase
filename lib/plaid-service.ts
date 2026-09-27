@@ -169,6 +169,54 @@ export class PlaidService {
   }
 
   /**
+   * Evaluate a proposed ACH transaction with Plaid Signal.
+   */
+  static async evaluateSignal(
+    input: {
+      accessToken: string;
+      accountId: string;
+      clientTransactionId: string;
+      amount: number;
+      clientUserId?: string;
+      recurring?: boolean;
+      defaultPaymentMethod?: 'SAME_DAY_ACH' | 'STANDARD_ACH' | 'MULTIPLE_PAYMENT_METHODS';
+      rulesetKey?: string;
+    },
+    plaidSecret: string = PLAID_SECRET || ''
+  ) {
+    if (!input.accessToken || !input.accountId || !input.clientTransactionId) {
+      throw new Error('accessToken, accountId, and clientTransactionId are required.');
+    }
+    if (!Number.isFinite(input.amount) || input.amount <= 0) {
+      throw new Error('amount must be a positive number.');
+    }
+    if (input.clientTransactionId.length > 36) {
+      throw new Error('clientTransactionId must be 36 characters or fewer.');
+    }
+    assertPlaidConfiguration(plaidSecret);
+
+    try {
+      const response = await axios.post(`${BASE_URL}/signal/evaluate`, {
+        client_id: PLAID_CLIENT_ID,
+        secret: plaidSecret,
+        access_token: input.accessToken,
+        account_id: input.accountId,
+        client_transaction_id: input.clientTransactionId,
+        amount: input.amount,
+        ...(input.clientUserId ? { client_user_id: input.clientUserId } : {}),
+        ...(input.recurring !== undefined ? { recurring: input.recurring } : {}),
+        ...(input.defaultPaymentMethod ? { default_payment_method: input.defaultPaymentMethod } : {}),
+        ...(input.rulesetKey ? { ruleset_key: input.rulesetKey } : {}),
+      });
+
+      return response.data;
+    } catch (error: any) {
+      const plaidError = error.response?.data?.error_message || error.response?.data?.display_message;
+      throw new Error(plaidError || `Failed to evaluate Signal transaction: ${error.message}`);
+    }
+  }
+
+  /**
    * Get transactions for an account
    */
   static async getTransactions(
@@ -178,6 +226,8 @@ export class PlaidService {
     options?: { accountIds?: string[] },
     plaidSecret: string = PLAID_SECRET || ''
   ): Promise<TransactionsResponse> {
+    if (!accessToken) throw new Error('A Plaid access token is required.');
+    assertPlaidConfiguration(plaidSecret);
     try {
       const payload: any = {
         client_id: PLAID_CLIENT_ID,
