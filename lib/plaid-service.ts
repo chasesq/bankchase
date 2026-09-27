@@ -179,6 +179,36 @@ export class PlaidService {
   }
 
   /**
+   * Create a public token for a custom Plaid Sandbox user.
+   */
+  static async createSandboxPublicToken(
+    configuration: Record<string, unknown> = {},
+    plaidSecret: string = PLAID_SECRET || ''
+  ) {
+    if (PLAID_ENV !== 'sandbox') {
+      throw new Error('Plaid Sandbox custom users require PLAID_ENV=sandbox.');
+    }
+    assertPlaidConfiguration(plaidSecret);
+
+    try {
+      const response = await axios.post(`${BASE_URL}/sandbox/public_token/create`, {
+        client_id: PLAID_CLIENT_ID,
+        secret: plaidSecret,
+        institution_id: 'ins_109508',
+        initial_products: ['auth', 'transactions'],
+        options: {
+          override_username: 'user_custom',
+          override_password: JSON.stringify(configuration),
+        },
+      });
+      return response.data;
+    } catch (error: any) {
+      const plaidMessage = error.response?.data?.error_message || error.response?.data?.display_message;
+      throw new Error(plaidMessage || `Failed to create Sandbox public token: ${error.message}`);
+    }
+  }
+
+  /**
    * Evaluate a proposed ACH transaction with Plaid Signal.
    */
   static async evaluateSignal(
