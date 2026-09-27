@@ -114,15 +114,19 @@ export class PlaidService {
         country_codes: ['US'],
         language: 'en',
         products: ['auth', 'transactions'],
-        account_subtypes: ['checking', 'savings', 'credit card'],
-        redirect_uri: `${process.env.NEXT_PUBLIC_APP_URL}/plaid/callback`,
+        required_if_supported_products: ['identity'],
+        account_subtypes: ['checking', 'savings'],
+        ...(process.env.NEXT_PUBLIC_APP_URL
+          ? { redirect_uri: `${process.env.NEXT_PUBLIC_APP_URL.replace(/\/$/, '')}/plaid/callback` }
+          : {}),
       });
 
       console.log('[v0] Plaid link token created successfully');
       return response.data;
     } catch (error: any) {
       console.error('[v0] Error creating Plaid link token:', error.response?.data || error.message);
-      throw new Error(`Failed to create link token: ${error.message}`);
+      const plaidMessage = error.response?.data?.error_message || error.response?.data?.display_message;
+      throw new Error(plaidMessage || `Failed to create link token: ${error.message}`);
     }
   }
 
