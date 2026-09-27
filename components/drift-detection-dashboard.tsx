@@ -450,7 +450,7 @@ export function DriftDetectionDashboard({ userId, orgId = "default" }: { userId?
       {/* Recent Audit Logs */}
       <Card>
         <CardHeader>
-          <CardTitle>Recent Activity</CardTitle>
+          <CardTitle>Activity</CardTitle>
           <CardDescription>Latest drift detection events</CardDescription>
         </CardHeader>
         <CardContent>

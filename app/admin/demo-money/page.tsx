@@ -237,7 +237,7 @@ export default function DemoTransferPage() {
 
         {/* Transfer History */}
         <div className="bg-card border border-border rounded-2xl p-8">
-          <h2 className="text-2xl font-bold text-foreground mb-6">Recent Transfers</h2>
+          <h2 className="text-2xl font-bold text-foreground mb-6">Transfers</h2>
 
           <div className="overflow-x-auto">
             <table className="w-full">

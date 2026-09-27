@@ -169,11 +169,11 @@ export function PlaidDashboard() {
               </div>
             </Card>
 
-            {/* Recent Transactions */}
+            {/* Transactions */}
             <Card className="p-6">
               <h3 className="font-semibold mb-4 flex items-center gap-2">
                 <TrendingDown className="h-4 w-4" />
-                Recent Transactions
+                Transactions
               </h3>
               {accountTransactions.length === 0 ? (
                 <p className="text-sm text-muted-foreground">No transactions found</p>

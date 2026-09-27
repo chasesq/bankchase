@@ -260,11 +260,11 @@ export function PayTransferView({
         </Card>
       )}
 
-      {/* Recent Activity */}
+      {/* Activity */}
       <Card className="dashboard-card-shadow border-0">
         <CardContent className="p-4">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="font-semibold text-primary">Recent Activity</h3>
+            <h3 className="font-semibold text-primary">Activity</h3>
             <Button
               variant="ghost"
               size="sm"
@@ -355,7 +355,7 @@ export function PayTransferView({
       {notifications.length > 0 && (
         <Card className="dashboard-card-shadow border-0 bg-blue-50 dark:bg-blue-900/20">
           <CardContent className="p-4">
-            <h3 className="font-semibold text-sm text-blue-900 dark:text-blue-100 mb-3">Recent Notifications</h3>
+            <h3 className="font-semibold text-sm text-blue-900 dark:text-blue-100 mb-3">Notifications</h3>
             <div className="space-y-2">
               {notifications.slice(0, 3).map((notif: { id: string; title: string; message: string }) => (
                 <div key={notif.id} className="text-sm">

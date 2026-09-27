@@ -36,7 +36,7 @@ export default function NeonDemoPage() {
         {/* Comments Section */}
         <Card className="p-6 shadow-lg">
           <h2 className="text-2xl font-semibold mb-6 text-slate-800">
-            Recent Comments
+            Comments
           </h2>
           <NeonCommentsList refreshTrigger={refreshTrigger} />
         </Card>

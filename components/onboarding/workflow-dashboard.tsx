@@ -119,7 +119,7 @@ export function WorkflowDashboard({ workflowRunId }: WorkflowDashboardProps) {
       {runs.length > 0 && (
         <Card className="bg-card border-border p-6">
           <h3 className="text-lg font-semibold text-foreground mb-4">
-            Recent Workflow Runs
+            Workflow Runs
           </h3>
           <div className="space-y-3">
             {runs.map(run => (

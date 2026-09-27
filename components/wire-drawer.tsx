@@ -1102,7 +1102,7 @@ Thank you for using Chase.
 
       <div className="bg-muted/50 p-3 rounded-lg text-xs text-muted-foreground text-center">
         <p>Save your confirmation number for your records.</p>
-        <p className="mt-1">You can track your transfer in the Recent Activity section.</p>
+        <p className="mt-1">You can track your transfer in the Activity section.</p>
       </div>
     </div>
   )

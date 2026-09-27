@@ -97,9 +97,9 @@ export default async function AdminDashboard() {
           </Card>
         </div>
 
-        {/* Recent Workflows */}
+        {/* Workflows */}
         <div className="mb-12">
-          <h2 className="text-2xl font-bold mb-6">Recent Workflows</h2>
+          <h2 className="text-2xl font-bold mb-6">Workflows</h2>
           <Card className="bg-card border-border overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full">
@@ -167,9 +167,9 @@ export default async function AdminDashboard() {
           </Card>
         </div>
 
-        {/* Recent Emails */}
+        {/* Emails */}
         <div>
-          <h2 className="text-2xl font-bold mb-6">Recent Emails</h2>
+          <h2 className="text-2xl font-bold mb-6">Emails</h2>
           <Card className="bg-card border-border overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full">
