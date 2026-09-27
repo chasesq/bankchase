@@ -46,15 +46,15 @@ export function PlaidLinkButton({ onSuccess, onError }: PlaidLinkButtonProps) {
           headers: { 'Content-Type': 'application/json' },
         });
 
+        const data = await response.json().catch(() => ({}));
         if (!response.ok) {
-          throw new Error('Failed to create link token');
+          throw new Error(data.error || 'Failed to create link token');
         }
 
-        const data = await response.json();
         setLinkToken(data.linkToken || data.link_token);
       } catch (err: any) {
         console.error('[v0] Error fetching link token:', err);
-        setError('Unable to initialize bank connection. Please refresh and try again.');
+        setError(err instanceof Error ? err.message : 'Unable to initialize bank connection.');
         setStatus('error');
       } finally {
         setLoading(false);

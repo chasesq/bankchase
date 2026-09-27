@@ -1,12 +1,18 @@
 import axios from 'axios';
 import { createClient } from '@supabase/supabase-js';
 
-const PLAID_ENV = process.env.PLAID_ENV || 'production';
+const PLAID_ENV = process.env.PLAID_ENV === 'sandbox' ? 'sandbox' : 'production';
 const PLAID_CLIENT_ID = process.env.PLAID_CLIENT_ID;
 const PLAID_SECRET = process.env.PLAID_SECRET;
 const BASE_URL = PLAID_ENV === 'production'
   ? 'https://production.plaid.com'
   : 'https://sandbox.plaid.com';
+
+function assertPlaidConfiguration(secret: string) {
+  if (!PLAID_CLIENT_ID || !secret) {
+    throw new Error('Plaid is not configured. Add PLAID_CLIENT_ID and PLAID_SECRET before connecting a bank account.');
+  }
+}
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -93,6 +99,7 @@ export class PlaidService {
    * Create a link token for Plaid Link initialization
    */
   static async createLinkToken(userId: string, clientName: string = 'MyBank', plaidSecret: string = PLAID_SECRET || ''): Promise<LinkTokenResponse> {
+    assertPlaidConfiguration(plaidSecret);
     try {
       const response = await axios.post(`${BASE_URL}/link/token/create`, {
         client_id: PLAID_CLIENT_ID,
@@ -104,7 +111,7 @@ export class PlaidService {
         client_metadata: {
           client_app_version: '1.0.0',
         },
-        countryCodes: ['US'],
+        country_codes: ['US'],
         language: 'en',
         products: ['auth', 'transactions'],
         account_subtypes: ['checking', 'savings', 'credit card'],
@@ -123,6 +130,8 @@ export class PlaidService {
    * Exchange public token for access token
    */
   static async exchangePublicToken(publicToken: string, plaidSecret: string = PLAID_SECRET || ''): Promise<ExchangeTokenResponse> {
+    if (!publicToken) throw new Error('A Plaid public token is required.');
+    assertPlaidConfiguration(plaidSecret);
     try {
       const response = await axios.post(`${BASE_URL}/item/public_token/exchange`, {
         client_id: PLAID_CLIENT_ID,
@@ -142,6 +151,8 @@ export class PlaidService {
    * Get accounts and balances for a linked item
    */
   static async getAccounts(accessToken: string, plaidSecret: string = PLAID_SECRET || ''): Promise<AccountsResponse> {
+    if (!accessToken) throw new Error('A Plaid access token is required.');
+    assertPlaidConfiguration(plaidSecret);
     try {
       const response = await axios.post(`${BASE_URL}/accounts/get`, {
         client_id: PLAID_CLIENT_ID,
