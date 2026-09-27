@@ -115,9 +115,15 @@ export class PlaidService {
         language: 'en',
         products: ['auth', 'transactions'],
         required_if_supported_products: ['identity'],
+        transactions: {
+          days_requested: 90,
+        },
         account_subtypes: ['checking', 'savings'],
         ...(process.env.NEXT_PUBLIC_APP_URL
-          ? { redirect_uri: `${process.env.NEXT_PUBLIC_APP_URL.replace(/\/$/, '')}/plaid/callback` }
+          ? {
+              redirect_uri: `${process.env.NEXT_PUBLIC_APP_URL.replace(/\/$/, '')}/plaid/callback`,
+              webhook: `${process.env.NEXT_PUBLIC_APP_URL.replace(/\/$/, '')}/api/plaid/webhook`,
+            }
           : {}),
       });
 
