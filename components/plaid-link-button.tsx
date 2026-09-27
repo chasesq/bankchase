@@ -135,6 +135,15 @@ export function PlaidLinkButton({ onSuccess, onError }: PlaidLinkButtonProps) {
     onEvent: handlePlaidEvent,
   });
 
+  const openBankLink = useCallback(() => {
+    if (!linkToken || !ready) {
+      setError('Bank connection is still initializing. Please try again in a moment.');
+      setStatus('error');
+      return;
+    }
+    open();
+  }, [linkToken, open, ready]);
+
   return (
     <div className="w-full space-y-4">
       {/* Error banner */}
@@ -155,17 +164,23 @@ export function PlaidLinkButton({ onSuccess, onError }: PlaidLinkButtonProps) {
         </div>
       )}
 
-      {/* Connect button */}
-      <Button
-        onClick={() => open()}
-        disabled={!ready || loading || exchanging}
-        className="w-full"
-        size="lg"
-        variant="default"
-      >
-        {(loading || exchanging) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-        {loading ? 'Initializing...' : exchanging ? 'Connecting...' : '+ Connect a Bank Account'}
-      </Button>
+      {/* Pay-by-bank entry point */}
+      <div className="rounded-lg border border-border bg-muted/30 p-4">
+        <p className="text-sm font-semibold text-foreground">Pay by bank</p>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Securely verify your bank account instantly. You can also choose manual verification if your bank is not listed.
+        </p>
+        <Button
+          onClick={openBankLink}
+          disabled={!ready || loading || exchanging}
+          className="mt-4 w-full"
+          size="lg"
+          variant="default"
+        >
+          {(loading || exchanging) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          {loading ? 'Initializing...' : exchanging ? 'Connecting...' : 'Instantly verify your bank account'}
+        </Button>
+      </div>
 
       {/* List of connected institutions */}
       {connectedItems.length > 0 && (
