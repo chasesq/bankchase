@@ -5,7 +5,11 @@ import { useRouter } from "next/navigation"
 import { DashboardHeader } from "@/components/dashboard-header"
 import { AccountsSection } from "@/components/accounts-section"
 import { CreditJourneyCard } from "@/components/credit-journey-card"
+import { QuickActions } from "@/components/quick-actions"
+import { DepositChecksDrawer } from "@/components/deposit-checks-drawer"
 import { BottomNavigation } from "@/components/bottom-navigation"
+import { Card, CardContent } from "@/components/ui/card"
+import { ArrowUpRight, TrendingUp } from "lucide-react"
 import { SendMoneyDrawer } from "@/components/send-money-drawer"
 import { PayBillsDrawer } from "@/components/pay-bills-drawer"
 import { AccountDetailsDrawer } from "@/components/account-details-drawer"
@@ -28,6 +32,7 @@ export default function BankingDashboard() {
   const [activeView, setActiveView] = useState("accounts")
   const [sendMoneyOpen, setSendMoneyOpen] = useState(false)
   const [payBillsOpen, setPayBillsOpen] = useState(false)
+  const [depositChecksOpen, setDepositChecksOpen] = useState(false)
   const [accountDetailsOpen, setAccountDetailsOpen] = useState(false)
   const [linkExternalOpen, setLinkExternalOpen] = useState(false)
   const [creditScoreOpen, setCreditScoreOpen] = useState(false)
@@ -120,6 +125,20 @@ export default function BankingDashboard() {
       case "accounts":
         return (
           <div className="flex flex-col gap-5 pb-24">
+            <QuickActions
+              onSendMoney={() => setSendMoneyOpen(true)}
+              onDepositChecks={() => setDepositChecksOpen(true)}
+              onPayBills={() => setPayBillsOpen(true)}
+            />
+            <Card className="border-0 dashboard-card-shadow">
+              <CardContent className="flex items-center justify-between gap-4 p-4">
+                <div className="flex items-center gap-3">
+                  <div className="flex size-10 items-center justify-center rounded-full bg-primary/10 text-primary"><TrendingUp /></div>
+                  <div><p className="text-sm text-muted-foreground">Monthly activity</p><p className="text-xl font-semibold">$1,940.00</p></div>
+                </div>
+                <ArrowUpRight className="text-muted-foreground" />
+              </CardContent>
+            </Card>
             <AccountsSection
               onViewAccount={() => setAccountDetailsOpen(true)}
               onLinkExternal={() => setLinkExternalOpen(true)}
@@ -175,6 +194,7 @@ export default function BankingDashboard() {
 
       {/* Drawers */}
       <SendMoneyDrawer open={sendMoneyOpen} onOpenChange={setSendMoneyOpen} onReceiptOpen={handleOpenReceipt} />
+      <DepositChecksDrawer open={depositChecksOpen} onOpenChange={setDepositChecksOpen} onReceiptOpen={handleOpenReceipt} />
       <TransferDrawer open={transferOpen} onOpenChange={setTransferOpen} onReceiptOpen={handleOpenReceipt} />
       <WireDrawer open={wireOpen} onOpenChange={setWireOpen} onReceiptOpen={handleOpenReceipt} />
       <PayBillsDrawer open={payBillsOpen} onOpenChange={setPayBillsOpen} onReceiptOpen={handleOpenReceipt} />
