@@ -209,6 +209,53 @@ export class PlaidService {
   }
 
   /**
+   * Authorize a Plaid Transfer before creating it.
+   */
+  static async createTransferAuthorization(input: {
+    accessToken: string;
+    accountId: string;
+    type: 'debit' | 'credit';
+    network: 'ach' | 'same-day-ach' | 'rtp' | 'wire' | 'rfp';
+    amount: string;
+    achClass?: 'ccd' | 'ppd' | 'tel' | 'web';
+    legalName: string;
+    email?: string;
+    phone?: string;
+    idempotencyKey: string;
+    userIp?: string;
+    userAgent?: string;
+  }, plaidSecret: string = PLAID_SECRET || '') {
+    if (!input.accessToken || !input.accountId || !input.legalName) {
+      throw new Error('accessToken, accountId, and legalName are required.');
+    }
+    if (!/^\\d+\\.\\d{2}$/.test(input.amount) || Number(input.amount) <= 0) {
+      throw new Error('amount must be a positive decimal with two digits.');
+    }
+    if (input.idempotencyKey.length > 50) throw new Error('idempotencyKey must be 50 characters or fewer.');
+    assertPlaidConfiguration(plaidSecret);
+
+    try {
+      const response = await axios.post(`${BASE_URL}/transfer/authorization/create`, {
+        client_id: PLAID_CLIENT_ID,
+        secret: plaidSecret,
+        access_token: input.accessToken,
+        account_id: input.accountId,
+        type: input.type,
+        network: input.network,
+        amount: input.amount,
+        ...(input.network === 'ach' || input.network === 'same-day-ach' ? { ach_class: input.achClass || 'ppd' } : {}),
+        user: { legal_name: input.legalName, ...(input.email ? { email: input.email } : {}), ...(input.phone ? { phone: input.phone } : {}) },
+        ...(input.userIp || input.userAgent ? { device: { ...(input.userIp ? { ip_address: input.userIp } : {}), ...(input.userAgent ? { user_agent: input.userAgent } : {}) } } : {}),
+        idempotency_key: input.idempotencyKey,
+      });
+      return response.data;
+    } catch (error: any) {
+      const plaidMessage = error.response?.data?.error_message || error.response?.data?.display_message;
+      throw new Error(plaidMessage || `Failed to authorize transfer: ${error.message}`);
+    }
+  }
+
+  /**
    * Evaluate a proposed ACH transaction with Plaid Signal.
    */
   static async evaluateSignal(
