@@ -199,16 +199,12 @@ export function PlaidAccountsManager() {
               </select>
             </label>
             <p className="text-sm text-muted-foreground">{selectedSandboxProfile.description}</p>
-            <PlaidLinkButton
-              phoneNumber={selectedSandboxProfile.phone}
-              onSuccess={handleAccountLinked}
-            />
           </div>
         </Card>
       )}
 
       {/* Link New Account */}
-      {accounts.length > 0 && (
+      {(
         <Card className="p-6">
           <div className="flex flex-col gap-4">
             <div>

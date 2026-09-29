@@ -278,7 +278,7 @@ export class PlaidService {
             available: account.balances?.available ?? null,
             current: account.balances?.current ?? 0,
             limit: account.balances?.limit ?? null,
-            isoCourrencyCode: account.balances?.iso_currency_code ?? null,
+            isoCurrencyCode: account.balances?.iso_currency_code ?? null,
           },
         })),
         item: {
