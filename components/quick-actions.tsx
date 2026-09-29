@@ -17,7 +17,8 @@ export function QuickActions({
   onTransfer,
 }: QuickActionsProps) {
   return (
-    <section aria-label="Account management actions" className="flex flex-col gap-3"><div className="flex items-center justify-between"><div><p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">Account management</p><h2 className="text-lg font-semibold text-foreground">Move money</h2></div><span className="text-xs text-muted-foreground">Secure and simple</span></div><div className="flex gap-3 overflow-x-auto pb-2 px-1 scrollbar-hide">
+    <section aria-label="Quick actions" className="flex flex-col gap-3">
+      <div className="flex gap-3 overflow-x-auto px-1 pb-2 scrollbar-hide">
       <Button
         variant="outline"
         className="flex items-center gap-2 whitespace-nowrap bg-card border-0 dashboard-card-shadow hover:bg-muted/50 rounded-full h-12 px-5 font-medium flex-shrink-0"

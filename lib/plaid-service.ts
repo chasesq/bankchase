@@ -136,7 +136,11 @@ export class PlaidService {
       });
 
       console.log('[v0] Plaid link token created successfully');
-      return response.data;
+      return {
+        linkToken: response.data.link_token,
+        expiration: response.data.expiration,
+        requestId: response.data.request_id,
+      };
     } catch (error: any) {
       console.error('[v0] Error creating Plaid link token:', error.response?.data || error.message);
       const plaidMessage = error.response?.data?.error_message || error.response?.data?.display_message;
@@ -171,7 +175,11 @@ export class PlaidService {
           ? { redirect_uri: `${process.env.NEXT_PUBLIC_APP_URL.replace(/\/$/, '')}/plaid/callback` }
           : {}),
       });
-      return response.data;
+      return {
+        linkToken: response.data.link_token,
+        expiration: response.data.expiration,
+        requestId: response.data.request_id,
+      };
     } catch (error: any) {
       const plaidMessage = error.response?.data?.error_message || error.response?.data?.display_message;
       throw new Error(plaidMessage || `Failed to create update link token: ${error.message}`);
@@ -228,7 +236,11 @@ export class PlaidService {
       });
 
       console.log('[v0] Public token exchanged successfully');
-      return response.data;
+      return {
+        itemId: response.data.item_id,
+        accessToken: response.data.access_token,
+        requestId: response.data.request_id,
+      };
     } catch (error: any) {
       console.error('[v0] Error exchanging public token:', error.response?.data || error.message);
       throw new Error(`Failed to exchange token: ${error.message}`);
@@ -249,7 +261,26 @@ export class PlaidService {
       });
 
       console.log('[v0] Accounts retrieved successfully');
-      return response.data;
+      return {
+        accounts: response.data.accounts.map((account: any) => ({
+          accountId: account.account_id,
+          name: account.name,
+          mask: account.mask,
+          type: account.type,
+          subtype: account.subtype,
+          balances: {
+            available: account.balances?.available ?? null,
+            current: account.balances?.current ?? 0,
+            limit: account.balances?.limit ?? null,
+            isoCourrencyCode: account.balances?.iso_currency_code ?? null,
+          },
+        })),
+        item: {
+          itemId: response.data.item?.item_id,
+          institutionId: response.data.item?.institution_id,
+        },
+        requestId: response.data.request_id,
+      };
     } catch (error: any) {
       console.error('[v0] Error fetching accounts:', error.response?.data || error.message);
       const message = error.response?.data?.error_message || error.response?.data?.display_message;
