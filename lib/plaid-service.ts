@@ -137,6 +137,40 @@ export class PlaidService {
   }
 
   /**
+   * Create a Link token for repairing or updating an existing Plaid Item.
+   */
+  static async createUpdateLinkToken(input: {
+    accessToken: string;
+    clientUserId?: string;
+    accountSelectionEnabled?: boolean;
+    plaidSecret?: string;
+  }): Promise<LinkTokenResponse> {
+    const plaidSecret = input.plaidSecret || PLAID_SECRET || '';
+    if (!input.accessToken) throw new Error('An access token is required for update mode.');
+    assertPlaidConfiguration(plaidSecret);
+
+    try {
+      const response = await axios.post(`${BASE_URL}/link/token/create`, {
+        client_id: PLAID_CLIENT_ID,
+        secret: plaidSecret,
+        client_name: 'MyBank',
+        country_codes: ['US'],
+        language: 'en',
+        access_token: input.accessToken,
+        ...(input.clientUserId ? { user: { client_user_id: input.clientUserId } } : {}),
+        update: { account_selection_enabled: input.accountSelectionEnabled === true },
+        ...(process.env.NEXT_PUBLIC_APP_URL
+          ? { redirect_uri: `${process.env.NEXT_PUBLIC_APP_URL.replace(/\/$/, '')}/plaid/callback` }
+          : {}),
+      });
+      return response.data;
+    } catch (error: any) {
+      const plaidMessage = error.response?.data?.error_message || error.response?.data?.display_message;
+      throw new Error(plaidMessage || `Failed to create update link token: ${error.message}`);
+    }
+  }
+
+  /**
    * Create a dedicated Plaid Identity Verification Link token.
    * Identity Verification is mutually exclusive with banking products.
    */
