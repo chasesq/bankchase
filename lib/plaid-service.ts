@@ -208,6 +208,23 @@ export class PlaidService {
     }
   }
 
+  static async getTransferCapabilities(accessToken: string, accountId: string, plaidSecret: string = PLAID_SECRET || '') {
+    if (!accessToken || !accountId) throw new Error('accessToken and accountId are required.');
+    assertPlaidConfiguration(plaidSecret);
+    try {
+      const response = await axios.post(`${BASE_URL}/transfer/capabilities/get`, {
+        client_id: PLAID_CLIENT_ID,
+        secret: plaidSecret,
+        access_token: accessToken,
+        account_id: accountId,
+      });
+      return response.data;
+    } catch (error: any) {
+      const message = error.response?.data?.error_message || error.response?.data?.display_message;
+      throw new Error(message || `Failed to get transfer capabilities: ${error.message}`);
+    }
+  }
+
   /**
    * Authorize a Plaid Transfer before creating it.
    */
@@ -228,7 +245,7 @@ export class PlaidService {
     if (!input.accessToken || !input.accountId || !input.legalName) {
       throw new Error('accessToken, accountId, and legalName are required.');
     }
-    if (!/^\\d+\\.\\d{2}$/.test(input.amount) || Number(input.amount) <= 0) {
+    if (!/^\d+\.\d{2}$/.test(input.amount) || Number(input.amount) <= 0) {
       throw new Error('amount must be a positive decimal with two digits.');
     }
     if (input.idempotencyKey.length > 50) throw new Error('idempotencyKey must be 50 characters or fewer.');
