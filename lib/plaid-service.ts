@@ -7,6 +7,14 @@ const PLAID_SECRET = process.env.PLAID_SECRET;
 const BASE_URL = PLAID_ENV === 'production'
   ? 'https://production.plaid.com'
   : 'https://sandbox.plaid.com';
+const PLAID_API_VERSION = process.env.PLAID_API_VERSION || '2020-09-14';
+
+const plaidClient = axios.create({
+  headers: {
+    'Content-Type': 'application/json',
+    'Plaid-Version': PLAID_API_VERSION,
+  },
+});
 
 function assertPlaidConfiguration(secret: string) {
   if (!PLAID_CLIENT_ID || !secret) {
@@ -101,7 +109,7 @@ export class PlaidService {
   static async createLinkToken(userId: string, clientName: string = 'MyBank', plaidSecret: string = PLAID_SECRET || ''): Promise<LinkTokenResponse> {
     assertPlaidConfiguration(plaidSecret);
     try {
-      const response = await axios.post(`${BASE_URL}/link/token/create`, {
+      const response = await plaidClient.post(`${BASE_URL}/link/token/create`, {
         client_id: PLAID_CLIENT_ID,
         secret: plaidSecret,
         client_name: clientName,
@@ -150,7 +158,7 @@ export class PlaidService {
     assertPlaidConfiguration(plaidSecret);
 
     try {
-      const response = await axios.post(`${BASE_URL}/link/token/create`, {
+      const response = await plaidClient.post(`${BASE_URL}/link/token/create`, {
         client_id: PLAID_CLIENT_ID,
         secret: plaidSecret,
         client_name: 'MyBank',
@@ -186,7 +194,7 @@ export class PlaidService {
     assertPlaidConfiguration(plaidSecret);
 
     try {
-      const response = await axios.post(`${BASE_URL}/link/token/create`, {
+      const response = await plaidClient.post(`${BASE_URL}/link/token/create`, {
         client_id: PLAID_CLIENT_ID,
         secret: plaidSecret,
         client_name: input.clientName || 'MyBank',
@@ -213,7 +221,7 @@ export class PlaidService {
     if (!publicToken) throw new Error('A Plaid public token is required.');
     assertPlaidConfiguration(plaidSecret);
     try {
-      const response = await axios.post(`${BASE_URL}/item/public_token/exchange`, {
+      const response = await plaidClient.post(`${BASE_URL}/item/public_token/exchange`, {
         client_id: PLAID_CLIENT_ID,
         secret: plaidSecret,
         public_token: publicToken,
@@ -234,7 +242,7 @@ export class PlaidService {
     if (!accessToken) throw new Error('A Plaid access token is required.');
     assertPlaidConfiguration(plaidSecret);
     try {
-      const response = await axios.post(`${BASE_URL}/accounts/get`, {
+      const response = await plaidClient.post(`${BASE_URL}/accounts/get`, {
         client_id: PLAID_CLIENT_ID,
         secret: plaidSecret,
         access_token: accessToken,
@@ -259,7 +267,7 @@ export class PlaidService {
     }
     assertPlaidConfiguration(plaidSecret);
     try {
-      const response = await axios.post(`${BASE_URL}/accounts/balance/get`, {
+      const response = await plaidClient.post(`${BASE_URL}/accounts/balance/get`, {
         client_id: PLAID_CLIENT_ID,
         secret: plaidSecret,
         access_token: accessToken,
@@ -303,7 +311,7 @@ export class PlaidService {
           : JSON.stringify(configuration),
       };
 
-      const response = await axios.post(`${BASE_URL}/sandbox/public_token/create`, {
+      const response = await plaidClient.post(`${BASE_URL}/sandbox/public_token/create`, {
         client_id: PLAID_CLIENT_ID,
         secret: plaidSecret,
         institution_id: institutionId,
@@ -324,7 +332,7 @@ export class PlaidService {
     if (!accessToken || !accountId) throw new Error('accessToken and accountId are required.');
     assertPlaidConfiguration(plaidSecret);
     try {
-      const response = await axios.post(`${BASE_URL}/transfer/capabilities/get`, {
+      const response = await plaidClient.post(`${BASE_URL}/transfer/capabilities/get`, {
         client_id: PLAID_CLIENT_ID,
         secret: plaidSecret,
         access_token: accessToken,
@@ -364,7 +372,7 @@ export class PlaidService {
     assertPlaidConfiguration(plaidSecret);
 
     try {
-      const response = await axios.post(`${BASE_URL}/transfer/authorization/create`, {
+      const response = await plaidClient.post(`${BASE_URL}/transfer/authorization/create`, {
         client_id: PLAID_CLIENT_ID,
         secret: plaidSecret,
         access_token: input.accessToken,
@@ -412,7 +420,7 @@ export class PlaidService {
     assertPlaidConfiguration(plaidSecret);
 
     try {
-      const response = await axios.post(`${BASE_URL}/signal/evaluate`, {
+      const response = await plaidClient.post(`${BASE_URL}/signal/evaluate`, {
         client_id: PLAID_CLIENT_ID,
         secret: plaidSecret,
         access_token: input.accessToken,
@@ -457,7 +465,7 @@ export class PlaidService {
         payload.account_ids = options.accountIds;
       }
 
-      const response = await axios.post(`${BASE_URL}/transactions/get`, payload);
+      const response = await plaidClient.post(`${BASE_URL}/transactions/get`, payload);
 
       console.log('[v0] Transactions retrieved successfully');
       return response.data;
@@ -482,7 +490,7 @@ export class PlaidService {
         payload.cursor = cursor;
       }
 
-      const response = await axios.post(`${BASE_URL}/transactions/sync`, payload);
+      const response = await plaidClient.post(`${BASE_URL}/transactions/sync`, payload);
       console.log('[v0] Transactions synced successfully');
       return response.data;
     } catch (error: any) {
@@ -496,7 +504,7 @@ export class PlaidService {
    */
   static async getItem(accessToken: string) {
     try {
-      const response = await axios.post(`${BASE_URL}/item/get`, {
+      const response = await plaidClient.post(`${BASE_URL}/item/get`, {
         client_id: PLAID_CLIENT_ID,
         secret: PLAID_SECRET,
         access_token: accessToken,
@@ -515,7 +523,7 @@ export class PlaidService {
    */
   static async setWebhook(accessToken: string, webhookUrl: string) {
     try {
-      const response = await axios.post(`${BASE_URL}/item/webhook/update`, {
+      const response = await plaidClient.post(`${BASE_URL}/item/webhook/update`, {
         client_id: PLAID_CLIENT_ID,
         secret: PLAID_SECRET,
         access_token: accessToken,
