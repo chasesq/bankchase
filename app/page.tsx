@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, useMemo } from "react"
 import { useRouter } from "next/navigation"
 import { DashboardHeader } from "@/components/dashboard-header"
 import { AccountsSection } from "@/components/accounts-section"
@@ -45,7 +45,22 @@ export default function BankingDashboard() {
   const [disputeTransactionId, setDisputeTransactionId] = useState<string | null>(null)
   const { toast } = useToast()
 
-  const { userProfile, addNotification, addActivity, addLoginHistory } = useBanking()
+  const { userProfile, transactions, addNotification, addActivity, addLoginHistory } = useBanking()
+
+  const monthlyActivity = useMemo(() => {
+    const now = new Date()
+    return transactions
+      .filter((transaction) => {
+        const date = new Date(transaction.date)
+        return (
+          transaction.type === "credit" &&
+          transaction.status !== "failed" &&
+          date.getMonth() === now.getMonth() &&
+          date.getFullYear() === now.getFullYear()
+        )
+      })
+      .reduce((total, transaction) => total + transaction.amount, 0)
+  }, [transactions])
   const { user, loading: authLoading, logout } = useAuth()
   const router = useRouter()
 
@@ -131,13 +146,28 @@ export default function BankingDashboard() {
               onPayBills={() => setPayBillsOpen(true)}
             />
             <Card className="border-0 dashboard-card-shadow">
-              <CardContent className="flex items-center justify-between gap-4 p-4">
-                <div className="flex items-center gap-3">
-                  <div className="flex size-10 items-center justify-center rounded-full bg-primary/10 text-primary"><TrendingUp /></div>
-                  <div><p className="text-sm text-muted-foreground">Monthly activity</p><p className="text-xl font-semibold">$1,940.00</p></div>
-                </div>
-                <ArrowUpRight className="text-muted-foreground" />
-              </CardContent>
+              <button
+                type="button"
+                onClick={() => setTransactionsOpen(true)}
+                className="w-full rounded-xl text-left transition-colors hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                aria-label="View monthly activity transactions"
+              >
+                <CardContent className="flex items-center justify-between gap-4 p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="flex size-10 items-center justify-center rounded-full bg-primary/10 text-primary">
+                      <TrendingUp aria-hidden="true" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">Monthly activity</p>
+                      <p className="text-xl font-semibold tabular-nums">
+                        {monthlyActivity.toLocaleString("en-US", { style: "currency", currency: "USD" })}
+                      </p>
+                      <p className="text-xs text-muted-foreground">Money received this month</p>
+                    </div>
+                  </div>
+                  <ArrowUpRight className="text-muted-foreground" aria-hidden="true" />
+                </CardContent>
+              </button>
             </Card>
             <AccountsSection
               onViewAccount={() => setAccountDetailsOpen(true)}
