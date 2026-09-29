@@ -4,7 +4,6 @@ import { useState, useEffect, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import { DashboardHeader } from "@/components/dashboard-header"
 import { AccountsSection } from "@/components/accounts-section"
-import { QuickActions } from "@/components/quick-actions"
 import { CreditJourneyCard } from "@/components/credit-journey-card"
 import { BottomNavigation } from "@/components/bottom-navigation"
 import { SendMoneyDrawer } from "@/components/send-money-drawer"
@@ -121,12 +120,6 @@ export default function BankingDashboard() {
       case "accounts":
         return (
           <div className="flex flex-col gap-5 pb-24">
-            <QuickActions
-              onSendMoney={() => setSendMoneyOpen(true)}
-              onDepositChecks={() => router.push("/add-funds")}
-              onPayBills={() => setPayBillsOpen(true)}
-              onTransfer={() => router.push("/send-money/transfer")}
-            />
             <AccountsSection
               onViewAccount={() => setAccountDetailsOpen(true)}
               onLinkExternal={() => setLinkExternalOpen(true)}
