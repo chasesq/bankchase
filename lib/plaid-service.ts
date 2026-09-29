@@ -210,7 +210,31 @@ export class PlaidService {
       return response.data;
     } catch (error: any) {
       console.error('[v0] Error fetching accounts:', error.response?.data || error.message);
-      throw new Error(`Failed to get accounts: ${error.message}`);
+      const message = error.response?.data?.error_message || error.response?.data?.display_message;
+      throw new Error(message || `Failed to get accounts: ${error.message}`);
+    }
+  }
+
+  /**
+   * Retrieve fresh balances for selected linked accounts.
+   */
+  static async getAccountBalances(accessToken: string, accountIds?: string[], plaidSecret: string = PLAID_SECRET || '') {
+    if (!accessToken) throw new Error('A Plaid access token is required.');
+    if (accountIds && (!Array.isArray(accountIds) || accountIds.some((id) => typeof id !== 'string' || !id))) {
+      throw new Error('accountIds must be an array of non-empty strings.');
+    }
+    assertPlaidConfiguration(plaidSecret);
+    try {
+      const response = await axios.post(`${BASE_URL}/accounts/balance/get`, {
+        client_id: PLAID_CLIENT_ID,
+        secret: plaidSecret,
+        access_token: accessToken,
+        ...(accountIds?.length ? { options: { account_ids: accountIds } } : {}),
+      });
+      return response.data;
+    } catch (error: any) {
+      const message = error.response?.data?.error_message || error.response?.data?.display_message;
+      throw new Error(message || `Failed to get live account balances: ${error.message}`);
     }
   }
 
