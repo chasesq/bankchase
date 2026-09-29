@@ -10,7 +10,8 @@ export async function POST(request: NextRequest) {
     const userId = user?.id;
     if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     const plaidSecret = await getPlaidSecret(userId);
-    const linkToken = await PlaidService.createLinkToken(userId, 'MyBank', plaidSecret);
+    const phoneNumber = user.phone?.trim() || undefined;
+    const linkToken = await PlaidService.createLinkToken(userId, 'MyBank', plaidSecret, phoneNumber);
 
     return NextResponse.json(linkToken);
   } catch (error: any) {

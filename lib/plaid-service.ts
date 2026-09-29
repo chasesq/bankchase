@@ -106,7 +106,12 @@ export class PlaidService {
   /**
    * Create a link token for Plaid Link initialization
    */
-  static async createLinkToken(userId: string, clientName: string = 'MyBank', plaidSecret: string = PLAID_SECRET || ''): Promise<LinkTokenResponse> {
+  static async createLinkToken(
+    userId: string,
+    clientName: string = 'MyBank',
+    plaidSecret: string = PLAID_SECRET || '',
+    phoneNumber?: string,
+  ): Promise<LinkTokenResponse> {
     assertPlaidConfiguration(plaidSecret);
     try {
       const response = await plaidClient.post(`${BASE_URL}/link/token/create`, {
@@ -115,6 +120,7 @@ export class PlaidService {
         client_name: clientName,
         user: {
           client_user_id: userId,
+          ...(phoneNumber ? { phone_number: phoneNumber } : {}),
         },
         client_metadata: {
           client_app_version: '1.0.0',
