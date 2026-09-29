@@ -137,6 +137,42 @@ export class PlaidService {
   }
 
   /**
+   * Create a dedicated Plaid Identity Verification Link token.
+   * Identity Verification is mutually exclusive with banking products.
+   */
+  static async createIdentityVerificationLinkToken(input: {
+    clientUserId: string;
+    emailAddress?: string;
+    templateId: string;
+    clientName?: string;
+  }, plaidSecret: string = PLAID_SECRET || ''): Promise<LinkTokenResponse> {
+    if (!input.clientUserId || !input.templateId) {
+      throw new Error('clientUserId and templateId are required.');
+    }
+    assertPlaidConfiguration(plaidSecret);
+
+    try {
+      const response = await axios.post(`${BASE_URL}/link/token/create`, {
+        client_id: PLAID_CLIENT_ID,
+        secret: plaidSecret,
+        client_name: input.clientName || 'MyBank',
+        user: {
+          client_user_id: input.clientUserId,
+          ...(input.emailAddress ? { email_address: input.emailAddress } : {}),
+        },
+        country_codes: ['US'],
+        language: 'en',
+        products: ['identity_verification'],
+        identity_verification: { template_id: input.templateId },
+      });
+      return response.data;
+    } catch (error: any) {
+      const plaidMessage = error.response?.data?.error_message || error.response?.data?.display_message;
+      throw new Error(plaidMessage || `Failed to create identity verification link token: ${error.message}`);
+    }
+  }
+
+  /**
    * Exchange public token for access token
    */
   static async exchangePublicToken(publicToken: string, plaidSecret: string = PLAID_SECRET || ''): Promise<ExchangeTokenResponse> {
