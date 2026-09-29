@@ -191,15 +191,33 @@ export class PlaidService {
     assertPlaidConfiguration(plaidSecret);
 
     try {
+      const institutionId = typeof configuration.institution_id === 'string'
+        ? configuration.institution_id
+        : 'ins_109508';
+      const initialProducts = Array.isArray(configuration.initial_products)
+        ? configuration.initial_products.filter((product): product is string => typeof product === 'string')
+        : ['auth', 'transactions'];
+      if (!initialProducts.length) throw new Error('initial_products must contain at least one product.');
+
+      const options = {
+        ...(typeof configuration.webhook === 'string' ? { webhook: configuration.webhook } : {}),
+        override_username: typeof configuration.override_username === 'string'
+          ? configuration.override_username
+          : 'user_custom',
+        override_password: typeof configuration.override_password === 'string'
+          ? configuration.override_password
+          : JSON.stringify(configuration),
+      };
+
       const response = await axios.post(`${BASE_URL}/sandbox/public_token/create`, {
         client_id: PLAID_CLIENT_ID,
         secret: plaidSecret,
-        institution_id: 'ins_109508',
-        initial_products: ['auth', 'transactions'],
-        options: {
-          override_username: 'user_custom',
-          override_password: JSON.stringify(configuration),
-        },
+        institution_id: institutionId,
+        initial_products: initialProducts,
+        options,
+        ...(configuration.transactions && typeof configuration.transactions === 'object'
+          ? { transactions: configuration.transactions }
+          : {}),
       });
       return response.data;
     } catch (error: any) {
