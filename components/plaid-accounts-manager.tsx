@@ -77,8 +77,10 @@ export function PlaidAccountsManager() {
     return <DollarSign className="h-6 w-6 text-blue-600" />;
   };
 
+  const selectedSandboxProfile = SANDBOX_PROFILES.find((profile) => profile.id === selectedProfile) ?? SANDBOX_PROFILES[0];
+
   const handleAccountLinked = () => {
-    fetchAccounts();
+    void fetchAccounts();
   };
 
   return (
@@ -196,11 +198,9 @@ export function PlaidAccountsManager() {
                 ))}
               </select>
             </label>
-            <p className="text-sm text-muted-foreground">
-              {SANDBOX_PROFILES.find((profile) => profile.id === selectedProfile)?.description}
-            </p>
+            <p className="text-sm text-muted-foreground">{selectedSandboxProfile.description}</p>
             <PlaidLinkButton
-              phoneNumber={SANDBOX_PROFILES.find((profile) => profile.id === selectedProfile)?.phone}
+              phoneNumber={selectedSandboxProfile.phone}
               onSuccess={handleAccountLinked}
             />
           </div>
@@ -210,8 +210,33 @@ export function PlaidAccountsManager() {
       {/* Link New Account */}
       {accounts.length > 0 && (
         <Card className="p-6">
-          <h3 className="font-semibold mb-4">Link Another Account</h3>
-          <PlaidLinkButton onSuccess={handleAccountLinked} />
+          <div className="flex flex-col gap-4">
+            <div>
+              <h3 className="font-semibold">Link Another Account</h3>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Choose the sandbox profile you want Plaid Link to continue using.
+              </p>
+            </div>
+            <label className="flex flex-col gap-2 text-sm font-medium" htmlFor="sandbox-profile-existing">
+              Starter profile
+              <select
+                id="sandbox-profile-existing"
+                value={selectedProfile}
+                onChange={(event) => setSelectedProfile(event.target.value as typeof selectedProfile)}
+                className="h-10 rounded-md border bg-background px-3 font-normal outline-none focus:ring-2 focus:ring-ring"
+              >
+                {SANDBOX_PROFILES.map((profile) => (
+                  <option key={profile.id} value={profile.id}>
+                    {profile.label} — {profile.phone}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <PlaidLinkButton
+              phoneNumber={selectedSandboxProfile.phone}
+              onSuccess={handleAccountLinked}
+            />
+          </div>
         </Card>
       )}
     </div>
