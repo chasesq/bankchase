@@ -14,6 +14,9 @@ export async function POST(request: NextRequest) {
     if (!configuration || typeof configuration !== 'object' || Array.isArray(configuration)) {
       return NextResponse.json({ error: 'configuration must be a JSON object.' }, { status: 400 })
     }
+    if (configuration.initial_products !== undefined && !Array.isArray(configuration.initial_products)) {
+      return NextResponse.json({ error: 'initial_products must be an array.' }, { status: 400 })
+    }
     const serialized = JSON.stringify(configuration)
     if (serialized.length > 55_000) {
       return NextResponse.json({ error: 'Sandbox configuration must be smaller than 55 KB.' }, { status: 400 })

@@ -7,6 +7,14 @@ const PLAID_SECRET = process.env.PLAID_SECRET;
 const BASE_URL = PLAID_ENV === 'production'
   ? 'https://production.plaid.com'
   : 'https://sandbox.plaid.com';
+const PLAID_API_VERSION = process.env.PLAID_API_VERSION || '2020-09-14';
+
+const plaidClient = axios.create({
+  headers: {
+    'Content-Type': 'application/json',
+    'Plaid-Version': PLAID_API_VERSION,
+  },
+});
 
 function assertPlaidConfiguration(secret: string) {
   if (!PLAID_CLIENT_ID || !secret) {
@@ -101,7 +109,7 @@ export class PlaidService {
   static async createLinkToken(userId: string, clientName: string = 'MyBank', plaidSecret: string = PLAID_SECRET || ''): Promise<LinkTokenResponse> {
     assertPlaidConfiguration(plaidSecret);
     try {
-      const response = await axios.post(`${BASE_URL}/link/token/create`, {
+      const response = await plaidClient.post(`${BASE_URL}/link/token/create`, {
         client_id: PLAID_CLIENT_ID,
         secret: plaidSecret,
         client_name: clientName,
@@ -137,13 +145,83 @@ export class PlaidService {
   }
 
   /**
+   * Create a Link token for repairing or updating an existing Plaid Item.
+   */
+  static async createUpdateLinkToken(input: {
+    accessToken: string;
+    clientUserId?: string;
+    accountSelectionEnabled?: boolean;
+    plaidSecret?: string;
+  }): Promise<LinkTokenResponse> {
+    const plaidSecret = input.plaidSecret || PLAID_SECRET || '';
+    if (!input.accessToken) throw new Error('An access token is required for update mode.');
+    assertPlaidConfiguration(plaidSecret);
+
+    try {
+      const response = await plaidClient.post(`${BASE_URL}/link/token/create`, {
+        client_id: PLAID_CLIENT_ID,
+        secret: plaidSecret,
+        client_name: 'MyBank',
+        country_codes: ['US'],
+        language: 'en',
+        access_token: input.accessToken,
+        ...(input.clientUserId ? { user: { client_user_id: input.clientUserId } } : {}),
+        update: { account_selection_enabled: input.accountSelectionEnabled === true },
+        ...(process.env.NEXT_PUBLIC_APP_URL
+          ? { redirect_uri: `${process.env.NEXT_PUBLIC_APP_URL.replace(/\/$/, '')}/plaid/callback` }
+          : {}),
+      });
+      return response.data;
+    } catch (error: any) {
+      const plaidMessage = error.response?.data?.error_message || error.response?.data?.display_message;
+      throw new Error(plaidMessage || `Failed to create update link token: ${error.message}`);
+    }
+  }
+
+  /**
+   * Create a dedicated Plaid Identity Verification Link token.
+   * Identity Verification is mutually exclusive with banking products.
+   */
+  static async createIdentityVerificationLinkToken(input: {
+    clientUserId: string;
+    emailAddress?: string;
+    templateId: string;
+    clientName?: string;
+  }, plaidSecret: string = PLAID_SECRET || ''): Promise<LinkTokenResponse> {
+    if (!input.clientUserId || !input.templateId) {
+      throw new Error('clientUserId and templateId are required.');
+    }
+    assertPlaidConfiguration(plaidSecret);
+
+    try {
+      const response = await plaidClient.post(`${BASE_URL}/link/token/create`, {
+        client_id: PLAID_CLIENT_ID,
+        secret: plaidSecret,
+        client_name: input.clientName || 'MyBank',
+        user: {
+          client_user_id: input.clientUserId,
+          ...(input.emailAddress ? { email_address: input.emailAddress } : {}),
+        },
+        country_codes: ['US'],
+        language: 'en',
+        products: ['identity_verification'],
+        identity_verification: { template_id: input.templateId },
+      });
+      return response.data;
+    } catch (error: any) {
+      const plaidMessage = error.response?.data?.error_message || error.response?.data?.display_message;
+      throw new Error(plaidMessage || `Failed to create identity verification link token: ${error.message}`);
+    }
+  }
+
+  /**
    * Exchange public token for access token
    */
   static async exchangePublicToken(publicToken: string, plaidSecret: string = PLAID_SECRET || ''): Promise<ExchangeTokenResponse> {
     if (!publicToken) throw new Error('A Plaid public token is required.');
     assertPlaidConfiguration(plaidSecret);
     try {
-      const response = await axios.post(`${BASE_URL}/item/public_token/exchange`, {
+      const response = await plaidClient.post(`${BASE_URL}/item/public_token/exchange`, {
         client_id: PLAID_CLIENT_ID,
         secret: plaidSecret,
         public_token: publicToken,
@@ -164,7 +242,7 @@ export class PlaidService {
     if (!accessToken) throw new Error('A Plaid access token is required.');
     assertPlaidConfiguration(plaidSecret);
     try {
-      const response = await axios.post(`${BASE_URL}/accounts/get`, {
+      const response = await plaidClient.post(`${BASE_URL}/accounts/get`, {
         client_id: PLAID_CLIENT_ID,
         secret: plaidSecret,
         access_token: accessToken,
@@ -174,7 +252,31 @@ export class PlaidService {
       return response.data;
     } catch (error: any) {
       console.error('[v0] Error fetching accounts:', error.response?.data || error.message);
-      throw new Error(`Failed to get accounts: ${error.message}`);
+      const message = error.response?.data?.error_message || error.response?.data?.display_message;
+      throw new Error(message || `Failed to get accounts: ${error.message}`);
+    }
+  }
+
+  /**
+   * Retrieve fresh balances for selected linked accounts.
+   */
+  static async getAccountBalances(accessToken: string, accountIds?: string[], plaidSecret: string = PLAID_SECRET || '') {
+    if (!accessToken) throw new Error('A Plaid access token is required.');
+    if (accountIds && (!Array.isArray(accountIds) || accountIds.some((id) => typeof id !== 'string' || !id))) {
+      throw new Error('accountIds must be an array of non-empty strings.');
+    }
+    assertPlaidConfiguration(plaidSecret);
+    try {
+      const response = await plaidClient.post(`${BASE_URL}/accounts/balance/get`, {
+        client_id: PLAID_CLIENT_ID,
+        secret: plaidSecret,
+        access_token: accessToken,
+        ...(accountIds?.length ? { options: { account_ids: accountIds } } : {}),
+      });
+      return response.data;
+    } catch (error: any) {
+      const message = error.response?.data?.error_message || error.response?.data?.display_message;
+      throw new Error(message || `Failed to get live account balances: ${error.message}`);
     }
   }
 
@@ -191,20 +293,102 @@ export class PlaidService {
     assertPlaidConfiguration(plaidSecret);
 
     try {
-      const response = await axios.post(`${BASE_URL}/sandbox/public_token/create`, {
+      const institutionId = typeof configuration.institution_id === 'string'
+        ? configuration.institution_id
+        : 'ins_109508';
+      const initialProducts = Array.isArray(configuration.initial_products)
+        ? configuration.initial_products.filter((product): product is string => typeof product === 'string')
+        : ['auth', 'transactions'];
+      if (!initialProducts.length) throw new Error('initial_products must contain at least one product.');
+
+      const options = {
+        ...(typeof configuration.webhook === 'string' ? { webhook: configuration.webhook } : {}),
+        override_username: typeof configuration.override_username === 'string'
+          ? configuration.override_username
+          : 'user_custom',
+        override_password: typeof configuration.override_password === 'string'
+          ? configuration.override_password
+          : JSON.stringify(configuration),
+      };
+
+      const response = await plaidClient.post(`${BASE_URL}/sandbox/public_token/create`, {
         client_id: PLAID_CLIENT_ID,
         secret: plaidSecret,
-        institution_id: 'ins_109508',
-        initial_products: ['auth', 'transactions'],
-        options: {
-          override_username: 'user_custom',
-          override_password: JSON.stringify(configuration),
-        },
+        institution_id: institutionId,
+        initial_products: initialProducts,
+        options,
+        ...(configuration.transactions && typeof configuration.transactions === 'object'
+          ? { transactions: configuration.transactions }
+          : {}),
       });
       return response.data;
     } catch (error: any) {
       const plaidMessage = error.response?.data?.error_message || error.response?.data?.display_message;
       throw new Error(plaidMessage || `Failed to create Sandbox public token: ${error.message}`);
+    }
+  }
+
+  static async getTransferCapabilities(accessToken: string, accountId: string, plaidSecret: string = PLAID_SECRET || '') {
+    if (!accessToken || !accountId) throw new Error('accessToken and accountId are required.');
+    assertPlaidConfiguration(plaidSecret);
+    try {
+      const response = await plaidClient.post(`${BASE_URL}/transfer/capabilities/get`, {
+        client_id: PLAID_CLIENT_ID,
+        secret: plaidSecret,
+        access_token: accessToken,
+        account_id: accountId,
+      });
+      return response.data;
+    } catch (error: any) {
+      const message = error.response?.data?.error_message || error.response?.data?.display_message;
+      throw new Error(message || `Failed to get transfer capabilities: ${error.message}`);
+    }
+  }
+
+  /**
+   * Authorize a Plaid Transfer before creating it.
+   */
+  static async createTransferAuthorization(input: {
+    accessToken: string;
+    accountId: string;
+    type: 'debit' | 'credit';
+    network: 'ach' | 'same-day-ach' | 'rtp' | 'wire' | 'rfp';
+    amount: string;
+    achClass?: 'ccd' | 'ppd' | 'tel' | 'web';
+    legalName: string;
+    email?: string;
+    phone?: string;
+    idempotencyKey: string;
+    userIp?: string;
+    userAgent?: string;
+  }, plaidSecret: string = PLAID_SECRET || '') {
+    if (!input.accessToken || !input.accountId || !input.legalName) {
+      throw new Error('accessToken, accountId, and legalName are required.');
+    }
+    if (!/^\d+\.\d{2}$/.test(input.amount) || Number(input.amount) <= 0) {
+      throw new Error('amount must be a positive decimal with two digits.');
+    }
+    if (input.idempotencyKey.length > 50) throw new Error('idempotencyKey must be 50 characters or fewer.');
+    assertPlaidConfiguration(plaidSecret);
+
+    try {
+      const response = await plaidClient.post(`${BASE_URL}/transfer/authorization/create`, {
+        client_id: PLAID_CLIENT_ID,
+        secret: plaidSecret,
+        access_token: input.accessToken,
+        account_id: input.accountId,
+        type: input.type,
+        network: input.network,
+        amount: input.amount,
+        ...(input.network === 'ach' || input.network === 'same-day-ach' ? { ach_class: input.achClass || 'ppd' } : {}),
+        user: { legal_name: input.legalName, ...(input.email ? { email: input.email } : {}), ...(input.phone ? { phone: input.phone } : {}) },
+        ...(input.userIp || input.userAgent ? { device: { ...(input.userIp ? { ip_address: input.userIp } : {}), ...(input.userAgent ? { user_agent: input.userAgent } : {}) } } : {}),
+        idempotency_key: input.idempotencyKey,
+      });
+      return response.data;
+    } catch (error: any) {
+      const plaidMessage = error.response?.data?.error_message || error.response?.data?.display_message;
+      throw new Error(plaidMessage || `Failed to authorize transfer: ${error.message}`);
     }
   }
 
@@ -236,7 +420,7 @@ export class PlaidService {
     assertPlaidConfiguration(plaidSecret);
 
     try {
-      const response = await axios.post(`${BASE_URL}/signal/evaluate`, {
+      const response = await plaidClient.post(`${BASE_URL}/signal/evaluate`, {
         client_id: PLAID_CLIENT_ID,
         secret: plaidSecret,
         access_token: input.accessToken,
@@ -281,7 +465,7 @@ export class PlaidService {
         payload.account_ids = options.accountIds;
       }
 
-      const response = await axios.post(`${BASE_URL}/transactions/get`, payload);
+      const response = await plaidClient.post(`${BASE_URL}/transactions/get`, payload);
 
       console.log('[v0] Transactions retrieved successfully');
       return response.data;
@@ -306,7 +490,7 @@ export class PlaidService {
         payload.cursor = cursor;
       }
 
-      const response = await axios.post(`${BASE_URL}/transactions/sync`, payload);
+      const response = await plaidClient.post(`${BASE_URL}/transactions/sync`, payload);
       console.log('[v0] Transactions synced successfully');
       return response.data;
     } catch (error: any) {
@@ -320,7 +504,7 @@ export class PlaidService {
    */
   static async getItem(accessToken: string) {
     try {
-      const response = await axios.post(`${BASE_URL}/item/get`, {
+      const response = await plaidClient.post(`${BASE_URL}/item/get`, {
         client_id: PLAID_CLIENT_ID,
         secret: PLAID_SECRET,
         access_token: accessToken,
@@ -339,7 +523,7 @@ export class PlaidService {
    */
   static async setWebhook(accessToken: string, webhookUrl: string) {
     try {
-      const response = await axios.post(`${BASE_URL}/item/webhook/update`, {
+      const response = await plaidClient.post(`${BASE_URL}/item/webhook/update`, {
         client_id: PLAID_CLIENT_ID,
         secret: PLAID_SECRET,
         access_token: accessToken,
