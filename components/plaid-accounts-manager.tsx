@@ -46,11 +46,9 @@ export function PlaidAccountsManager() {
     setError(null);
 
     try {
-      const token = localStorage.getItem('auth_token');
-      if (!token) throw new Error('Not authenticated');
-
       const response = await fetch('/api/plaid/accounts', {
-        headers: { Authorization: `Bearer ${token}` },
+        credentials: 'include',
+        cache: 'no-store',
       });
 
       const data = await response.json().catch(() => ({}));
