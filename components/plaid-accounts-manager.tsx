@@ -19,7 +19,23 @@ interface PlaidAccount {
   status: string;
 }
 
+const SANDBOX_PROFILES = [
+  {
+    id: 'college-student',
+    label: 'College Student',
+    phone: '+1 (415) 555-0131',
+    description: 'Campus checking and a small student card for early financial history.',
+  },
+  {
+    id: 'risk-review',
+    label: 'Risk Review',
+    phone: '+1 (415) 555-0134',
+    description: 'Low available cash, NSF activity, peer payments, and contact-data churn.',
+  },
+] as const;
+
 export function PlaidAccountsManager() {
+  const [selectedProfile, setSelectedProfile] = useState<(typeof SANDBOX_PROFILES)[number]['id']>('college-student');
   const [accounts, setAccounts] = useState<PlaidAccount[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -30,11 +46,9 @@ export function PlaidAccountsManager() {
     setError(null);
 
     try {
-      const token = localStorage.getItem('auth_token');
-      if (!token) throw new Error('Not authenticated');
-
       const response = await fetch('/api/plaid/accounts', {
-        headers: { Authorization: `Bearer ${token}` },
+        credentials: 'include',
+        cache: 'no-store',
       });
 
       const data = await response.json().catch(() => ({}));
@@ -63,8 +77,10 @@ export function PlaidAccountsManager() {
     return <DollarSign className="h-6 w-6 text-blue-600" />;
   };
 
+  const selectedSandboxProfile = SANDBOX_PROFILES.find((profile) => profile.id === selectedProfile) ?? SANDBOX_PROFILES[0];
+
   const handleAccountLinked = () => {
-    fetchAccounts();
+    void fetchAccounts();
   };
 
   return (
@@ -159,18 +175,64 @@ export function PlaidAccountsManager() {
           ))}
         </div>
       ) : (
-        <Card className="p-12 text-center">
-          <DollarSign className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
-          <p className="text-muted-foreground mb-4">No bank accounts linked yet</p>
-          <PlaidLinkButton onSuccess={handleAccountLinked} />
+        <Card className="p-6">
+          <div className="flex flex-col gap-4 text-left">
+            <div>
+              <h3 className="font-semibold">Choose a Plaid Sandbox profile</h3>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Select a starter profile before opening Link. The phone number seeds the matching Plaid sandbox client.
+              </p>
+            </div>
+            <label className="flex flex-col gap-2 text-sm font-medium" htmlFor="sandbox-profile">
+              Starter profile
+              <select
+                id="sandbox-profile"
+                value={selectedProfile}
+                onChange={(event) => setSelectedProfile(event.target.value as typeof selectedProfile)}
+                className="h-10 rounded-md border bg-background px-3 font-normal outline-none focus:ring-2 focus:ring-ring"
+              >
+                {SANDBOX_PROFILES.map((profile) => (
+                  <option key={profile.id} value={profile.id}>
+                    {profile.label} — {profile.phone}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <p className="text-sm text-muted-foreground">{selectedSandboxProfile.description}</p>
+          </div>
         </Card>
       )}
 
       {/* Link New Account */}
-      {accounts.length > 0 && (
+      {(
         <Card className="p-6">
-          <h3 className="font-semibold mb-4">Link Another Account</h3>
-          <PlaidLinkButton onSuccess={handleAccountLinked} />
+          <div className="flex flex-col gap-4">
+            <div>
+              <h3 className="font-semibold">Link Another Account</h3>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Choose the sandbox profile you want Plaid Link to continue using.
+              </p>
+            </div>
+            <label className="flex flex-col gap-2 text-sm font-medium" htmlFor="sandbox-profile-existing">
+              Starter profile
+              <select
+                id="sandbox-profile-existing"
+                value={selectedProfile}
+                onChange={(event) => setSelectedProfile(event.target.value as typeof selectedProfile)}
+                className="h-10 rounded-md border bg-background px-3 font-normal outline-none focus:ring-2 focus:ring-ring"
+              >
+                {SANDBOX_PROFILES.map((profile) => (
+                  <option key={profile.id} value={profile.id}>
+                    {profile.label} — {profile.phone}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <PlaidLinkButton
+              phoneNumber={selectedSandboxProfile.phone}
+              onSuccess={handleAccountLinked}
+            />
+          </div>
         </Card>
       )}
     </div>

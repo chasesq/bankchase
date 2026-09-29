@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
           type: account.type,
           subtype: account.subtype,
           balances: account.balances,
-          institutionName: metadata?.institutionName || 'Bank',
+          institutionName: metadata?.institution?.name || metadata?.institutionName || 'Bank',
         }
       );
     }

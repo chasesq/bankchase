@@ -23,10 +23,10 @@ function getErrorMessage(errorCode: string): string {
 interface PlaidLinkButtonProps {
   onSuccess?: (metadata: any) => void;
   onError?: (error: any) => void;
-  userId?: string;
+  phoneNumber?: string;
 }
 
-export function PlaidLinkButton({ onSuccess, onError }: PlaidLinkButtonProps) {
+export function PlaidLinkButton({ onSuccess, onError, phoneNumber }: PlaidLinkButtonProps) {
   const [linkToken, setLinkToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [exchanging, setExchanging] = useState(false);
@@ -44,6 +44,7 @@ export function PlaidLinkButton({ onSuccess, onError }: PlaidLinkButtonProps) {
         const response = await fetch('/api/plaid/create-link-token', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ phoneNumber }),
         });
 
         const data = await response.json().catch(() => ({}));
@@ -62,7 +63,7 @@ export function PlaidLinkButton({ onSuccess, onError }: PlaidLinkButtonProps) {
     };
 
     fetchLinkToken();
-  }, []);
+  }, [phoneNumber]);
 
   // Step 2: Handle successful Link completion
   const handlePlaidSuccess = useCallback(async (publicToken: string, metadata: any) => {
