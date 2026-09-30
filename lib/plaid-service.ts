@@ -588,25 +588,35 @@ export class PlaidService {
     if (!supabase) throw new Error('Supabase client not initialized');
 
     try {
-      const { error } = await supabase
+      const record = {
+        user_id: userId,
+        item_id: itemId,
+        access_token: accessToken,
+        institution_id: institutionId,
+        institution_name: accountData.institutionName,
+        account_id: accountData.accountId,
+        account_name: accountData.name,
+        account_type: accountData.type,
+        account_subtype: accountData.subtype,
+        account_mask: accountData.mask,
+        balance_current: accountData.balances?.current ?? 0,
+        balance_available: accountData.balances?.available,
+        balance_limit: accountData.balances?.limit,
+        currency_code: accountData.balances?.isoCurrencyCode || 'USD',
+        status: 'active',
+      };
+
+      const { data: existing, error: lookupError } = await supabase
         .from('plaid_accounts')
-        .insert({
-          user_id: userId,
-          item_id: itemId,
-          access_token: accessToken,
-          institution_id: institutionId,
-          institution_name: accountData.institutionName,
-          account_id: accountData.accountId,
-          account_name: accountData.name,
-          account_type: accountData.type,
-          account_subtype: accountData.subtype,
-          account_mask: accountData.mask,
-          balance_current: accountData.balances?.current,
-          balance_available: accountData.balances?.available,
-          balance_limit: accountData.balances?.limit,
-          currency_code: accountData.balances?.isoCurrencyCode || 'USD',
-          status: 'active',
-        });
+        .select('id')
+        .eq('user_id', userId)
+        .eq('account_id', accountData.accountId)
+        .maybeSingle();
+      if (lookupError) throw lookupError;
+
+      const { error } = existing
+        ? await supabase.from('plaid_accounts').update(record).eq('id', existing.id)
+        : await supabase.from('plaid_accounts').insert(record);
 
       if (error) throw error;
       console.log('[v0] Account saved to database');
