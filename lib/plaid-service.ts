@@ -132,7 +132,9 @@ export class PlaidService {
         transactions: {
           days_requested: 90,
         },
-        account_subtypes: ['checking', 'savings'],
+        // Do not restrict subtypes here. Sandbox starter profiles can include
+        // checking, savings, and card accounts, and Plaid filters unsupported
+        // accounts based on the requested products.
         ...(process.env.NEXT_PUBLIC_APP_URL
           ? {
               redirect_uri: `${process.env.NEXT_PUBLIC_APP_URL.replace(/\/$/, '')}/plaid/callback`,

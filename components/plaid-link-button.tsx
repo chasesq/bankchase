@@ -156,7 +156,18 @@ export function PlaidLinkButton({ onSuccess, onError, phoneNumber }: PlaidLinkBu
       {status === 'error' && (
         <div className="flex items-center gap-3 rounded-lg bg-red-50 p-4 border border-red-200">
           <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0" />
-          <span className="text-sm text-red-800">{error}</span>
+          <div className="flex min-w-0 flex-1 items-center justify-between gap-3">
+            <span className="text-sm text-red-800">{error}</span>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => void fetchLinkToken()}
+              disabled={loading || exchanging}
+            >
+              Retry
+            </Button>
+          </div>
         </div>
       )}
 

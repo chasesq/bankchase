@@ -70,9 +70,8 @@ export async function POST(request: NextRequest) {
     });
   } catch (error: any) {
     console.error('[v0] Error exchanging token:', error);
-    return NextResponse.json(
-      { error: error.message || 'Failed to exchange token' },
-      { status: 500 }
-    );
+    const message = error instanceof Error ? error.message : 'Failed to exchange token';
+    const status = /required|Unauthorized|invalid|not configured/i.test(message) ? 400 : 502;
+    return NextResponse.json({ error: message }, { status });
   }
 }
