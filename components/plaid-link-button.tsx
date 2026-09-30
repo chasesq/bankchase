@@ -35,35 +35,40 @@ export function PlaidLinkButton({ onSuccess, onError, phoneNumber }: PlaidLinkBu
   const [connectedItems, setConnectedItems] = useState<any[]>([]);
 
   // Step 1: Fetch link token on mount
-  useEffect(() => {
-    const fetchLinkToken = async () => {
-      setLoading(true);
-      setError(null);
+  const fetchLinkToken = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    setStatus('idle');
 
-      try {
-        const response = await fetch('/api/plaid/create-link-token', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ phoneNumber }),
-        });
+    try {
+      const response = await fetch('/api/plaid/create-link-token', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ phoneNumber }),
+      });
 
-        const data = await response.json().catch(() => ({}));
-        if (!response.ok) {
-          throw new Error(data.error || 'Failed to create link token');
-        }
-
-        setLinkToken(data.linkToken || data.link_token);
-      } catch (err: any) {
-        console.error('[v0] Error fetching link token:', err);
-        setError(err instanceof Error ? err.message : 'Unable to initialize bank connection.');
-        setStatus('error');
-      } finally {
-        setLoading(false);
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to initialize bank connection.');
       }
-    };
 
-    fetchLinkToken();
+      const token = data.linkToken || data.link_token;
+      if (!token) throw new Error('Plaid did not return a link token.');
+      setLinkToken(token);
+    } catch (err: unknown) {
+      console.error('[v0] Error fetching link token:', err);
+      setLinkToken(null);
+      setError(err instanceof Error ? err.message : 'Unable to initialize bank connection.');
+      setStatus('error');
+    } finally {
+      setLoading(false);
+    }
   }, [phoneNumber]);
+
+  useEffect(() => {
+    void fetchLinkToken();
+  }, [fetchLinkToken]);
 
   // Step 2: Handle successful Link completion
   const handlePlaidSuccess = useCallback(async (publicToken: string, metadata: any) => {
@@ -151,7 +156,18 @@ export function PlaidLinkButton({ onSuccess, onError, phoneNumber }: PlaidLinkBu
       {status === 'error' && (
         <div className="flex items-center gap-3 rounded-lg bg-red-50 p-4 border border-red-200">
           <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0" />
-          <span className="text-sm text-red-800">{error}</span>
+          <div className="flex min-w-0 flex-1 items-center justify-between gap-3">
+            <span className="text-sm text-red-800">{error}</span>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => void fetchLinkToken()}
+              disabled={loading || exchanging}
+            >
+              Retry
+            </Button>
+          </div>
         </div>
       )}
 

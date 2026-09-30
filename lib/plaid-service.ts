@@ -132,7 +132,9 @@ export class PlaidService {
         transactions: {
           days_requested: 90,
         },
-        account_subtypes: ['checking', 'savings'],
+        // Do not restrict subtypes here. Sandbox starter profiles can include
+        // checking, savings, and card accounts, and Plaid filters unsupported
+        // accounts based on the requested products.
         ...(process.env.NEXT_PUBLIC_APP_URL
           ? {
               redirect_uri: `${process.env.NEXT_PUBLIC_APP_URL.replace(/\/$/, '')}/plaid/callback`,
@@ -249,7 +251,8 @@ export class PlaidService {
       };
     } catch (error: any) {
       console.error('[v0] Error exchanging public token:', error.response?.data || error.message);
-      throw new Error(`Failed to exchange token: ${error.message}`);
+      const plaidMessage = error.response?.data?.error_message || error.response?.data?.display_message;
+      throw new Error(plaidMessage || `Failed to exchange token: ${error.message}`);
     }
   }
 
@@ -588,25 +591,35 @@ export class PlaidService {
     if (!supabase) throw new Error('Supabase client not initialized');
 
     try {
-      const { error } = await supabase
+      const record = {
+        user_id: userId,
+        item_id: itemId,
+        access_token: accessToken,
+        institution_id: institutionId,
+        institution_name: accountData.institutionName,
+        account_id: accountData.accountId,
+        account_name: accountData.name,
+        account_type: accountData.type,
+        account_subtype: accountData.subtype,
+        account_mask: accountData.mask,
+        balance_current: accountData.balances?.current ?? 0,
+        balance_available: accountData.balances?.available,
+        balance_limit: accountData.balances?.limit,
+        currency_code: accountData.balances?.isoCurrencyCode || 'USD',
+        status: 'active',
+      };
+
+      const { data: existing, error: lookupError } = await supabase
         .from('plaid_accounts')
-        .insert({
-          user_id: userId,
-          item_id: itemId,
-          access_token: accessToken,
-          institution_id: institutionId,
-          institution_name: accountData.institutionName,
-          account_id: accountData.accountId,
-          account_name: accountData.name,
-          account_type: accountData.type,
-          account_subtype: accountData.subtype,
-          account_mask: accountData.mask,
-          balance_current: accountData.balances?.current,
-          balance_available: accountData.balances?.available,
-          balance_limit: accountData.balances?.limit,
-          currency_code: accountData.balances?.isoCurrencyCode || 'USD',
-          status: 'active',
-        });
+        .select('id')
+        .eq('user_id', userId)
+        .eq('account_id', accountData.accountId)
+        .maybeSingle();
+      if (lookupError) throw lookupError;
+
+      const { error } = existing
+        ? await supabase.from('plaid_accounts').update(record).eq('id', existing.id)
+        : await supabase.from('plaid_accounts').insert(record);
 
       if (error) throw error;
       console.log('[v0] Account saved to database');

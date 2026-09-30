@@ -44,31 +44,34 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get transactions for the last 30 days
-    const endDate = new Date().toISOString().split('T')[0];
-    const startDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-    
-    const transactionsResult = await PlaidService.getTransactions(
-      exchangeResult.accessToken,
-      startDate,
-      endDate,
-      undefined,
-      plaidSecret
-    );
-
-    console.log(`[v0] Retrieved ${transactionsResult.transactions.length} transactions`);
+    // Transactions may still be processing immediately after Link completes.
+    // Account linking must succeed even when Plaid returns PRODUCT_NOT_READY.
+    let transactionCount = 0;
+    try {
+      const endDate = new Date().toISOString().split('T')[0];
+      const startDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+      const transactionsResult = await PlaidService.getTransactions(
+        exchangeResult.accessToken,
+        startDate,
+        endDate,
+        undefined,
+        plaidSecret
+      );
+      transactionCount = transactionsResult.transactions.length;
+    } catch (transactionError) {
+      console.warn('[v0] Transactions are not ready yet; account linking completed:', transactionError);
+    }
 
     return NextResponse.json({
       success: true,
       itemId: exchangeResult.itemId,
       accountCount: accountsResult.accounts.length,
-      transactionCount: transactionsResult.transactions.length,
+      transactionCount,
     });
   } catch (error: any) {
     console.error('[v0] Error exchanging token:', error);
-    return NextResponse.json(
-      { error: error.message || 'Failed to exchange token' },
-      { status: 500 }
-    );
+    const message = error instanceof Error ? error.message : 'Failed to exchange token';
+    const status = /required|Unauthorized|invalid|not configured/i.test(message) ? 400 : 502;
+    return NextResponse.json({ error: message }, { status });
   }
 }

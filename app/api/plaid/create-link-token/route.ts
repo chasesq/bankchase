@@ -22,9 +22,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(linkToken);
   } catch (error: any) {
     console.error('[v0] Error creating link token:', error);
-    return NextResponse.json(
-      { error: error.message || 'Failed to create link token' },
-      { status: 500 }
-    );
+    const message = error instanceof Error ? error.message : 'Failed to create link token';
+    const status = /not configured|valid US phone|Unauthorized|required/i.test(message) ? 400 : 502;
+    return NextResponse.json({ error: message }, { status });
   }
 }
