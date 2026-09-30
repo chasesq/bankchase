@@ -26,6 +26,9 @@ importers:
       '@hookform/resolvers':
         specifier: ^3.10.0
         version: 3.10.0(react-hook-form@7.82.0(react@19.2.8))
+      '@kubiks/otel-resend':
+        specifier: ^1.1.0
+        version: 1.1.0(@opentelemetry/api@1.9.1)(resend@6.18.0)
       '@neondatabase/serverless':
         specifier: ^1.1.0
         version: 1.1.0
@@ -1597,6 +1600,13 @@ packages:
 
   '@keyv/serialize@1.1.1':
     resolution: {integrity: sha512-dXn3FZhPv0US+7dtJsIi2R+c7qWYiReoEh5zUntWCf4oSpMNib8FDhSoed6m3QyZdx5hK7iLFkYk3rNxwt8vTA==}
+
+  '@kubiks/otel-resend@1.1.0':
+    resolution: {integrity: sha512-2MMnOUEtrRB+rzFqJsymSzXnNR8pjzSYFhyjJb3BFEM96eGMHkxMV27sAlCMEdUxraCEcYEDo0yicIHhSpYTHQ==}
+    engines: {node: ^18.19.0 || >=20.6.0}
+    peerDependencies:
+      '@opentelemetry/api': '>=1.9.0 <2.0.0'
+      resend: '>=3.0.0'
 
   '@lukeed/csprng@1.1.0':
     resolution: {integrity: sha512-Z7C/xXCiGWsg0KuKsHTKJxbWhpI3Vs5GwLfOean7MGyVFGqdRgBbAjOCh6u4bbjPc/8MJ2pZmK/0DLdCbivLDA==}
@@ -9782,6 +9792,11 @@ snapshots:
   '@js-sdsl/ordered-map@4.4.2': {}
 
   '@keyv/serialize@1.1.1': {}
+
+  '@kubiks/otel-resend@1.1.0(@opentelemetry/api@1.9.1)(resend@6.18.0)':
+    dependencies:
+      '@opentelemetry/api': 1.9.1
+      resend: 6.18.0
 
   '@lukeed/csprng@1.1.0': {}
 
