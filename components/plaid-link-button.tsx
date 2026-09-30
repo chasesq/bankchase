@@ -35,35 +35,40 @@ export function PlaidLinkButton({ onSuccess, onError, phoneNumber }: PlaidLinkBu
   const [connectedItems, setConnectedItems] = useState<any[]>([]);
 
   // Step 1: Fetch link token on mount
-  useEffect(() => {
-    const fetchLinkToken = async () => {
-      setLoading(true);
-      setError(null);
+  const fetchLinkToken = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    setStatus('idle');
 
-      try {
-        const response = await fetch('/api/plaid/create-link-token', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ phoneNumber }),
-        });
+    try {
+      const response = await fetch('/api/plaid/create-link-token', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ phoneNumber }),
+      });
 
-        const data = await response.json().catch(() => ({}));
-        if (!response.ok) {
-          throw new Error(data.error || 'Failed to create link token');
-        }
-
-        setLinkToken(data.linkToken || data.link_token);
-      } catch (err: any) {
-        console.error('[v0] Error fetching link token:', err);
-        setError(err instanceof Error ? err.message : 'Unable to initialize bank connection.');
-        setStatus('error');
-      } finally {
-        setLoading(false);
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to initialize bank connection.');
       }
-    };
 
-    fetchLinkToken();
+      const token = data.linkToken || data.link_token;
+      if (!token) throw new Error('Plaid did not return a link token.');
+      setLinkToken(token);
+    } catch (err: unknown) {
+      console.error('[v0] Error fetching link token:', err);
+      setLinkToken(null);
+      setError(err instanceof Error ? err.message : 'Unable to initialize bank connection.');
+      setStatus('error');
+    } finally {
+      setLoading(false);
+    }
   }, [phoneNumber]);
+
+  useEffect(() => {
+    void fetchLinkToken();
+  }, [fetchLinkToken]);
 
   // Step 2: Handle successful Link completion
   const handlePlaidSuccess = useCallback(async (publicToken: string, metadata: any) => {

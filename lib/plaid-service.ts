@@ -249,7 +249,8 @@ export class PlaidService {
       };
     } catch (error: any) {
       console.error('[v0] Error exchanging public token:', error.response?.data || error.message);
-      throw new Error(`Failed to exchange token: ${error.message}`);
+      const plaidMessage = error.response?.data?.error_message || error.response?.data?.display_message;
+      throw new Error(plaidMessage || `Failed to exchange token: ${error.message}`);
     }
   }
 
