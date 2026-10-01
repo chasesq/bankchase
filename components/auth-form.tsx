@@ -1,7 +1,6 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import Image from "next/image"
 import Link from "next/link"
 import { Eye, EyeOff, Fingerprint, Loader2, MoreHorizontal, ShieldCheck, X } from "lucide-react"
 import { useAuth } from "@/lib/auth-context"
@@ -58,9 +57,14 @@ export function AuthForm({ mode }: { mode: "sign-in" | "sign-up" }) {
           <div className="flex items-center gap-2 text-sm font-medium"><ShieldCheck className="size-5" /> Secure sign in</div>
         </header>
         <div className="flex flex-1 flex-col items-center justify-center gap-7 py-6 sm:gap-9 sm:py-8">
-          <div className="flex items-center gap-2 text-white" aria-label="Chase">
-            <span className="font-mono text-3xl font-semibold tracking-[0.08em] sm:text-4xl">CHASE</span>
-            <Image src="/images/chase-logo.png" alt="Chase logo" width={44} height={44} className="shrink-0 sm:h-[52px] sm:w-[52px]" priority />
+          <div className="flex items-center gap-2.5 text-white" role="img" aria-label="Chase">
+            <span className="font-sans text-[2.35rem] font-semibold leading-none tracking-[-0.08em] sm:text-[3rem]">CHASE</span>
+            <span className="relative grid size-9 shrink-0 place-items-center sm:size-11" aria-hidden="true">
+              <span className="absolute inset-0 rotate-45 bg-white [clip-path:polygon(50%_0,100%_50%,50%_100%,0_50%)]" />
+              <span className="absolute size-4 rotate-45 bg-[#0868b8] sm:size-5" />
+              <span className="absolute right-0 top-0 size-3.5 bg-[#0868b8] sm:size-4" />
+              <span className="absolute bottom-0 left-0 size-3.5 bg-[#0868b8] sm:size-4" />
+            </span>
           </div>
           <section className="w-full max-w-xl rounded-md border border-[#aeb4bb] bg-white shadow-[0_3px_12px_rgba(0,0,0,.22)]">
             <div className="p-6 sm:p-9">
