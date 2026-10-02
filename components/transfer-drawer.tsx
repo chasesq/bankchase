@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerFooter } from "@/components/ui/drawer"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -47,6 +47,16 @@ export function TransferDrawer({ open, onOpenChange, onReceiptOpen }: TransferDr
   const [extAccountType, setExtAccountType] = useState("Checking")
 
   const [bankSelectorOpen, setBankSelectorOpen] = useState(false)
+
+  useEffect(() => {
+    if (accounts.length === 0) return
+
+    setFromAccount((current) => accounts.some((account) => account.id === current) ? current : accounts[0].id)
+    setToAccount((current) => {
+      if (accounts.some((account) => account.id === current) && current !== fromAccount) return current
+      return accounts.find((account) => account.id !== fromAccount)?.id || accounts[0].id
+    })
+  }, [accounts, fromAccount])
 
   const validateRoutingNumber = (routing: string) => /^\d{9}$/.test(routing)
   const validateAccountNumber = (account: string) => /^\d{8,}$/.test(account)
@@ -431,7 +441,7 @@ export function TransferDrawer({ open, onOpenChange, onReceiptOpen }: TransferDr
               </div>
 
               <Button className="w-full mt-4" onClick={handleExternalTransfer} disabled={isLoading}>
-                {isLoading ? "Initiating..." : "Initiate Transfer"}
+                {isLoading ? "Sending..." : "Send Transfer"}
               </Button>
             </TabsContent>
 

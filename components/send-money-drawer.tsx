@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerFooter } from "@/components/ui/drawer"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -29,6 +29,12 @@ export function SendMoneyDrawer({ open, onOpenChange, onReceiptOpen }: SendMoney
     useBanking()
   const [isLoading, setIsLoading] = useState(false)
   const [selectedAccount, setSelectedAccount] = useState(accounts[0]?.id || "")
+
+  useEffect(() => {
+    if (accounts.length > 0 && !accounts.some((account) => account.id === selectedAccount)) {
+      setSelectedAccount(accounts[0].id)
+    }
+  }, [accounts, selectedAccount])
 
   const [showAddContact, setShowAddContact] = useState(false)
   const [newContactName, setNewContactName] = useState("")
