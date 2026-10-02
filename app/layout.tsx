@@ -9,6 +9,7 @@ import { BankingProvider } from "@/lib/banking-context"
 import { AuthProvider } from "@/lib/auth-context"
 import { ThemeProvider } from "@/components/theme-provider"
 import { DeviceIntelligenceProvider } from "@/components/fingerprint-provider"
+import { GlobalBackButton } from "@/components/global-back-button"
 import StatsigWrapper from "./statsig-provider"
 import "./globals.css"
 
@@ -53,6 +54,7 @@ export default function RootLayout({
                 <DeviceIntelligenceProvider>
                   <BankingProvider>
                     {children}
+                    <GlobalBackButton />
                     <Toaster />
                     <Analytics />
                     <SpeedInsights />
