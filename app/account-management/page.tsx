@@ -1,8 +1,6 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-
+import { useEffect, useState } from 'react'
 import { ProtectedRoute } from '@/components/ProtectedRoute'
 import { Navigation } from '@/components/Navigation'
 import { Card } from '@/components/ui/card'
@@ -11,7 +9,6 @@ import { useBanking } from '@/lib/banking-context'
 import { useToast } from '@/hooks/use-toast'
 
 function AccountManagementContent() {
-  const router = useRouter()
   const { userProfile, updateUserProfile } = useBanking()
   const { toast } = useToast()
   const [isEditing, setIsEditing] = useState(false)
@@ -31,6 +28,22 @@ function AccountManagementContent() {
       zipCode: stateAndZip.slice(1).join(' '),
     }
   })
+
+  useEffect(() => {
+    const [firstName = '', ...lastNameParts] = userProfile.name.split(' ')
+    const addressParts = userProfile.address.split(',').map((part) => part.trim())
+    const stateAndZip = (addressParts[2] || '').split(' ').filter(Boolean)
+    setFormData({
+      firstName,
+      lastName: lastNameParts.join(' '),
+      email: userProfile.email,
+      phone: userProfile.phone,
+      address: addressParts[0] || '',
+      city: addressParts[1] || '',
+      state: stateAndZip[0] || '',
+      zipCode: stateAndZip.slice(1).join(' '),
+    })
+  }, [userProfile])
 
   const handleSave = () => {
     if (!formData.firstName.trim() || !formData.lastName.trim() || !formData.email.trim()) {

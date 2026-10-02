@@ -5,7 +5,7 @@ import { useTheme } from 'next-themes'
 
 import { ProtectedRoute } from '@/components/ProtectedRoute'
 import { useBanking } from '@/lib/banking-context'
-import { ArrowLeft, Bell, Lock, Globe, Moon, Save, AlertCircle, Zap } from 'lucide-react'
+import { Bell, Lock, Globe, Moon, Save, AlertCircle, Zap } from 'lucide-react'
 import { toast } from 'sonner'
 import Link from 'next/link'
 
