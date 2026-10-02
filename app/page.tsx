@@ -172,6 +172,7 @@ export default function BankingDashboard() {
           <div className="flex flex-col gap-5 pb-24">
             <QuickActions
               onSendMoney={() => setSendMoneyOpen(true)}
+              onTransfer={() => setTransferOpen(true)}
               onDepositChecks={() => setDepositChecksOpen(true)}
               onPayBills={() => setPayBillsOpen(true)}
             />
