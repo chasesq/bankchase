@@ -9,7 +9,7 @@ const fallbackRoutes: Record<string, { href: string; label: string }> = {
   '/account-management': { href: '/', label: 'Dashboard' },
   '/account_settings': { href: '/settings', label: 'Settings' },
   '/accounts': { href: '/', label: 'Dashboard' },
-  '/cards': { href: '/', label: 'Dashboard' },
+  '/cards': { href: '/', label: 'Cards' },
   '/credit-card': { href: '/', label: 'Dashboard' },
   '/transactions': { href: '/accounts', label: 'Accounts' },
   '/statements': { href: '/accounts', label: 'Accounts' },
@@ -56,6 +56,7 @@ export function GlobalBackButton() {
 
   const fallback = useMemo(() => {
     if (fallbackRoutes[pathname]) return fallbackRoutes[pathname]
+    if (pathname.startsWith('/cards/')) return { href: '/cards', label: 'Cards' }
     const topLevel = pathname.split('/').filter(Boolean)[0]
     return topLevel ? { href: '/', label: 'Dashboard' } : null
   }, [pathname])
