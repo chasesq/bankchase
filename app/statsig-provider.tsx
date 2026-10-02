@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useMemo } from "react";
 import { useClientAsyncInit, StatsigProvider } from "@statsig/react-bindings";
 import { StatsigAutoCapturePlugin } from "@statsig/web-analytics";
 import { StatsigSessionReplayPlugin } from "@statsig/session-replay";
@@ -13,20 +13,24 @@ const STATSIG_USER_ID = process.env.NEXT_PUBLIC_STATSIG_USER_ID ?? "anonymous-us
 const STATSIG_ACCOUNT_ID = process.env.NEXT_PUBLIC_STATSIG_ACCOUNT_ID;
 
 export default function StatsigWrapper({ children }: { children: React.ReactNode }) {
-  const user = {
-    userID: STATSIG_USER_ID,
-    ...(STATSIG_ACCOUNT_ID
-      ? { customIDs: { accountID: STATSIG_ACCOUNT_ID } }
-      : {}),
-  };
-
-  const { client } = useClientAsyncInit(
-    STATSIG_CLIENT_KEY,
-    user,
-    {
-      plugins: [new StatsigAutoCapturePlugin(), new StatsigSessionReplayPlugin()],
-    },
+  const user = useMemo(
+    () => ({
+      userID: STATSIG_USER_ID,
+      ...(STATSIG_ACCOUNT_ID
+        ? { customIDs: { accountID: STATSIG_ACCOUNT_ID } }
+        : {}),
+    }),
+    [],
   );
+
+  const options = useMemo(
+    () => ({
+      plugins: [new StatsigAutoCapturePlugin(), new StatsigSessionReplayPlugin()],
+    }),
+    [],
+  );
+
+  const { client } = useClientAsyncInit(STATSIG_CLIENT_KEY, user, options);
 
   return (
     <StatsigProvider client={client} loadingComponent={null}>

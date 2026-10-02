@@ -3,10 +3,11 @@
 import { ArrowLeft } from 'lucide-react'
 import { usePathname, useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo } from 'react'
 
 const parentRoutes: Record<string, { href: string; label: string }> = {
   '/account-management': { href: '/', label: 'Dashboard' },
+  '/account_settings': { href: '/', label: 'Dashboard' },
   '/accounts': { href: '/', label: 'Dashboard' },
   '/transactions': { href: '/accounts', label: 'Accounts' },
   '/statements': { href: '/accounts', label: 'Accounts' },
@@ -20,6 +21,13 @@ const parentRoutes: Record<string, { href: string; label: string }> = {
   '/bill-pay': { href: '/', label: 'Dashboard' },
   '/cards': { href: '/', label: 'Dashboard' },
   '/settings': { href: '/', label: 'Dashboard' },
+  '/settings/account-security': { href: '/settings', label: 'Settings' },
+  '/settings/security': { href: '/settings', label: 'Settings' },
+  '/settings/notifications': { href: '/settings', label: 'Settings' },
+  '/settings/my-profile': { href: '/settings', label: 'Settings' },
+  '/settings/my-user-profile': { href: '/settings', label: 'Settings' },
+  '/settings/integrations': { href: '/settings', label: 'Settings' },
+  '/settings/company-profile': { href: '/settings', label: 'Settings' },
   '/profile': { href: '/', label: 'Dashboard' },
   '/help': { href: '/', label: 'Dashboard' },
 }
@@ -27,26 +35,11 @@ const parentRoutes: Record<string, { href: string; label: string }> = {
 export function ContextualBackButton() {
   const pathname = usePathname()
   const router = useRouter()
-  const [historyLength, setHistoryLength] = useState(0)
-
-  useEffect(() => {
-    try {
-      const history = JSON.parse(sessionStorage.getItem('navigationHistory') || '[]')
-      setHistoryLength(Array.isArray(history) ? history.length : 0)
-    } catch {
-      setHistoryLength(0)
-    }
-  }, [pathname])
-
   const parent = useMemo(() => parentRoutes[pathname] || { href: '/', label: 'Dashboard' }, [pathname])
-  const canGoBack = historyLength > 1
-
   const handleBack = () => {
-    if (canGoBack) {
-      router.back()
-    } else {
-      router.push(parent.href)
-    }
+    // Always use the known parent route so browser history cannot send users
+    // outside the banking app or back to an unrelated page.
+    router.push(parent.href)
   }
 
   if (pathname === '/' || pathname === '/landing' || pathname === '/login' || pathname === '/sign-in') return null
