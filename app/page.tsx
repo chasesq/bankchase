@@ -28,7 +28,28 @@ import { DisputeTransactionDrawer } from "@/components/dispute-transaction-drawe
 import { useBanking } from "@/lib/banking-context"
 import { useAuth } from "@/lib/auth-context"
 
+function ChaseSplashScreen() {
+  return (
+    <main
+      className="fixed inset-0 z-50 flex min-h-dvh flex-col items-center justify-center overflow-hidden bg-[#1769ad] text-white"
+      aria-label="Loading BankChase"
+    >
+      <div className="flex items-center justify-center" role="img" aria-label="Chase">
+        <img
+          src="/images/chase-logo.png"
+          alt="Chase"
+          className="h-28 w-28 object-cover sm:h-36 sm:w-36"
+        />
+      </div>
+      <div className="absolute bottom-8 left-1/2 h-1 w-32 -translate-x-1/2 overflow-hidden rounded-full bg-white/25" aria-hidden="true">
+        <div className="h-full w-1/2 animate-[splash-progress_1.6s_ease-in-out_infinite] rounded-full bg-white" />
+      </div>
+    </main>
+  )
+}
+
 export default function BankingDashboard() {
+  const [isSplashVisible, setIsSplashVisible] = useState(true)
   const [activeView, setActiveView] = useState("accounts")
   const [sendMoneyOpen, setSendMoneyOpen] = useState(false)
   const [payBillsOpen, setPayBillsOpen] = useState(false)
@@ -63,6 +84,11 @@ export default function BankingDashboard() {
   }, [transactions])
   const { user, loading: authLoading, logout } = useAuth()
   const router = useRouter()
+
+  useEffect(() => {
+    const splashTimer = window.setTimeout(() => setIsSplashVisible(false), 1800)
+    return () => window.clearTimeout(splashTimer)
+  }, [])
 
   const getUserFirstName = useCallback(() => {
     return userProfile.name.split(" ")[0] || "User"
@@ -126,13 +152,17 @@ export default function BankingDashboard() {
   }
 
   useEffect(() => {
-    if (!authLoading && !user) {
-      router.replace('/sign-in')
+    if (!isSplashVisible && !authLoading && !user) {
+      router.replace('/login')
     }
-  }, [authLoading, router, user])
+  }, [authLoading, isSplashVisible, router, user])
+
+  if (isSplashVisible) {
+    return <ChaseSplashScreen />
+  }
 
   if (authLoading || !user) {
-  return null
+    return null
   }
 
   const renderView = () => {
@@ -142,6 +172,7 @@ export default function BankingDashboard() {
           <div className="flex flex-col gap-5 pb-24">
             <QuickActions
               onSendMoney={() => setSendMoneyOpen(true)}
+              onTransfer={() => setTransferOpen(true)}
               onDepositChecks={() => setDepositChecksOpen(true)}
               onPayBills={() => setPayBillsOpen(true)}
             />

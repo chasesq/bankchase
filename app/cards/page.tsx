@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { useBanking } from '@/lib/banking-context';
-import { CreditCard, Lock, Eye, EyeOff, Plus, MoreVertical, Check, Clock, Send } from 'lucide-react';
+import { ArrowLeft, CreditCard, Lock, Eye, EyeOff, Plus, MoreVertical, Check, Clock, Send } from 'lucide-react';
 import Link from 'next/link';
 import { toast } from 'sonner';
 
@@ -211,6 +211,10 @@ function CardsContent() {
         {/* Header */}
         <div className="mb-8 flex justify-between items-start">
           <div>
+            <Link href="/" className="mb-4 inline-flex items-center gap-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
+              <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+              Back to dashboard
+            </Link>
             <h1 className="text-4xl font-bold text-foreground mb-2">Cards</h1>
             <p className="text-muted-foreground">Manage your digital and physical cards</p>
           </div>
