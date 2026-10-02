@@ -34,16 +34,12 @@ function ChaseSplashScreen() {
       className="fixed inset-0 z-50 flex min-h-dvh flex-col items-center justify-center overflow-hidden bg-[#1769ad] text-white"
       aria-label="Loading BankChase"
     >
-      <div className="flex items-center gap-2.5" role="img" aria-label="Chase">
-        <span className="font-sans text-[2.35rem] font-semibold leading-none tracking-[-0.08em] sm:text-[3rem]">
-          CHASE
-        </span>
-        <span className="relative grid size-9 place-items-center sm:size-11" aria-hidden="true">
-          <span className="absolute inset-0 rotate-45 bg-white [clip-path:polygon(50%_0,100%_50%,50%_100%,0_50%)]" />
-          <span className="absolute size-4 rotate-45 bg-[#1769ad] sm:size-5" />
-          <span className="absolute right-0 top-0 size-3.5 bg-[#1769ad] sm:size-4" />
-          <span className="absolute bottom-0 left-0 size-3.5 bg-[#1769ad] sm:size-4" />
-        </span>
+      <div className="flex items-center justify-center" role="img" aria-label="Chase">
+        <img
+          src="/images/chase-logo.png"
+          alt="Chase"
+          className="h-28 w-28 object-cover sm:h-36 sm:w-36"
+        />
       </div>
       <div className="absolute bottom-8 left-1/2 h-1 w-32 -translate-x-1/2 overflow-hidden rounded-full bg-white/25" aria-hidden="true">
         <div className="h-full w-1/2 animate-[splash-progress_1.6s_ease-in-out_infinite] rounded-full bg-white" />
