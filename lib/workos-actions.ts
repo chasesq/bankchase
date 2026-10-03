@@ -52,9 +52,13 @@ export function signWorkOSResponse(
 }
 
 export function actionsSecret() {
-  return process.env.WORKOS_ACTIONS_SECRET ?? process.env.Signing_secret
+  return (
+    process.env.WORKOS_ACTIONS_SECRET ??
+    process.env.WORKOS_SIGNING_SECRET ??
+    process.env.Signing_secret
+  )
 }
 
-export function isAllowedActionPayload(payload: unknown) {
-  return Boolean(payload && typeof payload === 'object')
+export function isAllowedActionPayload(payload: unknown): payload is Record<string, unknown> {
+  return Boolean(payload && typeof payload === 'object' && !Array.isArray(payload))
 }
