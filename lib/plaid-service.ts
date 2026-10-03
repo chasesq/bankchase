@@ -63,7 +63,7 @@ interface AccountsResponse {
       available: number | null;
       current: number;
       limit: number | null;
-      isoCourrencyCode: string | null;
+      isoCurrencyCode: string | null;
     };
   }>;
   item: {
@@ -445,7 +445,7 @@ export class PlaidService {
   }) {
     const secret = input.plaidSecret || PLAID_SECRET || '';
     if (!input.accessToken || !input.accountId || !input.authorizationId) throw new Error('accessToken, accountId, and authorizationId are required.');
-    if (!/^\\d+\\.\\d{2}$/.test(input.amount) || Number(input.amount) <= 0) throw new Error('amount must be a positive decimal with two digits.');
+    if (!/^\d+\.\d{2}$/.test(input.amount) || Number(input.amount) <= 0) throw new Error('amount must be a positive decimal with two digits.');
     if (!input.description || input.description.length > 80) throw new Error('description is required and must be 80 characters or fewer.');
     if (!input.idempotencyKey || input.idempotencyKey.length > 50) throw new Error('idempotencyKey is required and must be 50 characters or fewer.');
     assertPlaidConfiguration(secret);
