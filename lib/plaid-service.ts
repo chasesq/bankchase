@@ -127,7 +127,7 @@ export class PlaidService {
         },
         country_codes: ['US'],
         language: 'en',
-        products: ['auth', 'transactions'],
+        products: ['auth', 'transactions', 'assets'],
         required_if_supported_products: ['identity'],
         transactions: {
           days_requested: 90,
@@ -564,6 +564,84 @@ export class PlaidService {
     } catch (error: any) {
       const plaidError = error.response?.data?.error_message || error.response?.data?.display_message;
       throw new Error(plaidError || `Failed to evaluate Signal transaction: ${error.message}`);
+    }
+  }
+
+  /**
+   * Create an Asset Report from one or more linked Items.
+   * The report is asynchronous; callers should wait for PRODUCT_READY before fetching it.
+   */
+  static async createAssetReport(input: {
+    accessTokens: string[];
+    daysRequested?: number;
+    webhook?: string;
+    includeInsights?: boolean;
+    addOns?: string[];
+    clientReportId?: string;
+    secret?: string;
+  }) {
+    const secret = input.secret || PLAID_SECRET || '';
+    if (!Array.isArray(input.accessTokens) || input.accessTokens.length === 0) {
+      throw new Error('accessTokens must contain at least one access token.');
+    }
+    if (input.accessTokens.some((token) => typeof token !== 'string' || !token)) {
+      throw new Error('accessTokens must contain non-empty strings.');
+    }
+    if (input.daysRequested !== undefined && (!Number.isInteger(input.daysRequested) || input.daysRequested < 1 || input.daysRequested > 731)) {
+      throw new Error('daysRequested must be an integer between 1 and 731.');
+    }
+    if (input.webhook !== undefined && (typeof input.webhook !== 'string' || input.webhook.length > 2048)) {
+      throw new Error('webhook must be a valid string of 2048 characters or fewer.');
+    }
+    assertPlaidConfiguration(secret);
+    try {
+      const response = await plaidClient.post(`${BASE_URL}/asset_report/create`, {
+        client_id: PLAID_CLIENT_ID,
+        secret,
+        access_tokens: input.accessTokens,
+        ...(input.daysRequested !== undefined ? { days_requested: input.daysRequested } : {}),
+        ...(input.webhook ? { webhook: input.webhook } : {}),
+        ...(input.includeInsights !== undefined ? { options: { include_insights: input.includeInsights, ...(input.addOns?.length ? { add_ons: input.addOns } : {}) } } : input.addOns?.length ? { options: { add_ons: input.addOns } } : {}),
+        ...(input.clientReportId ? { client_report_id: input.clientReportId } : {}),
+      });
+      return response.data;
+    } catch (error: any) {
+      const message = error.response?.data?.error_message || error.response?.data?.display_message;
+      throw new Error(message || `Failed to create asset report: ${error.message}`);
+    }
+  }
+
+  static async getAssetReport(assetReportId: string, plaidSecret: string = PLAID_SECRET || '', options: { includeInsights?: boolean; fastReport?: boolean } = {}) {
+    if (!assetReportId) throw new Error('assetReportId is required.');
+    assertPlaidConfiguration(plaidSecret);
+    try {
+      const response = await plaidClient.post(`${BASE_URL}/asset_report/get`, {
+        client_id: PLAID_CLIENT_ID,
+        secret: plaidSecret,
+        asset_report_token: assetReportId,
+        ...(options.includeInsights !== undefined ? { include_insights: options.includeInsights } : {}),
+        ...(options.fastReport !== undefined ? { fast_report: options.fastReport } : {}),
+      });
+      return response.data;
+    } catch (error: any) {
+      const message = error.response?.data?.error_message || error.response?.data?.display_message;
+      throw new Error(message || `Failed to retrieve asset report: ${error.message}`);
+    }
+  }
+
+  static async refreshAssetReport(assetReportId: string, plaidSecret: string = PLAID_SECRET || '') {
+    if (!assetReportId) throw new Error('assetReportId is required.');
+    assertPlaidConfiguration(plaidSecret);
+    try {
+      const response = await plaidClient.post(`${BASE_URL}/asset_report/refresh`, {
+        client_id: PLAID_CLIENT_ID,
+        secret: plaidSecret,
+        asset_report_token: assetReportId,
+      });
+      return response.data;
+    } catch (error: any) {
+      const message = error.response?.data?.error_message || error.response?.data?.display_message;
+      throw new Error(message || `Failed to refresh asset report: ${error.message}`);
     }
   }
 
