@@ -1,6 +1,6 @@
 import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { createClient, isSupabaseConfigured } from '@/lib/supabase/server'
 
 export async function GET() {
   try {
@@ -17,6 +17,10 @@ export async function GET() {
         },
         session: { access_token: isAdmin ? 'demo-session' : null },
       })
+    }
+
+    if (!isSupabaseConfigured()) {
+      return NextResponse.json({ user: null, session: null })
     }
 
     const supabase = await createClient()
