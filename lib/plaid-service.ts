@@ -432,6 +432,69 @@ export class PlaidService {
     }
   }
 
+  static async createTransfer(input: {
+    accessToken: string;
+    accountId: string;
+    authorizationId: string;
+    type: 'debit' | 'credit';
+    network: 'ach' | 'same-day-ach' | 'rtp' | 'wire' | 'rfp';
+    amount: string;
+    description: string;
+    idempotencyKey: string;
+    plaidSecret?: string;
+  }) {
+    const secret = input.plaidSecret || PLAID_SECRET || '';
+    if (!input.accessToken || !input.accountId || !input.authorizationId) throw new Error('accessToken, accountId, and authorizationId are required.');
+    if (!/^\\d+\\.\\d{2}$/.test(input.amount) || Number(input.amount) <= 0) throw new Error('amount must be a positive decimal with two digits.');
+    if (!input.description || input.description.length > 80) throw new Error('description is required and must be 80 characters or fewer.');
+    if (!input.idempotencyKey || input.idempotencyKey.length > 50) throw new Error('idempotencyKey is required and must be 50 characters or fewer.');
+    assertPlaidConfiguration(secret);
+    try {
+      const response = await plaidClient.post(`${BASE_URL}/transfer/create`, {
+        client_id: PLAID_CLIENT_ID,
+        secret,
+        access_token: input.accessToken,
+        account_id: input.accountId,
+        authorization_id: input.authorizationId,
+        type: input.type,
+        network: input.network,
+        amount: input.amount,
+        description: input.description,
+        idempotency_key: input.idempotencyKey,
+      });
+      return response.data;
+    } catch (error: any) {
+      const message = error.response?.data?.error_message || error.response?.data?.display_message;
+      throw new Error(message || `Failed to create transfer: ${error.message}`);
+    }
+  }
+
+  static async getTransfer(transferId: string, plaidSecret: string = PLAID_SECRET || '') {
+    if (!transferId) throw new Error('transferId is required.');
+    assertPlaidConfiguration(plaidSecret);
+    const response = await plaidClient.post(`${BASE_URL}/transfer/get`, { client_id: PLAID_CLIENT_ID, secret: plaidSecret, transfer_id: transferId });
+    return response.data;
+  }
+
+  static async listTransfers(input: { count?: number; offset?: number; plaidSecret?: string } = {}) {
+    const secret = input.plaidSecret || PLAID_SECRET || '';
+    assertPlaidConfiguration(secret);
+    const response = await plaidClient.post(`${BASE_URL}/transfer/list`, {
+      client_id: PLAID_CLIENT_ID,
+      secret,
+      count: Math.min(Math.max(input.count ?? 25, 1), 100),
+      offset: Math.max(input.offset ?? 0, 0),
+    });
+    return response.data;
+  }
+
+  static async cancelTransfer(transferId: string, plaidSecret: string = PLAID_SECRET || '') {
+    if (!transferId) throw new Error('transferId is required.');
+    assertPlaidConfiguration(plaidSecret);
+    const response = await plaidClient.post(`${BASE_URL}/transfer/cancel`, { client_id: PLAID_CLIENT_ID, secret: plaidSecret, transfer_id: transferId });
+    return response.data;
+  }
+
   /**
    * Evaluate a proposed ACH transaction with Plaid Signal.
    */
