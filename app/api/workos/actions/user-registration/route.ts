@@ -1,4 +1,6 @@
 import { NextResponse } from 'next/server'
+
+export const runtime = 'nodejs'
 import { actionsSecret, isAllowedActionPayload, signWorkOSResponse, verifyWorkOSSignature } from '@/lib/workos-actions'
 
 export async function POST(request: Request) {
