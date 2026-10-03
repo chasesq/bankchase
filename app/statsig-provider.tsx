@@ -23,12 +23,19 @@ export default function StatsigWrapper({ children }: { children: React.ReactNode
     [],
   );
 
-  const options = useMemo(
-    () => ({
-      plugins: [new StatsigAutoCapturePlugin(), new StatsigSessionReplayPlugin()],
-    }),
-    [],
-  );
+  const options = useMemo(() => {
+    // Preview embeds are cross-origin iframes. Analytics plugins may inspect
+    // the parent frame and trigger a browser SecurityError there, so only
+    // install them when this app is running in its top-level window.
+    const isTopLevelWindow =
+      typeof window !== "undefined" && window.self === window.top;
+
+    return isTopLevelWindow
+      ? {
+          plugins: [new StatsigAutoCapturePlugin(), new StatsigSessionReplayPlugin()],
+        }
+      : {};
+  }, []);
 
   const { client } = useClientAsyncInit(STATSIG_CLIENT_KEY, user, options);
 
