@@ -63,7 +63,7 @@ interface AccountsResponse {
       available: number | null;
       current: number;
       limit: number | null;
-      isoCourrencyCode: string | null;
+      isoCurrencyCode: string | null;
     };
   }>;
   item: {
@@ -127,7 +127,7 @@ export class PlaidService {
         },
         country_codes: ['US'],
         language: 'en',
-        products: ['auth', 'transactions'],
+        products: ['auth', 'transactions', 'assets'],
         required_if_supported_products: ['identity'],
         transactions: {
           days_requested: 90,
@@ -231,6 +231,98 @@ export class PlaidService {
   }
 
   /**
+   * Create a Plaid Check user. Plaid requires the identity object when using
+   * Consumer Report products, and at least one primary contact/address field.
+   */
+  static async createCheckUser(input: {
+    clientUserId: string;
+    name: { givenName: string; familyName: string };
+    dateOfBirth: string;
+    email: string;
+    phoneNumber: string;
+    address: { street: string; city: string; region: string; postalCode: string; country: string };
+    ssnLast4?: string;
+  }, plaidSecret: string = PLAID_SECRET || '') {
+    if (!input.clientUserId || !input.name.givenName || !input.name.familyName || !input.dateOfBirth || !input.email || !input.phoneNumber) {
+      throw new Error('clientUserId, name, dateOfBirth, email, and phoneNumber are required.');
+    }
+    if (!/^\\d{4}-\\d{2}-\\d{2}$/.test(input.dateOfBirth)) throw new Error('dateOfBirth must use YYYY-MM-DD format.');
+    if (!input.address.street || !input.address.city || !input.address.region || !input.address.postalCode) {
+      throw new Error('A complete primary address is required.');
+    }
+    assertPlaidConfiguration(plaidSecret);
+    try {
+      const response = await plaidClient.post(`${BASE_URL}/user/create`, {
+        client_id: PLAID_CLIENT_ID,
+        secret: plaidSecret,
+        client_user_id: input.clientUserId,
+        identity: {
+          name: { given_name: input.name.givenName, family_name: input.name.familyName },
+          date_of_birth: input.dateOfBirth,
+          emails: [{ data: input.email, primary: true, type: 'primary' }],
+          phone_numbers: [{ data: input.phoneNumber, primary: true, type: 'primary' }],
+          addresses: [{
+            data: {
+              street: input.address.street,
+              city: input.address.city,
+              region: input.address.region,
+              postal_code: input.address.postalCode,
+              country: input.address.country || 'US',
+            },
+            primary: true,
+          }],
+          ...(input.ssnLast4 ? { id_numbers: [{ value: input.ssnLast4, type: 'ssn_last_4' }] } : {}),
+        },
+      });
+      return response.data;
+    } catch (error: any) {
+      const message = error.response?.data?.error_message || error.response?.data?.display_message;
+      throw new Error(message || `Failed to create Plaid Check user: ${error.message}`);
+    }
+  }
+
+  /**
+   * Create a dedicated Consumer Report Link token. Check products must not be
+   * mixed with Assets or Income in the same Link session.
+   */
+  static async createConsumerReportLinkToken(input: {
+    clientUserId: string;
+    userId: string;
+    daysRequested?: number;
+    products?: string[];
+    permissiblePurpose: string;
+    webhook?: string;
+    clientName?: string;
+  }, plaidSecret: string = PLAID_SECRET || ''): Promise<LinkTokenResponse> {
+    const daysRequested = input.daysRequested ?? 365;
+    if (!input.clientUserId || !input.userId || !input.permissiblePurpose) throw new Error('clientUserId, userId, and permissiblePurpose are required.');
+    if (!Number.isInteger(daysRequested) || daysRequested < 1 || daysRequested > 730) throw new Error('daysRequested must be an integer between 1 and 730.');
+    assertPlaidConfiguration(plaidSecret);
+    const products = Array.from(new Set(['cra_base_report', ...(input.products || [])]));
+    const incompatible = products.filter((product) => ['assets', 'income'].includes(product));
+    if (incompatible.length) throw new Error('Plaid Check products cannot be combined with Assets or Income.');
+    try {
+      const response = await plaidClient.post(`${BASE_URL}/link/token/create`, {
+        client_id: PLAID_CLIENT_ID,
+        secret: plaidSecret,
+        client_name: input.clientName || 'MyBank',
+        user: { client_user_id: input.clientUserId },
+        user_id: input.userId,
+        country_codes: ['US'],
+        language: 'en',
+        products,
+        consumer_report_permissible_purpose: input.permissiblePurpose,
+        cra_options: { days_requested: daysRequested },
+        ...(input.webhook ? { webhook: input.webhook } : {}),
+      });
+      return { linkToken: response.data.link_token, expiration: response.data.expiration, requestId: response.data.request_id };
+    } catch (error: any) {
+      const message = error.response?.data?.error_message || error.response?.data?.display_message;
+      throw new Error(message || `Failed to create Consumer Report Link token: ${error.message}`);
+    }
+  }
+
+  /**
    * Exchange public token for access token
    */
   static async exchangePublicToken(publicToken: string, plaidSecret: string = PLAID_SECRET || ''): Promise<ExchangeTokenResponse> {
@@ -317,6 +409,30 @@ export class PlaidService {
     } catch (error: any) {
       const message = error.response?.data?.error_message || error.response?.data?.display_message;
       throw new Error(message || `Failed to get live account balances: ${error.message}`);
+    }
+  }
+
+  /**
+   * Retrieve account and routing details for a linked Item.
+   * Plaid exposes these through Auth, not Transfer account details.
+   */
+  static async getAccountDetails(accessToken: string, accountIds?: string[], plaidSecret: string = PLAID_SECRET || '') {
+    if (!accessToken) throw new Error('A Plaid access token is required.');
+    if (accountIds && (!Array.isArray(accountIds) || accountIds.some((id) => typeof id !== 'string' || !id))) {
+      throw new Error('accountIds must be an array of non-empty strings.');
+    }
+    assertPlaidConfiguration(plaidSecret);
+    try {
+      const response = await plaidClient.post(`${BASE_URL}/auth/get`, {
+        client_id: PLAID_CLIENT_ID,
+        secret: plaidSecret,
+        access_token: accessToken,
+        ...(accountIds?.length ? { options: { account_ids: accountIds } } : {}),
+      });
+      return response.data;
+    } catch (error: any) {
+      const message = error.response?.data?.error_message || error.response?.data?.display_message;
+      throw new Error(message || `Failed to get account details: ${error.message}`);
     }
   }
 
@@ -432,6 +548,69 @@ export class PlaidService {
     }
   }
 
+  static async createTransfer(input: {
+    accessToken: string;
+    accountId: string;
+    authorizationId: string;
+    type: 'debit' | 'credit';
+    network: 'ach' | 'same-day-ach' | 'rtp' | 'wire' | 'rfp';
+    amount: string;
+    description: string;
+    idempotencyKey: string;
+    plaidSecret?: string;
+  }) {
+    const secret = input.plaidSecret || PLAID_SECRET || '';
+    if (!input.accessToken || !input.accountId || !input.authorizationId) throw new Error('accessToken, accountId, and authorizationId are required.');
+    if (!/^\d+\.\d{2}$/.test(input.amount) || Number(input.amount) <= 0) throw new Error('amount must be a positive decimal with two digits.');
+    if (!input.description || input.description.length > 80) throw new Error('description is required and must be 80 characters or fewer.');
+    if (!input.idempotencyKey || input.idempotencyKey.length > 50) throw new Error('idempotencyKey is required and must be 50 characters or fewer.');
+    assertPlaidConfiguration(secret);
+    try {
+      const response = await plaidClient.post(`${BASE_URL}/transfer/create`, {
+        client_id: PLAID_CLIENT_ID,
+        secret,
+        access_token: input.accessToken,
+        account_id: input.accountId,
+        authorization_id: input.authorizationId,
+        type: input.type,
+        network: input.network,
+        amount: input.amount,
+        description: input.description,
+        idempotency_key: input.idempotencyKey,
+      });
+      return response.data;
+    } catch (error: any) {
+      const message = error.response?.data?.error_message || error.response?.data?.display_message;
+      throw new Error(message || `Failed to create transfer: ${error.message}`);
+    }
+  }
+
+  static async getTransfer(transferId: string, plaidSecret: string = PLAID_SECRET || '') {
+    if (!transferId) throw new Error('transferId is required.');
+    assertPlaidConfiguration(plaidSecret);
+    const response = await plaidClient.post(`${BASE_URL}/transfer/get`, { client_id: PLAID_CLIENT_ID, secret: plaidSecret, transfer_id: transferId });
+    return response.data;
+  }
+
+  static async listTransfers(input: { count?: number; offset?: number; plaidSecret?: string } = {}) {
+    const secret = input.plaidSecret || PLAID_SECRET || '';
+    assertPlaidConfiguration(secret);
+    const response = await plaidClient.post(`${BASE_URL}/transfer/list`, {
+      client_id: PLAID_CLIENT_ID,
+      secret,
+      count: Math.min(Math.max(input.count ?? 25, 1), 100),
+      offset: Math.max(input.offset ?? 0, 0),
+    });
+    return response.data;
+  }
+
+  static async cancelTransfer(transferId: string, plaidSecret: string = PLAID_SECRET || '') {
+    if (!transferId) throw new Error('transferId is required.');
+    assertPlaidConfiguration(plaidSecret);
+    const response = await plaidClient.post(`${BASE_URL}/transfer/cancel`, { client_id: PLAID_CLIENT_ID, secret: plaidSecret, transfer_id: transferId });
+    return response.data;
+  }
+
   /**
    * Evaluate a proposed ACH transaction with Plaid Signal.
    */
@@ -477,6 +656,84 @@ export class PlaidService {
     } catch (error: any) {
       const plaidError = error.response?.data?.error_message || error.response?.data?.display_message;
       throw new Error(plaidError || `Failed to evaluate Signal transaction: ${error.message}`);
+    }
+  }
+
+  /**
+   * Create an Asset Report from one or more linked Items.
+   * The report is asynchronous; callers should wait for PRODUCT_READY before fetching it.
+   */
+  static async createAssetReport(input: {
+    accessTokens: string[];
+    daysRequested?: number;
+    webhook?: string;
+    includeInsights?: boolean;
+    addOns?: string[];
+    clientReportId?: string;
+    secret?: string;
+  }) {
+    const secret = input.secret || PLAID_SECRET || '';
+    if (!Array.isArray(input.accessTokens) || input.accessTokens.length === 0) {
+      throw new Error('accessTokens must contain at least one access token.');
+    }
+    if (input.accessTokens.some((token) => typeof token !== 'string' || !token)) {
+      throw new Error('accessTokens must contain non-empty strings.');
+    }
+    if (input.daysRequested !== undefined && (!Number.isInteger(input.daysRequested) || input.daysRequested < 1 || input.daysRequested > 731)) {
+      throw new Error('daysRequested must be an integer between 1 and 731.');
+    }
+    if (input.webhook !== undefined && (typeof input.webhook !== 'string' || input.webhook.length > 2048)) {
+      throw new Error('webhook must be a valid string of 2048 characters or fewer.');
+    }
+    assertPlaidConfiguration(secret);
+    try {
+      const response = await plaidClient.post(`${BASE_URL}/asset_report/create`, {
+        client_id: PLAID_CLIENT_ID,
+        secret,
+        access_tokens: input.accessTokens,
+        ...(input.daysRequested !== undefined ? { days_requested: input.daysRequested } : {}),
+        ...(input.webhook ? { webhook: input.webhook } : {}),
+        ...(input.includeInsights !== undefined ? { options: { include_insights: input.includeInsights, ...(input.addOns?.length ? { add_ons: input.addOns } : {}) } } : input.addOns?.length ? { options: { add_ons: input.addOns } } : {}),
+        ...(input.clientReportId ? { client_report_id: input.clientReportId } : {}),
+      });
+      return response.data;
+    } catch (error: any) {
+      const message = error.response?.data?.error_message || error.response?.data?.display_message;
+      throw new Error(message || `Failed to create asset report: ${error.message}`);
+    }
+  }
+
+  static async getAssetReport(assetReportId: string, plaidSecret: string = PLAID_SECRET || '', options: { includeInsights?: boolean; fastReport?: boolean } = {}) {
+    if (!assetReportId) throw new Error('assetReportId is required.');
+    assertPlaidConfiguration(plaidSecret);
+    try {
+      const response = await plaidClient.post(`${BASE_URL}/asset_report/get`, {
+        client_id: PLAID_CLIENT_ID,
+        secret: plaidSecret,
+        asset_report_token: assetReportId,
+        ...(options.includeInsights !== undefined ? { include_insights: options.includeInsights } : {}),
+        ...(options.fastReport !== undefined ? { fast_report: options.fastReport } : {}),
+      });
+      return response.data;
+    } catch (error: any) {
+      const message = error.response?.data?.error_message || error.response?.data?.display_message;
+      throw new Error(message || `Failed to retrieve asset report: ${error.message}`);
+    }
+  }
+
+  static async refreshAssetReport(assetReportId: string, plaidSecret: string = PLAID_SECRET || '') {
+    if (!assetReportId) throw new Error('assetReportId is required.');
+    assertPlaidConfiguration(plaidSecret);
+    try {
+      const response = await plaidClient.post(`${BASE_URL}/asset_report/refresh`, {
+        client_id: PLAID_CLIENT_ID,
+        secret: plaidSecret,
+        asset_report_token: assetReportId,
+      });
+      return response.data;
+    } catch (error: any) {
+      const message = error.response?.data?.error_message || error.response?.data?.display_message;
+      throw new Error(message || `Failed to refresh asset report: ${error.message}`);
     }
   }
 
