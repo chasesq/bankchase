@@ -445,14 +445,14 @@ export function BankingProvider({ children }: { children: React.ReactNode }) {
     id: "user1",
     name: "Lin Huang",
     email: "linhuang011@gmail.com",
-    phone: "(555) 888-9999",
+    phone: "+14155550132",
     address: "123 Main Street, New York, NY 10001", // Updated address
     memberSince: "2018-03-20", // Updated memberSince
     tier: "Chase Private Client",
     ultimateRewardsPoints: 287450,
     profilePicture: null,
     dateOfBirth: "1985-06-15", // Updated DOB
-    ssn: "***-**-1234", // Updated SSN
+    ssn: "***-**-3491", // Updated SSN
     preferredLanguage: "English",
     currency: "USD",
     timezone: "America/New_York",
@@ -1154,7 +1154,13 @@ export function BankingProvider({ children }: { children: React.ReactNode }) {
       const localData = getLocalData()
 
       if (localData) {
-        if (localData.userProfile) setUserProfile(localData.userProfile)
+        if (localData.userProfile) {
+          setUserProfile({
+            ...localData.userProfile,
+            phone: localData.userProfile.phone === "(555) 888-9999" ? "+14155550132" : localData.userProfile.phone,
+            ssn: localData.userProfile.ssn === "***-**-1234" ? "***-**-3491" : localData.userProfile.ssn,
+          })
+        }
         if (localData.accounts) setAccounts(localData.accounts)
         if (localData.transactions) setTransactions(localData.transactions)
         if (localData.externalRecipients) setExternalRecipients(localData.externalRecipients)
@@ -1184,7 +1190,13 @@ export function BankingProvider({ children }: { children: React.ReactNode }) {
             const mergedData = mergeData(localData, cloudData)
             if (mergedData) {
               // Apply merged data
-              if (mergedData.userProfile) setUserProfile(mergedData.userProfile)
+              if (mergedData.userProfile) {
+            setUserProfile({
+              ...mergedData.userProfile,
+              phone: mergedData.userProfile.phone === "(555) 888-9999" ? "+14155550132" : mergedData.userProfile.phone,
+              ssn: mergedData.userProfile.ssn === "***-**-1234" ? "***-**-3491" : mergedData.userProfile.ssn,
+            })
+          }
               if (mergedData.accounts) setAccounts(mergedData.accounts)
               if (mergedData.transactions) setTransactions(mergedData.transactions)
               if (mergedData.externalRecipients) setExternalRecipients(mergedData.externalRecipients)
@@ -1846,14 +1858,14 @@ export function BankingProvider({ children }: { children: React.ReactNode }) {
       id: "user1",
 name: "Lin",
       email: "linhuang011@gmail.com",
-      phone: "(555) 888-9999",
+      phone: "+14155550132",
       address: "123 Main Street, New York, NY 10001", // Updated address
       memberSince: "2018-03-20", // Updated memberSince
       tier: "Chase Private Client",
       ultimateRewardsPoints: 287450,
       profilePicture: null,
       dateOfBirth: "1985-06-15", // Updated DOB
-      ssn: "***-**-1234", // Updated SSN
+      ssn: "***-**-3491", // Updated SSN
       preferredLanguage: "English",
       currency: "USD",
       timezone: "America/New_York",
