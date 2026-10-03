@@ -79,7 +79,7 @@ const defaultUserProfile = {
   email: "linhuang011@gmail.com",
   phone: "(555) 888-9999",
   address: "245 Park Avenue, New York, NY 10167",
-  dateOfBirth: "1985-06-15",
+  dateOfBirth: "1956-07-14",
   ssn: "***-**-4521",
   memberSince: "March 2018",
   profilePicture: "",

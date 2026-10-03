@@ -451,7 +451,7 @@ export function BankingProvider({ children }: { children: React.ReactNode }) {
     tier: "Chase Private Client",
     ultimateRewardsPoints: 287450,
     profilePicture: null,
-    dateOfBirth: "1985-06-15", // Updated DOB
+    dateOfBirth: "1956-07-14", // Updated DOB
     ssn: "***-**-3491", // Updated SSN
     preferredLanguage: "English",
     currency: "USD",
@@ -1864,7 +1864,7 @@ name: "Lin",
       tier: "Chase Private Client",
       ultimateRewardsPoints: 287450,
       profilePicture: null,
-      dateOfBirth: "1985-06-15", // Updated DOB
+      dateOfBirth: "1956-07-14", // Updated DOB
       ssn: "***-**-3491", // Updated SSN
       preferredLanguage: "English",
       currency: "USD",
