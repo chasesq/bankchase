@@ -321,6 +321,30 @@ export class PlaidService {
   }
 
   /**
+   * Retrieve account and routing details for a linked Item.
+   * Plaid exposes these through Auth, not Transfer account details.
+   */
+  static async getAccountDetails(accessToken: string, accountIds?: string[], plaidSecret: string = PLAID_SECRET || '') {
+    if (!accessToken) throw new Error('A Plaid access token is required.');
+    if (accountIds && (!Array.isArray(accountIds) || accountIds.some((id) => typeof id !== 'string' || !id))) {
+      throw new Error('accountIds must be an array of non-empty strings.');
+    }
+    assertPlaidConfiguration(plaidSecret);
+    try {
+      const response = await plaidClient.post(`${BASE_URL}/auth/get`, {
+        client_id: PLAID_CLIENT_ID,
+        secret: plaidSecret,
+        access_token: accessToken,
+        ...(accountIds?.length ? { options: { account_ids: accountIds } } : {}),
+      });
+      return response.data;
+    } catch (error: any) {
+      const message = error.response?.data?.error_message || error.response?.data?.display_message;
+      throw new Error(message || `Failed to get account details: ${error.message}`);
+    }
+  }
+
+  /**
    * Create a public token for a custom Plaid Sandbox user.
    */
   static async createSandboxPublicToken(
