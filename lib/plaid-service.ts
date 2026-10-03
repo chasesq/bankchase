@@ -231,6 +231,98 @@ export class PlaidService {
   }
 
   /**
+   * Create a Plaid Check user. Plaid requires the identity object when using
+   * Consumer Report products, and at least one primary contact/address field.
+   */
+  static async createCheckUser(input: {
+    clientUserId: string;
+    name: { givenName: string; familyName: string };
+    dateOfBirth: string;
+    email: string;
+    phoneNumber: string;
+    address: { street: string; city: string; region: string; postalCode: string; country: string };
+    ssnLast4?: string;
+  }, plaidSecret: string = PLAID_SECRET || '') {
+    if (!input.clientUserId || !input.name.givenName || !input.name.familyName || !input.dateOfBirth || !input.email || !input.phoneNumber) {
+      throw new Error('clientUserId, name, dateOfBirth, email, and phoneNumber are required.');
+    }
+    if (!/^\\d{4}-\\d{2}-\\d{2}$/.test(input.dateOfBirth)) throw new Error('dateOfBirth must use YYYY-MM-DD format.');
+    if (!input.address.street || !input.address.city || !input.address.region || !input.address.postalCode) {
+      throw new Error('A complete primary address is required.');
+    }
+    assertPlaidConfiguration(plaidSecret);
+    try {
+      const response = await plaidClient.post(`${BASE_URL}/user/create`, {
+        client_id: PLAID_CLIENT_ID,
+        secret: plaidSecret,
+        client_user_id: input.clientUserId,
+        identity: {
+          name: { given_name: input.name.givenName, family_name: input.name.familyName },
+          date_of_birth: input.dateOfBirth,
+          emails: [{ data: input.email, primary: true, type: 'primary' }],
+          phone_numbers: [{ data: input.phoneNumber, primary: true, type: 'primary' }],
+          addresses: [{
+            data: {
+              street: input.address.street,
+              city: input.address.city,
+              region: input.address.region,
+              postal_code: input.address.postalCode,
+              country: input.address.country || 'US',
+            },
+            primary: true,
+          }],
+          ...(input.ssnLast4 ? { id_numbers: [{ value: input.ssnLast4, type: 'ssn_last_4' }] } : {}),
+        },
+      });
+      return response.data;
+    } catch (error: any) {
+      const message = error.response?.data?.error_message || error.response?.data?.display_message;
+      throw new Error(message || `Failed to create Plaid Check user: ${error.message}`);
+    }
+  }
+
+  /**
+   * Create a dedicated Consumer Report Link token. Check products must not be
+   * mixed with Assets or Income in the same Link session.
+   */
+  static async createConsumerReportLinkToken(input: {
+    clientUserId: string;
+    userId: string;
+    daysRequested?: number;
+    products?: string[];
+    permissiblePurpose: string;
+    webhook?: string;
+    clientName?: string;
+  }, plaidSecret: string = PLAID_SECRET || ''): Promise<LinkTokenResponse> {
+    const daysRequested = input.daysRequested ?? 365;
+    if (!input.clientUserId || !input.userId || !input.permissiblePurpose) throw new Error('clientUserId, userId, and permissiblePurpose are required.');
+    if (!Number.isInteger(daysRequested) || daysRequested < 1 || daysRequested > 730) throw new Error('daysRequested must be an integer between 1 and 730.');
+    assertPlaidConfiguration(plaidSecret);
+    const products = Array.from(new Set(['cra_base_report', ...(input.products || [])]));
+    const incompatible = products.filter((product) => ['assets', 'income'].includes(product));
+    if (incompatible.length) throw new Error('Plaid Check products cannot be combined with Assets or Income.');
+    try {
+      const response = await plaidClient.post(`${BASE_URL}/link/token/create`, {
+        client_id: PLAID_CLIENT_ID,
+        secret: plaidSecret,
+        client_name: input.clientName || 'MyBank',
+        user: { client_user_id: input.clientUserId },
+        user_id: input.userId,
+        country_codes: ['US'],
+        language: 'en',
+        products,
+        consumer_report_permissible_purpose: input.permissiblePurpose,
+        cra_options: { days_requested: daysRequested },
+        ...(input.webhook ? { webhook: input.webhook } : {}),
+      });
+      return { linkToken: response.data.link_token, expiration: response.data.expiration, requestId: response.data.request_id };
+    } catch (error: any) {
+      const message = error.response?.data?.error_message || error.response?.data?.display_message;
+      throw new Error(message || `Failed to create Consumer Report Link token: ${error.message}`);
+    }
+  }
+
+  /**
    * Exchange public token for access token
    */
   static async exchangePublicToken(publicToken: string, plaidSecret: string = PLAID_SECRET || ''): Promise<ExchangeTokenResponse> {
