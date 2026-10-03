@@ -7,7 +7,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ dire
   const { directoryId } = await params
   if (!directoryId) return NextResponse.json({ error: 'directoryId is required' }, { status: 400 })
   try {
-    const cursor = new URL(request.url).searchParams.get('before') ?? undefined
+    const cursor = new URL(request.url).searchParams.get('after') ?? undefined
     return NextResponse.json(await listDirectoryUsers(directoryId, cursor))
   } catch (caught) {
     const message = caught instanceof Error ? caught.message : 'Unable to list directory users'

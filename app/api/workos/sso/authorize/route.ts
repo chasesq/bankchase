@@ -11,8 +11,11 @@ export async function GET(request: Request) {
 
     const authorizeUrl = workosAuthorizeUrl({
       redirectUri,
+      connection: url.searchParams.get('connection') ?? undefined,
       provider: url.searchParams.get('provider') ?? undefined,
       organization: url.searchParams.get('organization') ?? undefined,
+      state: url.searchParams.get('state') ?? undefined,
+      loginHint: url.searchParams.get('login_hint') ?? undefined,
     })
     return NextResponse.json({ url: authorizeUrl })
   } catch (error) {

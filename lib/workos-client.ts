@@ -11,28 +11,43 @@ function workosClientId() {
 export function getWorkOSConfig() {
   const apiKey = workosApiKey()
   const clientId = workosClientId()
-  if (!apiKey) throw new Error('WORKOS_API_KEY is not configured')
   return { apiKey, clientId }
+}
+
+function requireApiKey() {
+  const apiKey = workosApiKey()
+  if (!apiKey) throw new Error('WORKOS_API_KEY is not configured')
+  return apiKey
 }
 
 export function workosAuthorizeUrl(params: {
   redirectUri: string
+  connection?: string
   provider?: string
   organization?: string
+  state?: string
+  loginHint?: string
 }) {
   const { clientId } = getWorkOSConfig()
   if (!clientId) throw new Error('WORKOS_CLIENT_ID is not configured')
+  const selectors = [params.connection, params.provider, params.organization].filter(Boolean)
+  if (selectors.length !== 1) {
+    throw new Error('Exactly one of connection, organization, or provider is required')
+  }
   const url = new URL('/sso/authorize', WORKOS_API_URL)
   url.searchParams.set('client_id', clientId)
   url.searchParams.set('redirect_uri', params.redirectUri)
   url.searchParams.set('response_type', 'code')
+  if (params.connection) url.searchParams.set('connection', params.connection)
   if (params.provider) url.searchParams.set('provider', params.provider)
   if (params.organization) url.searchParams.set('organization', params.organization)
+  if (params.state) url.searchParams.set('state', params.state)
+  if (params.loginHint) url.searchParams.set('login_hint', params.loginHint)
   return url.toString()
 }
 
 async function workosRequest<T>(path: string, init: RequestInit = {}) {
-  const { apiKey } = getWorkOSConfig()
+  const apiKey = requireApiKey()
   const response = await fetch(`${WORKOS_API_URL}${path}`, {
     ...init,
     headers: {
@@ -88,12 +103,14 @@ export type WorkOSDirectoryUser = {
   rawAttributes?: Record<string, unknown>
 }
 
+function listQuery(cursor?: string) {
+  return cursor ? `?limit=100&after=${encodeURIComponent(cursor)}` : '?limit=100'
+}
+
 export function listDirectories(cursor?: string) {
-  const query = cursor ? `?limit=100&before=${encodeURIComponent(cursor)}` : '?limit=100'
-  return workosRequest<{ data: WorkOSDirectory[]; listMetadata?: { before?: string; after?: string } }>(`/directories${query}`)
+  return workosRequest<{ data: WorkOSDirectory[]; listMetadata?: { before?: string; after?: string } }>(`/directories${listQuery(cursor)}`)
 }
 
 export function listDirectoryUsers(directoryId: string, cursor?: string) {
-  const query = cursor ? `?limit=100&before=${encodeURIComponent(cursor)}` : '?limit=100'
-  return workosRequest<{ data: WorkOSDirectoryUser[]; listMetadata?: { before?: string; after?: string } }>(`/directories/${encodeURIComponent(directoryId)}/users${query}`)
+  return workosRequest<{ data: WorkOSDirectoryUser[]; listMetadata?: { before?: string; after?: string } }>(`/directories/${encodeURIComponent(directoryId)}/users${listQuery(cursor)}`)
 }
