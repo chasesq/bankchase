@@ -44,13 +44,15 @@ export function signWorkOSResponse(
     ...(verdict === 'Deny' && errorMessage ? { error_message: errorMessage.slice(0, 500) } : {}),
   }
   const body = JSON.stringify(payload)
-  const signature = createHmac('sha256', process.env.WORKOS_ACTIONS_SECRET!).update(`${timestamp}.${body}`).digest('hex')
+  const secret = actionsSecret()
+  if (!secret) throw new Error('WorkOS actions secret is not configured')
+  const signature = createHmac('sha256', secret).update(`${timestamp}.${body}`).digest('hex')
 
   return { object, payload, signature }
 }
 
 export function actionsSecret() {
-  return process.env.WORKOS_ACTIONS_SECRET
+  return process.env.WORKOS_ACTIONS_SECRET ?? process.env.Signing_secret
 }
 
 export function isAllowedActionPayload(payload: unknown) {
