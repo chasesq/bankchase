@@ -25,8 +25,35 @@ export async function POST(request: NextRequest) {
     // Get accounts for this item
     const accountsResult = await PlaidService.getAccounts(exchangeResult.accessToken, plaidSecret);
 
-    // Save each account to database
-    for (const account of accountsResult.accounts) {
+    // Plaid Link can return multiple accounts, but a processor token must be
+    // created only for the account(s) the user selected. Creating tokens for
+    // every returned account can fail on non-debitable accounts and can hand a
+    // payment processor an account the user did not choose.
+    const selectedAccountIds = new Set(
+      Array.isArray(metadata?.accounts)
+        ? metadata.accounts
+            .map((account: any) => account?.id || account?.account_id)
+            .filter((accountId: unknown): accountId is string => typeof accountId === 'string' && accountId.length > 0)
+        : [],
+    );
+    if (selectedAccountIds.size === 0) {
+      throw new Error('Select at least one checking or savings account to continue.');
+    }
+
+    const selectedAccounts = accountsResult.accounts.filter((account) =>
+      selectedAccountIds.has(account.accountId),
+    );
+    const eligibleAccounts = selectedAccounts.filter(
+      (account) => account.type === 'depository' && ['checking', 'savings', 'cash management'].includes(account.subtype),
+    );
+
+    if (eligibleAccounts.length === 0) {
+      throw new Error('Select a checking or savings account to continue.');
+    }
+
+    const processor = process.env.PLAID_PROCESSOR || 'adyen';
+    const processorTokens = [];
+    for (const account of eligibleAccounts) {
       await PlaidService.saveAccount(
         userId,
         exchangeResult.itemId,
@@ -42,6 +69,14 @@ export async function POST(request: NextRequest) {
           institutionName: metadata?.institution?.name || metadata?.institutionName || 'Bank',
         }
       );
+
+      const processorToken = await PlaidService.createProcessorToken({
+        accessToken: exchangeResult.accessToken,
+        accountId: account.accountId,
+        processor,
+        plaidSecret,
+      });
+      processorTokens.push(processorToken);
     }
 
     // Transactions may still be processing immediately after Link completes.
@@ -67,6 +102,11 @@ export async function POST(request: NextRequest) {
       itemId: exchangeResult.itemId,
       accountCount: accountsResult.accounts.length,
       transactionCount,
+      processor,
+      processorTokenCount: processorTokens.length,
+      // Adyen needs the processor token to create its payment method. Return
+      // only tokens for accounts explicitly selected in Plaid Link.
+      processorTokens,
     });
   } catch (error: any) {
     console.error('[v0] Error exchanging token:', error);

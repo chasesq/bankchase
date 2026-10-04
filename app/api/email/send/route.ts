@@ -15,6 +15,7 @@ const requestSchema = z.object({
   cc: emailListSchema,
   bcc: emailListSchema,
   replyTo: emailSchema.optional(),
+  idempotencyKey: z.string().trim().min(1).max(256).optional(),
 }).refine((value) => value.html || value.text || value.type !== 'custom', {
   message: 'Custom emails require html or text content',
   path: ['html'],
@@ -37,7 +38,7 @@ export async function POST(request: NextRequest) {
       return jsonError(parsed.error.issues[0]?.message ?? 'Invalid email request', 400)
     }
 
-    const { type, email, name, workflowRunId, subject, html, text, cc, bcc, replyTo } = parsed.data
+    const { type, email, name, workflowRunId, subject, html, text, cc, bcc, replyTo, idempotencyKey } = parsed.data
     const configuredRecipient = process.env.RESEND_TEST_TO?.trim()
     const recipient = email ?? configuredRecipient
 
@@ -83,6 +84,7 @@ export async function POST(request: NextRequest) {
         cc,
         bcc,
         replyTo,
+        idempotencyKey,
       })
     } else {
       return NextResponse.json(
@@ -107,7 +109,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         success: false,
-        error: error instanceof Error ? error.message : 'Internal server error',
+        error: getSafeError(error),
       },
       { status: 500 }
     )

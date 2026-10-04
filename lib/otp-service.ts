@@ -37,8 +37,18 @@ export class OTPService {
    * Send OTP to user email (implement with SendGrid, Resend, etc.)
    */
   async sendOTPEmail(email: string, code: string): Promise<void> {
-    // TODO: Implement actual email sending
-    console.log(`[v0] OTP for ${email}: ${code}`)
+    const { sendCustomEmail } = await import('@/lib/email/resend-client')
+    const result = await sendCustomEmail({
+      to: email,
+      subject: 'Your BankChase verification code',
+      text: `Your BankChase verification code is ${code}. It expires in ${process.env.OTP_EXPIRY_MINUTES || '10'} minutes.`,
+      html: `<p>Your BankChase verification code is <strong>${code}</strong>.</p><p>This code expires in ${process.env.OTP_EXPIRY_MINUTES || '10'} minutes.</p>`,
+      idempotencyKey: `otp/${email}/${code}`,
+    })
+
+    if (!result.success) {
+      throw new Error(result.error || 'Failed to send verification email')
+    }
   }
 
   /**

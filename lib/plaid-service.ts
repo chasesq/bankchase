@@ -1,7 +1,8 @@
 import axios from 'axios';
 import { createClient } from '@supabase/supabase-js';
 
-const PLAID_ENV = process.env.PLAID_ENV === 'sandbox' ? 'sandbox' : 'production';
+// Keep local and preview work in Plaid Sandbox unless production is explicitly selected.
+const PLAID_ENV = process.env.PLAID_ENV === 'production' ? 'production' : 'sandbox';
 const PLAID_CLIENT_ID = process.env.PLAID_CLIENT_ID;
 const PLAID_SECRET = process.env.PLAID_SECRET;
 const BASE_URL = PLAID_ENV === 'production'
@@ -127,8 +128,18 @@ export class PlaidService {
         },
         country_codes: ['US'],
         language: 'en',
-        products: ['auth', 'transactions', 'assets'],
-        required_if_supported_products: ['identity'],
+        // Keep the Link session focused on payment-eligible bank accounts.
+        // Assets is unrelated to processor-token creation and can make Link
+        // unavailable at institutions that do not support every requested product.
+        // Processor tokens are created from Auth-linked accounts. Keep the
+        // Link session focused on the product required by Adyen; transaction
+        // history is fetched separately after the Item is connected.
+        products: ['auth'],
+        account_filters: {
+          depository: {
+            account_subtypes: ['checking', 'savings', 'cash management'],
+          },
+        },
         transactions: {
           days_requested: 90,
         },
@@ -246,7 +257,7 @@ export class PlaidService {
     if (!input.clientUserId || !input.name.givenName || !input.name.familyName || !input.dateOfBirth || !input.email || !input.phoneNumber) {
       throw new Error('clientUserId, name, dateOfBirth, email, and phoneNumber are required.');
     }
-    if (!/^\\d{4}-\\d{2}-\\d{2}$/.test(input.dateOfBirth)) throw new Error('dateOfBirth must use YYYY-MM-DD format.');
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(input.dateOfBirth)) throw new Error('dateOfBirth must use YYYY-MM-DD format.');
     if (!input.address.street || !input.address.city || !input.address.region || !input.address.postalCode) {
       throw new Error('A complete primary address is required.');
     }
@@ -345,6 +356,45 @@ export class PlaidService {
       console.error('[v0] Error exchanging public token:', error.response?.data || error.message);
       const plaidMessage = error.response?.data?.error_message || error.response?.data?.display_message;
       throw new Error(plaidMessage || `Failed to exchange token: ${error.message}`);
+    }
+  }
+
+  /**
+   * Create a processor token for an eligible account.
+   * The token is scoped to the selected processor and should be sent directly
+   * to that processor rather than persisted with the Plaid access token.
+   */
+  static async createProcessorToken(input: {
+    accessToken: string;
+    accountId: string;
+    processor?: string;
+    plaidSecret?: string;
+  }) {
+    const plaidSecret = input.plaidSecret || PLAID_SECRET || '';
+    if (!input.accessToken) throw new Error('A Plaid access token is required.');
+    if (!input.accountId) throw new Error('A Plaid account ID is required.');
+    if (!input.processor) throw new Error('A Plaid processor is required.');
+    assertPlaidConfiguration(plaidSecret);
+
+    try {
+      const response = await plaidClient.post(`${BASE_URL}/processor/token/create`, {
+        client_id: PLAID_CLIENT_ID,
+        secret: plaidSecret,
+        access_token: input.accessToken,
+        account_id: input.accountId,
+        processor: input.processor,
+      });
+
+      return {
+        processorToken: response.data.processor_token,
+        accountId: input.accountId,
+        requestId: response.data.request_id,
+      };
+    } catch (error: any) {
+      const plaidData = error.response?.data;
+      const plaidMessage = plaidData?.error_message || plaidData?.display_message;
+      const errorCode = plaidData?.error_code ? ` (${plaidData.error_code})` : '';
+      throw new Error(plaidMessage ? `${plaidMessage}${errorCode}` : `Failed to create processor token: ${error.message}`);
     }
   }
 

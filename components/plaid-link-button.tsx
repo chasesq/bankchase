@@ -3,7 +3,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { usePlaidLink } from 'react-plaid-link';
 import { Button } from '@/components/ui/button';
-import { AlertCircle, Loader2, Plus, CheckCircle } from 'lucide-react';
+import { AlertCircle, Loader2, CheckCircle } from 'lucide-react';
 
 // User-friendly error messages for common Plaid errors
 const ERROR_MESSAGES: { [key: string]: string } = {
@@ -33,12 +33,14 @@ export function PlaidLinkButton({ onSuccess, onError, phoneNumber }: PlaidLinkBu
   const [error, setError] = useState<string | null>(null);
   const [status, setStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [connectedItems, setConnectedItems] = useState<any[]>([]);
+  const [openWhenReady, setOpenWhenReady] = useState(false);
 
   // Step 1: Fetch link token on mount
   const fetchLinkToken = useCallback(async () => {
     setLoading(true);
     setError(null);
     setStatus('idle');
+    setLinkToken(null);
 
     try {
       const response = await fetch('/api/plaid/create-link-token', {
@@ -65,10 +67,6 @@ export function PlaidLinkButton({ onSuccess, onError, phoneNumber }: PlaidLinkBu
       setLoading(false);
     }
   }, [phoneNumber]);
-
-  useEffect(() => {
-    void fetchLinkToken();
-  }, [fetchLinkToken]);
 
   // Step 2: Handle successful Link completion
   const handlePlaidSuccess = useCallback(async (publicToken: string, metadata: any) => {
@@ -141,14 +139,30 @@ export function PlaidLinkButton({ onSuccess, onError, phoneNumber }: PlaidLinkBu
     onEvent: handlePlaidEvent,
   });
 
-  const openBankLink = useCallback(() => {
-    if (!linkToken || !ready) {
+  useEffect(() => {
+    void fetchLinkToken();
+  }, [fetchLinkToken]);
+
+  useEffect(() => {
+    if (openWhenReady && linkToken && ready && !loading && !exchanging) {
+      setOpenWhenReady(false);
+      open();
+    }
+  }, [exchanging, linkToken, loading, open, openWhenReady, ready]);
+
+  const openBankLink = useCallback(async () => {
+    if (!linkToken) {
+      setOpenWhenReady(true);
+      await fetchLinkToken();
+      return;
+    }
+    if (!ready) {
       setError('Bank connection is still initializing. Please try again in a moment.');
       setStatus('error');
       return;
     }
     open();
-  }, [linkToken, open, ready]);
+  }, [fetchLinkToken, linkToken, open, ready]);
 
   return (
     <div className="w-full space-y-4">
@@ -189,7 +203,7 @@ export function PlaidLinkButton({ onSuccess, onError, phoneNumber }: PlaidLinkBu
         </p>
         <Button
           onClick={openBankLink}
-          disabled={!ready || loading || exchanging}
+          disabled={loading || exchanging}
           className="mt-4 w-full"
           size="lg"
           variant="default"
@@ -209,14 +223,19 @@ export function PlaidLinkButton({ onSuccess, onError, phoneNumber }: PlaidLinkBu
             <div key={i} className="rounded-lg border border-border p-4 bg-background">
               <p className="font-semibold text-foreground">{item.institution}</p>
               <ul className="mt-2 space-y-1">
-                {item.accounts?.map((account: any) => (
-                  <li key={account.id} className="text-sm text-muted-foreground">
-                    <div className="flex justify-between">
-                      <span>{account.name}</span>
-                      <span className="text-muted-foreground">{account.subtype} •••{account.mask}</span>
-                    </div>
-                  </li>
-                ))}
+                  {item.accounts?.map((account: any, accountIndex: number) => (
+                    <li
+                      key={account.id || account.account_id || account.accountId || `${account.name}-${accountIndex}`}
+                      className="text-sm text-muted-foreground"
+                    >
+                      <div className="flex justify-between gap-3">
+                        <span>{account.name || account.official_name || 'Bank account'}</span>
+                        <span className="shrink-0 text-muted-foreground">
+                          {account.subtype || account.type || 'account'} •••{account.mask || '----'}
+                        </span>
+                      </div>
+                    </li>
+                  ))}
               </ul>
             </div>
           ))}
