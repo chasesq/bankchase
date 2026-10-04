@@ -5,14 +5,27 @@ import { cookies } from 'next/headers'
  * Creates a Supabase client for server-side operations.
  * Always create a new client within each function when using it.
  */
-export async function createClient() {
-  const cookieStore = await cookies()
+function getSupabaseConfig() {
   const supabaseUrl = (process.env.NEXT_PUBLIC_SUPABASE_URL ?? process.env.SUPABASE_URL)?.trim()
   const supabaseKey = (process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? process.env.SUPABASE_PUBLISHABLE_KEY ?? process.env.SUPABASE_ANON_KEY)?.trim()
 
-  if (!supabaseUrl || !supabaseKey || !supabaseUrl.startsWith('http')) {
+  if (!supabaseUrl || !supabaseKey || !supabaseUrl.startsWith('http')) return null
+  return { supabaseUrl, supabaseKey }
+}
+
+export function isSupabaseConfigured() {
+  return getSupabaseConfig() !== null
+}
+
+export async function createClient() {
+  const cookieStore = await cookies()
+  const config = getSupabaseConfig()
+
+  if (!config) {
     throw new Error('Supabase is not configured')
   }
+
+  const { supabaseUrl, supabaseKey } = config
 
   return createServerClient(
     supabaseUrl,
