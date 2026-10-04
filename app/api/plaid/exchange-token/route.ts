@@ -79,7 +79,7 @@ export async function POST(request: NextRequest) {
       accountCount: accountsResult.accounts.length,
       transactionCount,
       processor,
-      processorTokens,
+      processorTokenCount: processorTokens.length,
     });
   } catch (error: any) {
     console.error('[v0] Error exchanging token:', error);

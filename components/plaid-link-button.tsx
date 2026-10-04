@@ -3,7 +3,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { usePlaidLink } from 'react-plaid-link';
 import { Button } from '@/components/ui/button';
-import { AlertCircle, Loader2, Plus, CheckCircle } from 'lucide-react';
+import { AlertCircle, Loader2, CheckCircle } from 'lucide-react';
 
 // User-friendly error messages for common Plaid errors
 const ERROR_MESSAGES: { [key: string]: string } = {
@@ -33,6 +33,7 @@ export function PlaidLinkButton({ onSuccess, onError, phoneNumber }: PlaidLinkBu
   const [error, setError] = useState<string | null>(null);
   const [status, setStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [connectedItems, setConnectedItems] = useState<any[]>([]);
+  const [openWhenReady, setOpenWhenReady] = useState(false);
 
   // Step 1: Fetch link token on mount
   const fetchLinkToken = useCallback(async () => {
@@ -137,8 +138,20 @@ export function PlaidLinkButton({ onSuccess, onError, phoneNumber }: PlaidLinkBu
     onEvent: handlePlaidEvent,
   });
 
+  useEffect(() => {
+    void fetchLinkToken();
+  }, [fetchLinkToken]);
+
+  useEffect(() => {
+    if (openWhenReady && linkToken && ready && !loading && !exchanging) {
+      setOpenWhenReady(false);
+      open();
+    }
+  }, [exchanging, linkToken, loading, open, openWhenReady, ready]);
+
   const openBankLink = useCallback(async () => {
     if (!linkToken) {
+      setOpenWhenReady(true);
       await fetchLinkToken();
       return;
     }
@@ -189,7 +202,7 @@ export function PlaidLinkButton({ onSuccess, onError, phoneNumber }: PlaidLinkBu
         </p>
         <Button
           onClick={openBankLink}
-          disabled={!ready || loading || exchanging}
+          disabled={loading || exchanging}
           className="mt-4 w-full"
           size="lg"
           variant="default"
