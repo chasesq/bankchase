@@ -1,7 +1,8 @@
 import axios from 'axios';
 import { createClient } from '@supabase/supabase-js';
 
-const PLAID_ENV = process.env.PLAID_ENV === 'sandbox' ? 'sandbox' : 'production';
+// Keep local and preview work in Plaid Sandbox unless production is explicitly selected.
+const PLAID_ENV = process.env.PLAID_ENV === 'production' ? 'production' : 'sandbox';
 const PLAID_CLIENT_ID = process.env.PLAID_CLIENT_ID;
 const PLAID_SECRET = process.env.PLAID_SECRET;
 const BASE_URL = PLAID_ENV === 'production'
@@ -246,7 +247,7 @@ export class PlaidService {
     if (!input.clientUserId || !input.name.givenName || !input.name.familyName || !input.dateOfBirth || !input.email || !input.phoneNumber) {
       throw new Error('clientUserId, name, dateOfBirth, email, and phoneNumber are required.');
     }
-    if (!/^\\d{4}-\\d{2}-\\d{2}$/.test(input.dateOfBirth)) throw new Error('dateOfBirth must use YYYY-MM-DD format.');
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(input.dateOfBirth)) throw new Error('dateOfBirth must use YYYY-MM-DD format.');
     if (!input.address.street || !input.address.city || !input.address.region || !input.address.postalCode) {
       throw new Error('A complete primary address is required.');
     }

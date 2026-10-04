@@ -66,10 +66,6 @@ export function PlaidLinkButton({ onSuccess, onError, phoneNumber }: PlaidLinkBu
     }
   }, [phoneNumber]);
 
-  useEffect(() => {
-    void fetchLinkToken();
-  }, [fetchLinkToken]);
-
   // Step 2: Handle successful Link completion
   const handlePlaidSuccess = useCallback(async (publicToken: string, metadata: any) => {
     setExchanging(true);
@@ -141,14 +137,18 @@ export function PlaidLinkButton({ onSuccess, onError, phoneNumber }: PlaidLinkBu
     onEvent: handlePlaidEvent,
   });
 
-  const openBankLink = useCallback(() => {
-    if (!linkToken || !ready) {
+  const openBankLink = useCallback(async () => {
+    if (!linkToken) {
+      await fetchLinkToken();
+      return;
+    }
+    if (!ready) {
       setError('Bank connection is still initializing. Please try again in a moment.');
       setStatus('error');
       return;
     }
     open();
-  }, [linkToken, open, ready]);
+  }, [fetchLinkToken, linkToken, open, ready]);
 
   return (
     <div className="w-full space-y-4">
