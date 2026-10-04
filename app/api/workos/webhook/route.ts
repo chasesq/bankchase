@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { actionsSecret, verifyWorkOSSignature } from '@/lib/workos-actions'
+import { extractWorkOSEvent, persistWorkOSEvent } from '@/lib/workos-audit'
 
 export const runtime = 'nodejs'
 
@@ -19,14 +20,24 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Invalid WorkOS signature' }, { status: 401 })
   }
 
+  let parsed: unknown
   try {
-    JSON.parse(body)
+    parsed = JSON.parse(body)
   } catch {
     return NextResponse.json({ error: 'Invalid JSON payload' }, { status: 400 })
   }
 
-  // Acknowledge immediately. Event-specific processing can be added after persistence or queuing.
-  return new NextResponse(null, { status: 200 })
+  const event = extractWorkOSEvent(parsed)
+  if (!event) return NextResponse.json({ error: 'WorkOS event id is missing' }, { status: 400 })
+
+  try {
+    await persistWorkOSEvent(event)
+  } catch (error) {
+    console.error('[v0] WorkOS event persistence failed', error)
+    return NextResponse.json({ error: 'Unable to persist WorkOS event' }, { status: 500 })
+  }
+
+  return NextResponse.json({ received: true }, { status: 200 })
 }
 
 export async function GET() {
