@@ -11,9 +11,22 @@ export type WorkOSEvent = {
 }
 
 function getAdminClient() {
-  const url = (process.env.NEXT_PUBLIC_SUPABASE_URL ?? process.env.SUPABASE_URL)?.trim()
-  const key = (process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.SUPABASE_SECRET_KEY)?.trim()
-  if (!url || !key) throw new Error('Supabase service role is not configured')
+  const url = (
+    process.env.SUPABASE_URL ??
+    process.env.NEXT_PUBLIC_SUPABASE_URL ??
+    process.env.SRT_SUPABASE_URL ??
+    process.env.NEXT_PUBLIC_SRT_SUPABASE_URL
+  )?.trim()
+  const key = (
+    process.env.SUPABASE_SERVICE_ROLE_KEY ??
+    process.env.SUPABASE_SECRET_KEY ??
+    process.env.SRT_SUPABASE_SERVICE_ROLE_KEY ??
+    process.env.SRT_SUPABASE_SECRET_KEY ??
+    process.env.SUPABASE_PUBLISHABLE_KEY ??
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ??
+    process.env.SRT_SUPABASE_PUBLISHABLE_KEY
+  )?.trim()
+  if (!url || !key) throw new Error('Supabase is not configured')
   return createClient(url, key, { auth: { autoRefreshToken: false, persistSession: false } })
 }
 
@@ -57,7 +70,10 @@ export async function listWorkOSEvents(options: { page: number; limit: number; t
   const offset = (options.page - 1) * options.limit
   let query = getAdminClient().from('workos_audit_events').select('id, workos_event_id, event_type, occurred_at, organization_id, connection_id, directory_id, actor_id, actor_email, target_id, payload, created_at', { count: 'exact' })
   if (options.type) query = query.eq('event_type', options.type)
-  if (options.search) query = query.or(`event_type.ilike.%${options.search}%,actor_email.ilike.%${options.search}%,workos_event_id.ilike.%${options.search}%`)
+  if (options.search) {
+    const search = options.search.replace(/[\\%_,.()]/g, (character) => `\\${character}`)
+    query = query.or(`event_type.ilike.%${search}%,actor_email.ilike.%${search}%,workos_event_id.ilike.%${search}%`)
+  }
   const { data, error, count } = await query.order('occurred_at', { ascending: false, nullsFirst: false }).order('created_at', { ascending: false }).range(offset, offset + options.limit - 1)
   if (error) throw error
   return { events: data ?? [], total: count ?? 0 }
