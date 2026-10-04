@@ -25,7 +25,10 @@ export async function POST(request: NextRequest) {
     // Get accounts for this item
     const accountsResult = await PlaidService.getAccounts(exchangeResult.accessToken, plaidSecret);
 
-    // Save each account to database
+    // Save each account to database and create the Adyen processor token
+    // needed to hand the selected account to Adyen for ACH payments.
+    const processor = process.env.PLAID_PROCESSOR || 'adyen';
+    const processorTokens = [];
     for (const account of accountsResult.accounts) {
       await PlaidService.saveAccount(
         userId,
@@ -42,6 +45,14 @@ export async function POST(request: NextRequest) {
           institutionName: metadata?.institution?.name || metadata?.institutionName || 'Bank',
         }
       );
+
+      const processorToken = await PlaidService.createProcessorToken({
+        accessToken: exchangeResult.accessToken,
+        accountId: account.accountId,
+        processor,
+        plaidSecret,
+      });
+      processorTokens.push(processorToken);
     }
 
     // Transactions may still be processing immediately after Link completes.
@@ -67,6 +78,8 @@ export async function POST(request: NextRequest) {
       itemId: exchangeResult.itemId,
       accountCount: accountsResult.accounts.length,
       transactionCount,
+      processor,
+      processorTokens,
     });
   } catch (error: any) {
     console.error('[v0] Error exchanging token:', error);

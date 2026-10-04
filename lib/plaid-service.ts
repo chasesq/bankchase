@@ -350,6 +350,43 @@ export class PlaidService {
   }
 
   /**
+   * Create a processor token for an eligible account.
+   * The token is scoped to the selected processor and should be sent directly
+   * to that processor rather than persisted with the Plaid access token.
+   */
+  static async createProcessorToken(input: {
+    accessToken: string;
+    accountId: string;
+    processor?: string;
+    plaidSecret?: string;
+  }) {
+    const plaidSecret = input.plaidSecret || PLAID_SECRET || '';
+    if (!input.accessToken) throw new Error('A Plaid access token is required.');
+    if (!input.accountId) throw new Error('A Plaid account ID is required.');
+    if (!input.processor) throw new Error('A Plaid processor is required.');
+    assertPlaidConfiguration(plaidSecret);
+
+    try {
+      const response = await plaidClient.post(`${BASE_URL}/processor/token/create`, {
+        client_id: PLAID_CLIENT_ID,
+        secret: plaidSecret,
+        access_token: input.accessToken,
+        account_id: input.accountId,
+        processor: input.processor,
+      });
+
+      return {
+        processorToken: response.data.processor_token,
+        accountId: input.accountId,
+        requestId: response.data.request_id,
+      };
+    } catch (error: any) {
+      const plaidMessage = error.response?.data?.error_message || error.response?.data?.display_message;
+      throw new Error(plaidMessage || `Failed to create processor token: ${error.message}`);
+    }
+  }
+
+  /**
    * Retrieve account-owner identity data for a linked Item.
    * Identity is requested as an optional product during Link creation, so
    * unsupported institutions can still complete the connection.
