@@ -134,7 +134,7 @@ export async function sendTransactionEmail(payload: NotificationPayload): Promis
       return { success: false, error: 'Email provider not configured' }
     }
 
-    const { default: axios } = await import('axios')
+    const { sendCustomEmail } = await import('@/lib/email/resend-client')
 
     const emailContent = `
 Dear ${payload.context.userName},
@@ -150,22 +150,17 @@ Date: ${new Date().toLocaleString()}
 Thank you for using our service.
     `.trim()
 
-    const response = await axios.post(
-      'https://api.resend.com/emails',
-      {
-        from: process.env.SENDER_EMAIL || 'noreply@bankchase.com',
-        to: payload.context.userEmail,
-        subject: `Transaction Alert: ${payload.currency || 'NGN'} ${payload.amount.toLocaleString()}`,
-        text: emailContent,
-        html: `<pre>${emailContent}</pre>`
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
-          'Content-Type': 'application/json'
-        }
-      }
-    )
+    const result = await sendCustomEmail({
+      to: payload.context.userEmail,
+      subject: `Transaction Alert: ${payload.currency || 'NGN'} ${payload.amount.toLocaleString()}`,
+      text: emailContent,
+      html: `<pre>${emailContent.replace(/[&<>]/g, (character) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' })[character] || character)}</pre>`,
+      idempotencyKey: `transaction/${payload.context.userId}/${payload.reference}`,
+    })
+
+    if (!result.success) {
+      return { success: false, error: result.error || 'Email delivery failed' }
+    }
 
     console.log(`[NOTIFICATIONS] Email sent to ${payload.context.userEmail}`)
     return { success: true }

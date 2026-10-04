@@ -34,12 +34,19 @@ export async function sendOnboardingEmail({
 }) {
   try {
     const resend = getResendClient()
-    const result = await resend.emails.send({
-      from: getSender(),
-      to: email,
-      subject: 'Welcome to BankChase AI Suite',
-      html: generateOnboardingEmailHTML(name),
-    })
+    const result = await resend.emails.send(
+      {
+        from: getSender(),
+        to: email,
+        subject: 'Welcome to BankChase AI Suite',
+        html: generateOnboardingEmailHTML(name),
+      },
+      { idempotencyKey: `onboarding/${email}` },
+    )
+
+    if (result.error) {
+      return { success: false, error: result.error.message }
+    }
 
     return { success: true, messageId: result.data?.id }
   } catch (error) {
@@ -62,12 +69,19 @@ export async function sendWorkflowCompletionEmail({
 }) {
   try {
     const resend = getResendClient()
-    const result = await resend.emails.send({
-      from: getSender(),
-      to: email,
-      subject: 'Your AI Suite Setup is Complete',
-      html: generateCompletionEmailHTML(name, workflowRunId),
-    })
+    const result = await resend.emails.send(
+      {
+        from: getSender(),
+        to: email,
+        subject: 'Your AI Suite Setup is Complete',
+        html: generateCompletionEmailHTML(name, workflowRunId),
+      },
+      { idempotencyKey: `completion/${workflowRunId}` },
+    )
+
+    if (result.error) {
+      return { success: false, error: result.error.message }
+    }
 
     return { success: true, messageId: result.data?.id }
   } catch (error) {
@@ -87,6 +101,7 @@ export async function sendCustomEmail({
   cc,
   bcc,
   replyTo,
+  idempotencyKey,
 }: {
   to: string | string[]
   subject: string
@@ -95,6 +110,7 @@ export async function sendCustomEmail({
   cc?: string | string[]
   bcc?: string | string[]
   replyTo?: string
+  idempotencyKey?: string
 }) {
   try {
     const resend = getResendClient()
@@ -108,7 +124,12 @@ export async function sendCustomEmail({
       ...(bcc ? { bcc } : {}),
       ...(replyTo ? { replyTo } : {}),
     }
-    const result = await resend.emails.send(payload as Parameters<typeof resend.emails.send>[0])
+    const result = await resend.emails.send(
+      payload as Parameters<typeof resend.emails.send>[0],
+      idempotencyKey
+        ? { idempotencyKey }
+        : undefined,
+    )
 
     if (result.error) {
       return { success: false, error: result.error.message }
