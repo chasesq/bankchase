@@ -25,11 +25,31 @@ export async function POST(request: NextRequest) {
     // Get accounts for this item
     const accountsResult = await PlaidService.getAccounts(exchangeResult.accessToken, plaidSecret);
 
-    // Save each account to database and create the Adyen processor token
-    // needed to hand the selected account to Adyen for ACH payments.
+    // Plaid Link can return multiple accounts, but a processor token must be
+    // created only for the account(s) the user selected. Creating tokens for
+    // every returned account can fail on non-debitable accounts and can hand a
+    // payment processor an account the user did not choose.
+    const selectedAccountIds = new Set(
+      Array.isArray(metadata?.accounts)
+        ? metadata.accounts
+            .map((account: any) => account?.id || account?.account_id)
+            .filter((accountId: unknown): accountId is string => typeof accountId === 'string' && accountId.length > 0)
+        : [],
+    );
+    const selectedAccounts = accountsResult.accounts.filter((account) =>
+      selectedAccountIds.size === 0 || selectedAccountIds.has(account.accountId),
+    );
+    const eligibleAccounts = selectedAccounts.filter(
+      (account) => account.type === 'depository' && ['checking', 'savings', 'cash management'].includes(account.subtype),
+    );
+
+    if (eligibleAccounts.length === 0) {
+      throw new Error('Select a checking or savings account to continue.');
+    }
+
     const processor = process.env.PLAID_PROCESSOR || 'adyen';
     const processorTokens = [];
-    for (const account of accountsResult.accounts) {
+    for (const account of eligibleAccounts) {
       await PlaidService.saveAccount(
         userId,
         exchangeResult.itemId,

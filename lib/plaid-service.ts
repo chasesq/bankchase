@@ -128,8 +128,16 @@ export class PlaidService {
         },
         country_codes: ['US'],
         language: 'en',
-        products: ['auth', 'transactions', 'assets'],
+        // Keep the Link session focused on payment-eligible bank accounts.
+        // Assets is unrelated to processor-token creation and can make Link
+        // unavailable at institutions that do not support every requested product.
+        products: ['auth', 'transactions'],
         required_if_supported_products: ['identity'],
+        account_filters: {
+          depository: {
+            account_subtypes: ['checking', 'savings', 'cash management'],
+          },
+        },
         transactions: {
           days_requested: 90,
         },
