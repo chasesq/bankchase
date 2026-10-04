@@ -349,6 +349,27 @@ export class PlaidService {
   }
 
   /**
+   * Retrieve account-owner identity data for a linked Item.
+   * Identity is requested as an optional product during Link creation, so
+   * unsupported institutions can still complete the connection.
+   */
+  static async getIdentity(accessToken: string, plaidSecret: string = PLAID_SECRET || '') {
+    if (!accessToken) throw new Error('A Plaid access token is required.');
+    assertPlaidConfiguration(plaidSecret);
+    try {
+      const response = await plaidClient.post(`${BASE_URL}/identity/get`, {
+        client_id: PLAID_CLIENT_ID,
+        secret: plaidSecret,
+        access_token: accessToken,
+      });
+      return response.data;
+    } catch (error: any) {
+      const plaidMessage = error.response?.data?.error_message || error.response?.data?.display_message;
+      throw new Error(plaidMessage || `Failed to retrieve identity data: ${error.message}`);
+    }
+  }
+
+  /**
    * Get accounts and balances for a linked item
    */
   static async getAccounts(accessToken: string, plaidSecret: string = PLAID_SECRET || ''): Promise<AccountsResponse> {
