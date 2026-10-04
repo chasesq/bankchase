@@ -36,8 +36,12 @@ export async function POST(request: NextRequest) {
             .filter((accountId: unknown): accountId is string => typeof accountId === 'string' && accountId.length > 0)
         : [],
     );
+    if (selectedAccountIds.size === 0) {
+      throw new Error('Select at least one checking or savings account to continue.');
+    }
+
     const selectedAccounts = accountsResult.accounts.filter((account) =>
-      selectedAccountIds.size === 0 || selectedAccountIds.has(account.accountId),
+      selectedAccountIds.has(account.accountId),
     );
     const eligibleAccounts = selectedAccounts.filter(
       (account) => account.type === 'depository' && ['checking', 'savings', 'cash management'].includes(account.subtype),
@@ -100,6 +104,9 @@ export async function POST(request: NextRequest) {
       transactionCount,
       processor,
       processorTokenCount: processorTokens.length,
+      // Adyen needs the processor token to create its payment method. Return
+      // only tokens for accounts explicitly selected in Plaid Link.
+      processorTokens,
     });
   } catch (error: any) {
     console.error('[v0] Error exchanging token:', error);

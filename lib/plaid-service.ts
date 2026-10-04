@@ -131,8 +131,10 @@ export class PlaidService {
         // Keep the Link session focused on payment-eligible bank accounts.
         // Assets is unrelated to processor-token creation and can make Link
         // unavailable at institutions that do not support every requested product.
-        products: ['auth', 'transactions'],
-        required_if_supported_products: ['identity'],
+        // Processor tokens are created from Auth-linked accounts. Keep the
+        // Link session focused on the product required by Adyen; transaction
+        // history is fetched separately after the Item is connected.
+        products: ['auth'],
         account_filters: {
           depository: {
             account_subtypes: ['checking', 'savings', 'cash management'],
