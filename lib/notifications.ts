@@ -38,7 +38,7 @@ export interface NotificationPreference {
 export interface WebhookConnector {
   id: string
   userId: string
-  type: 'slack' | 'discord' | 'teams' | 'email' | 'sms' | 'custom'
+  type: 'slack' | 'discord' | 'teams' | 'hubspot' | 'email' | 'sms' | 'custom'
   name: string
   config: Record<string, any>
   events: WebhookEventType[]
@@ -82,6 +82,12 @@ export const connectorTypes = {
     description: 'Send notifications to Teams channels',
     icon: '👥',
     fields: ['webhookUrl', 'channel'],
+  },
+  hubspot: {
+    name: 'HubSpot',
+    description: 'Create CRM records from banking events',
+    icon: 'HS',
+    fields: ['accessToken', 'objectType'],
   },
   email: {
     name: 'Email',

@@ -65,12 +65,62 @@ export class NotificationService {
   static async publishBankingEvent(event: BankingEvent) {
     try {
       await redis.lpush(this.EVENT_QUEUE, JSON.stringify(event))
-      console.log('[v0] Banking event published:', event.eventType)
+      const delivery = await this.deliverBankingEvent(event)
+      console.log('[v0] Banking event published:', event.eventType, delivery)
       return true
     } catch (error) {
       console.error('[v0] Failed to publish banking event:', error)
       return false
     }
+  }
+
+  static async deliverBankingEvent(event: BankingEvent) {
+    const connectors = await this.getConnectors(event.userId)
+    const payload = {
+      id: event.id,
+      event: event.eventType,
+      description: event.description,
+      data: event.data,
+      timestamp: event.timestamp,
+    }
+
+    const deliveries = connectors
+      .filter((connector) => connector.isActive && connector.events.includes(event.eventType))
+      .map(async (connector) => {
+        try {
+          if (connector.type === 'hubspot') {
+            const objectType = connector.config.objectType || 'events'
+            const response = await fetch(`https://api.hubapi.com/crm/objects/2026-09/${encodeURIComponent(objectType)}`, {
+              method: 'POST',
+              headers: {
+                Authorization: `Bearer ${connector.config.accessToken}`,
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({ properties: { event_type: event.eventType, description: event.description, ...event.data } }),
+            })
+            if (!response.ok) throw new Error(`HubSpot returned ${response.status}`)
+            return true
+          }
+
+          if (!connector.config.webhookUrl) throw new Error('Webhook URL is missing')
+          const body = connector.type === 'slack'
+            ? { text: `*${event.eventType}*\\n${event.description}`, attachments: [{ text: JSON.stringify(event.data) }] }
+            : connector.type === 'discord'
+              ? { embeds: [{ title: event.eventType, description: event.description, fields: Object.entries(event.data).map(([name, value]) => ({ name, value: String(value), inline: true })) }] }
+              : connector.type === 'teams'
+                ? { type: 'message', attachments: [{ contentType: 'application/vnd.microsoft.card.adaptive', content: { '$schema': 'http://adaptivecards.io/schemas/adaptive-card.json', type: 'AdaptiveCard', version: '1.2', body: [{ type: 'TextBlock', weight: 'Bolder', text: event.eventType }, { type: 'TextBlock', text: event.description, wrap: true }] } }] }
+                : payload
+          const delivered = await this.triggerWebhook(connector.config.webhookUrl, body, connector.config.secret)
+          if (!delivered) throw new Error('Webhook returned a non-success response')
+          return true
+        } catch (error) {
+          console.error('[v0] Connector delivery failed:', connector.id, error)
+          return false
+        }
+      })
+
+    const results = await Promise.all(deliveries)
+    return { attempted: results.length, delivered: results.filter(Boolean).length }
   }
 
   static async getBankingEvents(limit = 100) {

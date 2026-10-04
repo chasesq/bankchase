@@ -10,6 +10,8 @@ export function WebhookConnectors() {
   const [selectedType, setSelectedType] = useState<string | null>(null)
   const [formData, setFormData] = useState<any>({})
   const [selectedEvents, setSelectedEvents] = useState<WebhookEventType[]>([])
+  const [error, setError] = useState<string | null>(null)
+  const [saving, setSaving] = useState(false)
 
   useEffect(() => {
     fetchConnectors()
@@ -30,7 +32,9 @@ export function WebhookConnectors() {
 
   async function handleCreateConnector(e: React.FormEvent) {
     e.preventDefault()
-    
+    setError(null)
+    setSaving(true)
+
     try {
       const response = await fetch('/api/connectors', {
         method: 'POST',
@@ -42,14 +46,21 @@ export function WebhookConnectors() {
         }),
       })
 
-      if (response.ok) {
-        await fetchConnectors()
-        setSelectedType(null)
-        setFormData({})
-        setSelectedEvents([])
+      const data = await response.json().catch(() => null)
+      if (!response.ok) {
+        setError(data?.error || 'Unable to create connector')
+        return
       }
+
+      await fetchConnectors()
+      setSelectedType(null)
+      setFormData({})
+      setSelectedEvents([])
     } catch (error) {
       console.error('[v0] Failed to create connector:', error)
+      setError('Unable to reach the connector service')
+    } finally {
+      setSaving(false)
     }
   }
 
@@ -77,6 +88,11 @@ export function WebhookConnectors() {
 
   return (
     <div className="space-y-6">
+      {error && (
+        <div role="alert" className="rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+          {error}
+        </div>
+      )}
       <div>
         <h2 className="text-2xl font-bold mb-2">Webhook Connectors</h2>
         <p className="text-muted-foreground">Connect to third-party services for real-time banking notifications</p>
@@ -190,7 +206,7 @@ export function WebhookConnectors() {
                   {field.replace(/([A-Z])/g, ' $1')}
                 </label>
                 <input
-                  type={field.includes('url') ? 'url' : field.includes('email') ? 'email' : field.includes('phone') ? 'tel' : 'text'}
+                  type={field.includes('url') ? 'url' : field.includes('email') ? 'email' : field.includes('phone') ? 'tel' : field.toLowerCase().includes('token') || field === 'secret' ? 'password' : 'text'}
                   required
                   placeholder={`Enter ${field}`}
                   value={formData[field] || ''}
@@ -228,10 +244,10 @@ export function WebhookConnectors() {
             <div className="flex gap-3">
               <button
                 type="submit"
-                disabled={selectedEvents.length === 0}
+                disabled={saving || selectedEvents.length === 0}
                 className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold py-2 px-4 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
-                Create Connector
+                {saving ? 'Creating…' : 'Create Connector'}
               </button>
               <button
                 type="button"

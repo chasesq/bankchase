@@ -10,9 +10,17 @@ export async function GET(request: NextRequest) {
 
     console.log('[v0] Fetched connectors for user:', userId)
 
+    const safeConnectors = connectors.map((connector) => {
+      const safeConfig = { ...connector.config }
+      for (const key of ['webhookUrl', 'accessToken', 'secret', 'apiKey']) {
+        if (typeof safeConfig[key] === 'string' && safeConfig[key]) safeConfig[key] = `${safeConfig[key].slice(0, 8)}***`
+      }
+      return { ...connector, config: safeConfig, secret: undefined }
+    })
+
     return NextResponse.json({
       success: true,
-      connectors,
+      connectors: safeConnectors,
       timestamp: new Date().toISOString(),
     })
   } catch (error) {
@@ -28,16 +36,20 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
     const { type, config, events } = body
+    const allowedTypes = ['slack', 'discord', 'teams', 'hubspot', 'email', 'sms', 'custom']
+    const allowedEvents = ['transaction.completed', 'transaction.failed', 'balance.low', 'fraud.detected', 'account.updated']
+
+    if (!allowedTypes.includes(type) || !config?.name || !Array.isArray(events) || events.length === 0 || events.some((event: string) => !allowedEvents.includes(event))) {
+      return NextResponse.json({ success: false, error: 'Invalid connector configuration' }, { status: 400 })
+    }
 
     const connector = {
       id: uuidv4(),
       userId: 'user_demo',
       type,
-      name: config.name,
+      name: String(config.name).trim().slice(0, 100),
       config: {
         ...config,
-        // Mask sensitive data
-        webhookUrl: config.webhookUrl?.substring(0, 20) + '***' || '',
       },
       events,
       isActive: true,
@@ -51,9 +63,14 @@ export async function POST(request: NextRequest) {
 
     console.log('[v0] Connector created:', connector.id, type)
 
+    const safeConfig = { ...connector.config }
+    for (const key of ['webhookUrl', 'accessToken', 'secret', 'apiKey']) {
+      if (typeof safeConfig[key] === 'string' && safeConfig[key]) safeConfig[key] = `${safeConfig[key].slice(0, 8)}***`
+    }
+
     return NextResponse.json({
       success: true,
-      connector,
+      connector: { ...connector, config: safeConfig, secret: undefined },
     })
   } catch (error) {
     console.error('[v0] Failed to create connector:', error)
