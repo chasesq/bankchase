@@ -6,6 +6,7 @@ import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { useBanking } from '@/lib/banking-context';
 import { Send, Clock, CheckCircle, AlertCircle, Loader } from 'lucide-react';
 import Link from 'next/link';
+import { BankPicker, BANK_OPTIONS } from '@/components/bank-picker';
 import { toast } from 'sonner';
 
 interface Account {
@@ -45,6 +46,7 @@ function TransferContent() {
   const [isTransferring, setIsTransferring] = useState(false);
   const [recentTransfers, setRecentTransfers] = useState<TransferStatus[]>([]);
 
+  const [selectedDestinationBank, setSelectedDestinationBank] = useState(BANK_OPTIONS[0].id);
   const [formData, setFormData] = useState({
     fromAccountId: '',
     receiverName: '',
@@ -312,22 +314,14 @@ function TransferContent() {
                       />
                     </div>
 
-                    {/* Bank Code */}
-                    <div>
-                      <label className="block text-sm font-medium text-foreground mb-2">
-                        Bank Code
-                      </label>
-                      <select
-                        name="receiverBankCode"
-                        value={formData.receiverBankCode}
-                        onChange={handleInputChange}
-                        className="w-full px-4 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                      >
-                        <option value="INTERNAL">Internal Transfer</option>
-                        <option value="SWIFT">International (SWIFT)</option>
-                        <option value="ACH">ACH Transfer</option>
-                      </select>
-                    </div>
+                    <BankPicker
+                      value={selectedDestinationBank}
+                      onChange={(bank) => {
+                        setSelectedDestinationBank(bank.id)
+                        setFormData((previous) => ({ ...previous, receiverBankCode: bank.code }))
+                      }}
+                      onAddExternal={() => toast.info('External bank linking is not available yet.')}
+                    />
                   </div>
                 </div>
 
