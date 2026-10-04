@@ -33,22 +33,21 @@ type BankPickerProps = {
 
 export function BankPicker({ value = BANK_OPTIONS[0].id, onChange, onAddExternal }: BankPickerProps) {
   const [open, setOpen] = useState(false)
+  const [activeIndex, setActiveIndex] = useState(0)
   const menuId = useId()
+  const rootRef = useRef<HTMLDivElement>(null)
   const triggerRef = useRef<HTMLButtonElement>(null)
   const selectedBank = BANK_OPTIONS.find((bank) => bank.id === value) ?? BANK_OPTIONS[0]
   const SelectedIcon = icons[selectedBank.icon]
 
   useEffect(() => {
     if (!open) return
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        setOpen(false)
-        triggerRef.current?.focus()
-      }
+    const handlePointerDown = (event: PointerEvent) => {
+      if (!rootRef.current?.contains(event.target as Node)) setOpen(false)
     }
-    document.addEventListener('keydown', handleKeyDown)
-    return () => document.removeEventListener('keydown', handleKeyDown)
-  }, [open])
+    document.addEventListener('pointerdown', handlePointerDown)
+    return () => document.removeEventListener('pointerdown', handlePointerDown)
+  }, [open, selectedBank.id])
 
   const handleSelect = (bank: BankOption) => {
     setOpen(false)
@@ -61,7 +60,7 @@ export function BankPicker({ value = BANK_OPTIONS[0].id, onChange, onAddExternal
   }
 
   return (
-    <div className="relative">
+    <div ref={rootRef} className="relative">
       <label htmlFor="destination-bank" className="mb-2 block text-sm font-medium text-foreground">
         Destination bank
       </label>
@@ -72,11 +71,24 @@ export function BankPicker({ value = BANK_OPTIONS[0].id, onChange, onAddExternal
         aria-haspopup="listbox"
         aria-controls={menuId}
         aria-expanded={open}
-        onClick={() => setOpen((current) => !current)}
+        onClick={() => {
+          setActiveIndex(BANK_OPTIONS.findIndex((bank) => bank.id === selectedBank.id))
+          setOpen((current) => !current)
+        }}
         onKeyDown={(event) => {
-          if (event.key === 'ArrowDown' || event.key === 'Enter' || event.key === ' ') {
+          if (!open && (event.key === 'ArrowDown' || event.key === 'Enter' || event.key === ' ')) {
             event.preventDefault()
+            setActiveIndex(BANK_OPTIONS.findIndex((bank) => bank.id === selectedBank.id))
             setOpen(true)
+          } else if (open && (event.key === 'ArrowDown' || event.key === 'ArrowUp')) {
+            event.preventDefault()
+            setActiveIndex((current) => (current + (event.key === 'ArrowDown' ? 1 : -1) + BANK_OPTIONS.length) % BANK_OPTIONS.length)
+          } else if (open && (event.key === 'Enter' || event.key === ' ')) {
+            event.preventDefault()
+            handleSelect(BANK_OPTIONS[activeIndex])
+          } else if (open && event.key === 'Escape') {
+            event.preventDefault()
+            setOpen(false)
           }
         }}
         className="flex w-full items-center justify-between rounded-lg border border-border bg-background px-4 py-3 text-left text-foreground transition hover:border-primary focus:outline-none focus:ring-2 focus:ring-primary"
@@ -89,9 +101,27 @@ export function BankPicker({ value = BANK_OPTIONS[0].id, onChange, onAddExternal
       </button>
 
       {open && (
-        <>
-          <button type="button" aria-label="Close destination bank menu" className="fixed inset-0 z-10 cursor-default" onClick={() => setOpen(false)} />
-          <div id={menuId} className="absolute z-20 mt-2 w-full overflow-hidden rounded-xl border border-border bg-card p-1 shadow-lg" role="listbox" aria-label="Destination banks">
+        <div
+          id={menuId}
+          className="absolute z-20 mt-2 w-full overflow-hidden rounded-xl border border-border bg-card p-1 shadow-lg"
+          role="listbox"
+          aria-label="Destination banks"
+          aria-activedescendant={`${menuId}-option-${BANK_OPTIONS[activeIndex]?.id ?? selectedBank.id}`}
+          tabIndex={-1}
+          onKeyDown={(event) => {
+            if (event.key === 'Escape') {
+              event.preventDefault()
+              setOpen(false)
+              triggerRef.current?.focus()
+            } else if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+              event.preventDefault()
+              setActiveIndex((current) => (current + (event.key === 'ArrowDown' ? 1 : -1) + BANK_OPTIONS.length) % BANK_OPTIONS.length)
+            } else if (event.key === 'Enter' || event.key === ' ') {
+              event.preventDefault()
+              handleSelect(BANK_OPTIONS[activeIndex])
+            }
+          }}
+        >
             <div className="flex items-center justify-between px-3 py-2">
               <p className="text-sm font-semibold text-foreground">Select destination bank</p>
               <button type="button" aria-label="Close" onClick={() => setOpen(false)} className="rounded-md p-1 text-muted-foreground hover:bg-muted hover:text-foreground">
@@ -103,12 +133,14 @@ export function BankPicker({ value = BANK_OPTIONS[0].id, onChange, onAddExternal
               const isSelected = bank.id === selectedBank.id
               return (
                 <button
+                  id={`${menuId}-option-${bank.id}`}
                   key={bank.id}
                   type="button"
                   role="option"
                   aria-selected={isSelected}
+                  onMouseEnter={() => setActiveIndex(BANK_OPTIONS.findIndex((option) => option.id === bank.id))}
                   onClick={() => handleSelect(bank)}
-                  className={`flex w-full items-center justify-between rounded-lg px-3 py-3 text-left transition hover:bg-muted ${bank.type === 'Action' ? 'text-primary' : 'text-foreground'}`}
+                  className={`flex w-full items-center justify-between rounded-lg px-3 py-3 text-left transition hover:bg-muted ${activeIndex === BANK_OPTIONS.findIndex((option) => option.id === bank.id) ? 'bg-muted' : ''} ${bank.type === 'Action' ? 'text-primary' : 'text-foreground'}`}
                 >
                   <span className="flex items-center gap-3">
                     <Icon className="size-5 shrink-0" aria-hidden="true" />
@@ -122,7 +154,6 @@ export function BankPicker({ value = BANK_OPTIONS[0].id, onChange, onAddExternal
               )
             })}
           </div>
-        </>
       )}
     </div>
   )
