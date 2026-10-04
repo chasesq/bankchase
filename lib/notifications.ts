@@ -124,6 +124,16 @@ interface NotificationPayload {
   type?: string
 }
 
+function escapeHtml(value: string): string {
+  return value.replace(/[&<>"']/g, (character) => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;',
+  })[character] ?? character)
+}
+
 /**
  * Send Email via Resend
  */
@@ -136,26 +146,35 @@ export async function sendTransactionEmail(payload: NotificationPayload): Promis
 
     const { sendCustomEmail } = await import('@/lib/email/resend-client')
 
+    const currency = payload.currency || 'NGN'
+    const formattedAmount = payload.amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+    const formattedBalance = payload.balance === undefined
+      ? undefined
+      : payload.balance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
     const emailContent = `
 Dear ${payload.context.userName},
 
-You have received a transaction notification:
+You have received a credit transaction:
 
-Amount: ${payload.currency || 'NGN'} ${payload.amount.toLocaleString()}
+Amount: ${currency} ${formattedAmount}
 From: ${payload.recipientName}
 Reference: ${payload.reference}
-${payload.balance !== undefined ? `New Balance: ${payload.currency || 'NGN'} ${payload.balance.toLocaleString()}` : ''}
+${formattedBalance !== undefined ? `New Balance: ${currency} ${formattedBalance}` : ''}
 Date: ${new Date().toLocaleString()}
 
 Thank you for using our service.
     `.trim()
+    const htmlContent = emailContent
+      .split('\\n')
+      .map((line) => line ? `<p>${escapeHtml(line)}</p>` : '')
+      .join('')
 
     const result = await sendCustomEmail({
       to: payload.context.userEmail,
-      subject: `Transaction Alert: ${payload.currency || 'NGN'} ${payload.amount.toLocaleString()}`,
+      subject: `Credit Alert: ${currency} ${formattedAmount}`,
       text: emailContent,
-      html: `<pre>${emailContent.replace(/[&<>]/g, (character) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' })[character] || character)}</pre>`,
-      idempotencyKey: `transaction/${payload.context.userId}/${payload.reference}`,
+      html: `<div style="font-family:Arial,sans-serif;line-height:1.6;color:#172033;max-width:600px"><h2>Credit Alert</h2>${htmlContent}</div>`,
+      idempotencyKey: `transaction-credit/${payload.context.userId}/${payload.reference}`,
     })
 
     if (!result.success) {
@@ -233,8 +252,7 @@ export async function createPushNotification(
 export async function notifyTransaction(payload: NotificationPayload): Promise<void> {
   console.log(`[NOTIFICATIONS] Sending transaction alerts for ${payload.context.userEmail}`)
 
-  // Send all notifications concurrently without blocking
-  Promise.allSettled([
+  const results = await Promise.allSettled([
     sendTransactionEmail(payload),
     sendTransactionSMS(payload),
     createPushNotification(
@@ -242,14 +260,14 @@ export async function notifyTransaction(payload: NotificationPayload): Promise<v
       'Transaction Received',
       `${payload.currency || 'NGN'} ${payload.amount.toLocaleString()} from ${payload.recipientName}`,
       payload.reference
-    )
-  ]).then(results => {
-    results.forEach((result, index) => {
-      const channels = ['Email', 'SMS', 'Push']
-      if (result.status === 'rejected') {
-        console.warn(`[NOTIFICATIONS] ${channels[index]} failed:`, result.reason)
-      }
-    })
+    ),
+  ])
+
+  results.forEach((result, index) => {
+    const channels = ['Email', 'SMS', 'Push']
+    if (result.status === 'rejected') {
+      console.warn(`[NOTIFICATIONS] ${channels[index]} failed:`, result.reason)
+    }
   })
 }
 

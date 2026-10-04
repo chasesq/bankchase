@@ -21,6 +21,11 @@ function getResendClient() {
 }
 
 function getSender() {
+  const configuredSender = process.env.RESEND_EMAIL_FROM?.trim()
+  if (configuredSender) {
+    return configuredSender
+  }
+
   const domain = process.env.RESEND_EMAIL_DOMAIN?.trim()
   return domain ? `onboarding@${domain}` : 'onboarding@resend.dev'
 }
