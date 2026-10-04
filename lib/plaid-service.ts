@@ -389,8 +389,10 @@ export class PlaidService {
         requestId: response.data.request_id,
       };
     } catch (error: any) {
-      const plaidMessage = error.response?.data?.error_message || error.response?.data?.display_message;
-      throw new Error(plaidMessage || `Failed to create processor token: ${error.message}`);
+      const plaidData = error.response?.data;
+      const plaidMessage = plaidData?.error_message || plaidData?.display_message;
+      const errorCode = plaidData?.error_code ? ` (${plaidData.error_code})` : '';
+      throw new Error(plaidMessage ? `${plaidMessage}${errorCode}` : `Failed to create processor token: ${error.message}`);
     }
   }
 

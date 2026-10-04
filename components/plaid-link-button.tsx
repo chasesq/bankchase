@@ -40,6 +40,7 @@ export function PlaidLinkButton({ onSuccess, onError, phoneNumber }: PlaidLinkBu
     setLoading(true);
     setError(null);
     setStatus('idle');
+    setLinkToken(null);
 
     try {
       const response = await fetch('/api/plaid/create-link-token', {
@@ -222,14 +223,19 @@ export function PlaidLinkButton({ onSuccess, onError, phoneNumber }: PlaidLinkBu
             <div key={i} className="rounded-lg border border-border p-4 bg-background">
               <p className="font-semibold text-foreground">{item.institution}</p>
               <ul className="mt-2 space-y-1">
-                {item.accounts?.map((account: any) => (
-                  <li key={account.id} className="text-sm text-muted-foreground">
-                    <div className="flex justify-between">
-                      <span>{account.name}</span>
-                      <span className="text-muted-foreground">{account.subtype} •••{account.mask}</span>
-                    </div>
-                  </li>
-                ))}
+                  {item.accounts?.map((account: any, accountIndex: number) => (
+                    <li
+                      key={account.id || account.account_id || account.accountId || `${account.name}-${accountIndex}`}
+                      className="text-sm text-muted-foreground"
+                    >
+                      <div className="flex justify-between gap-3">
+                        <span>{account.name || account.official_name || 'Bank account'}</span>
+                        <span className="shrink-0 text-muted-foreground">
+                          {account.subtype || account.type || 'account'} •••{account.mask || '----'}
+                        </span>
+                      </div>
+                    </li>
+                  ))}
               </ul>
             </div>
           ))}
