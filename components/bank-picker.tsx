@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useId, useRef, useState } from 'react'
 import { Building2, ChevronDown, Check, CreditCard, Plus, Wallet, X } from 'lucide-react'
 
 export type BankOption = {
@@ -33,17 +33,31 @@ type BankPickerProps = {
 
 export function BankPicker({ value = BANK_OPTIONS[0].id, onChange, onAddExternal }: BankPickerProps) {
   const [open, setOpen] = useState(false)
+  const menuId = useId()
+  const triggerRef = useRef<HTMLButtonElement>(null)
   const selectedBank = BANK_OPTIONS.find((bank) => bank.id === value) ?? BANK_OPTIONS[0]
   const SelectedIcon = icons[selectedBank.icon]
 
+  useEffect(() => {
+    if (!open) return
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setOpen(false)
+        triggerRef.current?.focus()
+      }
+    }
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [open])
+
   const handleSelect = (bank: BankOption) => {
+    setOpen(false)
+    triggerRef.current?.focus()
     if (bank.type === 'Action') {
-      setOpen(false)
       onAddExternal?.()
       return
     }
     onChange(bank)
-    setOpen(false)
   }
 
   return (
@@ -52,11 +66,19 @@ export function BankPicker({ value = BANK_OPTIONS[0].id, onChange, onAddExternal
         Destination bank
       </label>
       <button
+        ref={triggerRef}
         id="destination-bank"
         type="button"
         aria-haspopup="listbox"
+        aria-controls={menuId}
         aria-expanded={open}
         onClick={() => setOpen((current) => !current)}
+        onKeyDown={(event) => {
+          if (event.key === 'ArrowDown' || event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault()
+            setOpen(true)
+          }
+        }}
         className="flex w-full items-center justify-between rounded-lg border border-border bg-background px-4 py-3 text-left text-foreground transition hover:border-primary focus:outline-none focus:ring-2 focus:ring-primary"
       >
         <span className="flex min-w-0 items-center gap-3">
@@ -69,7 +91,7 @@ export function BankPicker({ value = BANK_OPTIONS[0].id, onChange, onAddExternal
       {open && (
         <>
           <button type="button" aria-label="Close destination bank menu" className="fixed inset-0 z-10 cursor-default" onClick={() => setOpen(false)} />
-          <div className="absolute z-20 mt-2 w-full overflow-hidden rounded-xl border border-border bg-card p-1 shadow-lg" role="listbox" aria-label="Destination banks">
+          <div id={menuId} className="absolute z-20 mt-2 w-full overflow-hidden rounded-xl border border-border bg-card p-1 shadow-lg" role="listbox" aria-label="Destination banks">
             <div className="flex items-center justify-between px-3 py-2">
               <p className="text-sm font-semibold text-foreground">Select destination bank</p>
               <button type="button" aria-label="Close" onClick={() => setOpen(false)} className="rounded-md p-1 text-muted-foreground hover:bg-muted hover:text-foreground">

@@ -47,6 +47,7 @@ function TransferContent() {
   const [recentTransfers, setRecentTransfers] = useState<TransferStatus[]>([]);
 
   const [selectedDestinationBank, setSelectedDestinationBank] = useState(BANK_OPTIONS[0].id);
+  const selectedDestination = BANK_OPTIONS.find((bank) => bank.id === selectedDestinationBank) ?? BANK_OPTIONS[0];
   const [formData, setFormData] = useState({
     fromAccountId: '',
     receiverName: '',
@@ -173,7 +174,7 @@ function TransferContent() {
         recipientPhone: '',
         recipientEmail: '',
         receiverBankAccount: '',
-        receiverBankCode: 'INTERNAL',
+        receiverBankCode: selectedDestination.code,
         amount: '',
         narration: ''
       });
