@@ -108,6 +108,49 @@ export async function sendWorkflowCompletionEmail({
   }
 }
 
+export async function sendAutomationEvent({
+  event,
+  email,
+  contactId,
+  payload,
+}: {
+  event: string
+  email?: string
+  contactId?: string
+  payload?: Record<string, unknown>
+}) {
+  try {
+    if ((email ? 1 : 0) + (contactId ? 1 : 0) !== 1) {
+      return { success: false, error: 'Provide exactly one of email or contactId' }
+    }
+
+    const resend = getResendClient()
+    const result = email
+      ? await resend.events.send({
+          event,
+          email,
+          ...(payload ? { payload } : {}),
+        })
+      : await resend.events.send({
+          event,
+          contactId: contactId as string,
+          ...(payload ? { payload } : {}),
+        })
+
+    if (result.error) {
+      return { success: false, error: getErrorMessage(result.error) }
+    }
+
+    return { success: true, event: result.data?.event }
+  } catch (error) {
+    console.error('[Resend] Failed to send automation event:', error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to send automation event',
+    }
+  }
+}
+
 export async function sendCustomEmail({
   to,
   subject,
