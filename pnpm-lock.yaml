@@ -218,6 +218,9 @@ importers:
       next-themes:
         specifier: latest
         version: 0.4.6(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+      node-appwrite:
+        specifier: ^29.0.0
+        version: 29.0.0
       pg:
         specifier: ^8.21.0
         version: 8.22.0
@@ -6847,6 +6850,9 @@ packages:
       sass:
         optional: true
 
+  node-appwrite@29.0.0:
+    resolution: {integrity: sha512-c2lkV5uiHrOXEs2VqyQYmXomEGgeHS21neCJHb0tyGfeQ0KqIPKYz9O3TQrRtRJk7YMBRoJfjorR527371TRdQ==}
+
   node-domexception@1.0.0:
     resolution: {integrity: sha512-/jKZoMpw0F8GRwl4/eLROPA3cfcXtLApP0QzLmUT/HuPCZWyB7IY9ZrMeKw2O/nFIqPQB3PVM9aYm0F312AXDQ==}
     engines: {node: '>=10.5.0'}
@@ -8041,6 +8047,10 @@ packages:
 
   undici-types@6.28.0:
     resolution: {integrity: sha512-FnO9H9rmJvJbP5Mwy0XICbDezlIKf6WYRkDMCm8uukbHlKWMzmD5jodVA7F1k+TrAiZhWieDcoFayjVN5mnGUg==}
+
+  undici@6.29.0:
+    resolution: {integrity: sha512-R+RODBqp6i2pPflGdq+xIOUkl+RNfGgHwoinecKu/JCuf2uO06cOKoDbI2P7Dn6KcswdKwrczbU6IYJ6K8X+wg==}
+    engines: {node: '>=18.17'}
 
   undici@7.28.0:
     resolution: {integrity: sha512-cRZYrTDwWznlnRiPjggAGxZXanty6M8RV1ff8Wm4LWXBp7/IG8v5DnOm74DtUBp9OONpK75YlPnIjQqX0dBDtA==}
@@ -15649,6 +15659,11 @@ snapshots:
       - '@babel/core'
       - babel-plugin-macros
 
+  node-appwrite@29.0.0:
+    dependencies:
+      json-bigint: 1.0.0
+      undici: 6.29.0
+
   node-domexception@1.0.0: {}
 
   node-exports-info@1.6.2:
@@ -16963,6 +16978,8 @@ snapshots:
   undici-types@6.21.0: {}
 
   undici-types@6.28.0: {}
+
+  undici@6.29.0: {}
 
   undici@7.28.0: {}
 
