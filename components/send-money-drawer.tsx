@@ -187,7 +187,7 @@ export function SendMoneyDrawer({ open, onOpenChange, onReceiptOpen }: SendMoney
 
       // Deliver the same transfer alert to the recipient's verified phone and email.
       try {
-        await fetch("/api/notifications/transaction", {
+        const alertResponse = await fetch("/api/notifications/transaction", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -200,7 +200,11 @@ export function SendMoneyDrawer({ open, onOpenChange, onReceiptOpen }: SendMoney
             reference: transaction.reference,
           }),
         })
-      } catch {
+        if (!alertResponse.ok) {
+          console.error("[v0] Transaction alert delivery failed", await alertResponse.text())
+        }
+      } catch (error) {
+        console.error("[v0] Transaction alert request failed", error)
         // Alert delivery must not undo a completed transfer.
       }
 
