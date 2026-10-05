@@ -27,7 +27,17 @@ function getSender() {
   }
 
   const domain = process.env.RESEND_EMAIL_DOMAIN?.trim()
-  return domain ? `onboarding@${domain}` : 'onboarding@resend.dev'
+  return domain ? `BankChase <onboarding@${domain}>` : 'BankChase <onboarding@resend.dev>'
+}
+
+function getErrorMessage(error: unknown): string {
+  if (!error) return 'Email delivery failed'
+  if (typeof error === 'string') return error
+  if (typeof error === 'object' && error !== null && 'message' in error) {
+    const message = (error as { message?: unknown }).message
+    if (typeof message === 'string' && message.trim()) return message
+  }
+  return 'Email delivery failed'
 }
 
 export async function sendOnboardingEmail({
@@ -50,7 +60,7 @@ export async function sendOnboardingEmail({
     )
 
     if (result.error) {
-      return { success: false, error: result.error.message }
+      return { success: false, error: getErrorMessage(result.error) }
     }
 
     return { success: true, messageId: result.data?.id }
@@ -85,7 +95,7 @@ export async function sendWorkflowCompletionEmail({
     )
 
     if (result.error) {
-      return { success: false, error: result.error.message }
+      return { success: false, error: getErrorMessage(result.error) }
     }
 
     return { success: true, messageId: result.data?.id }
@@ -137,7 +147,7 @@ export async function sendCustomEmail({
     )
 
     if (result.error) {
-      return { success: false, error: result.error.message }
+      return { success: false, error: getErrorMessage(result.error) }
     }
 
     return { success: true, messageId: result.data?.id }
