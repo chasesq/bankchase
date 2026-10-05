@@ -1,6 +1,9 @@
 'use client'
 
 import { useState } from 'react'
+import { pingAppwrite } from '@/lib/appwrite/client'
+import { Button } from '@/components/ui/button'
+import { useToast } from '@/hooks/use-toast'
 import Link from 'next/link'
 import { ArrowUpRight, Check, ChevronRight, Plug, Search } from 'lucide-react'
 import { Navigation } from '@/components/Navigation'
@@ -25,6 +28,21 @@ const apps = [
 export default function IntegrationsPage() {
   const [query, setQuery] = useState('')
   const [connected, setConnected] = useState<string[]>(['Gmail', 'Zapier'])
+  const [isPinging, setIsPinging] = useState(false)
+  const { toast } = useToast()
+
+  async function handleAppwritePing() {
+    setIsPinging(true)
+    try {
+      await pingAppwrite()
+      toast({ title: 'Appwrite connected', description: 'The Appwrite endpoint responded successfully.' })
+    } catch (error) {
+      console.error('[v0] Appwrite ping failed', error)
+      toast({ title: 'Appwrite unavailable', description: 'Check the endpoint, project ID, and Appwrite session.', variant: 'destructive' })
+    } finally {
+      setIsPinging(false)
+    }
+  }
   const visibleApps = apps.filter((app) => `${app.name} ${app.category}`.toLowerCase().includes(query.toLowerCase()))
 
   function toggleConnection(name: string) {
@@ -40,6 +58,15 @@ export default function IntegrationsPage() {
           <h1 className="text-3xl font-semibold tracking-tight">Apps and integrations</h1>
           <p className="max-w-2xl text-muted-foreground">Connect the tools your business already uses. Connections open securely in the provider&apos;s flow and never require you to install anything inside this app.</p>
         </div>
+        <section className="flex flex-col gap-4 rounded-xl border border-primary/20 bg-primary/5 p-5 sm:flex-row sm:items-center sm:justify-between" aria-labelledby="appwrite-heading">
+          <div>
+            <h2 id="appwrite-heading" className="font-semibold">Appwrite connectivity</h2>
+            <p className="text-sm text-muted-foreground">Verify the BankChase Appwrite project at the Frankfurt regional endpoint.</p>
+          </div>
+          <Button type="button" onClick={handleAppwritePing} disabled={isPinging}>
+            {isPinging ? 'Checking…' : 'Ping Appwrite'}
+          </Button>
+        </section>
         <div className="flex items-center gap-3 rounded-xl border bg-card px-4 py-3">
           <Search className="size-4 text-muted-foreground" aria-hidden="true" />
           <label htmlFor="integration-search" className="sr-only">Search integrations</label>
