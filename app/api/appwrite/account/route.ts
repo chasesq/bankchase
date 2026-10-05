@@ -4,7 +4,7 @@ import { Account, Client } from "appwrite"
 export const runtime = "nodejs"
 
 function getAccountClient() {
-  const endpoint = process.env.APPWRITE_ENDPOINT ?? "https://cloud.appwrite.io/v1"
+  const endpoint = process.env.APPWRITE_ENDPOINT ?? "https://fra.cloud.appwrite.io/v1"
   const projectId = process.env.APPWRITE_PROJECT_ID ?? "6ac3f4ef00218fa22307"
   const client = new Client().setEndpoint(endpoint).setProject(projectId)
 
