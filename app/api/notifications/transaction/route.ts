@@ -44,8 +44,10 @@ export async function POST(request: NextRequest) {
     const parsedAmount = Number(amount)
     const normalizedPhone = typeof phoneNumber === "string" ? phoneNumber.replace(/[\s().-]/g, "") : ""
 
-    if (!isValidEmail(email) || !Number.isFinite(parsedAmount) || parsedAmount <= 0) {
-      return NextResponse.json({ success: false, error: "Provide a valid recipient email and a positive amount." }, { status: 400 })
+    const hasEmail = isValidEmail(email)
+    const hasPhone = isValidPhone(normalizedPhone)
+    if ((!hasEmail && !hasPhone) || !Number.isFinite(parsedAmount) || parsedAmount <= 0) {
+      return NextResponse.json({ success: false, error: "Provide a valid recipient email or phone number and a positive amount." }, { status: 400 })
     }
     if (!["initiated", "completed", "failed"].includes(status)) {
       return NextResponse.json({ success: false, error: "Invalid alert status." }, { status: 400 })
@@ -57,10 +59,12 @@ export async function POST(request: NextRequest) {
     const htmlMessage = `<p>${escapeHtml(message)}</p>`
     const idempotencyKey = `transaction-alert/${safeReference}/${status}`.slice(0, 256)
     const results = await Promise.all([
-      isValidPhone(normalizedPhone)
+      hasPhone
         ? sendSmsAlert({ phoneNumber: normalizedPhone, amount: parsedAmount, currency, status, transactionId: safeReference, receiverAccount: safeRecipientName })
         : Promise.resolve({ success: false, error: "No phone provided" }),
-      sendCustomEmail({ to: email, subject: `BankChase transfer ${status}`, text: message, html: htmlMessage, idempotencyKey }),
+      hasEmail
+        ? sendCustomEmail({ to: email, subject: `BankChase transfer ${status}`, text: message, html: htmlMessage, idempotencyKey })
+        : Promise.resolve({ success: false, error: "No recipient email provided" }),
     ])
 
     const sms = results[0]

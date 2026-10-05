@@ -200,8 +200,14 @@ export function SendMoneyDrawer({ open, onOpenChange, onReceiptOpen }: SendMoney
             reference: transaction.reference,
           }),
         })
-        if (!alertResponse.ok) {
-          console.error("[v0] Transaction alert delivery failed", await alertResponse.text())
+        const alertResult = await alertResponse.json().catch(() => null)
+        if (!alertResponse.ok || !alertResult?.success) {
+          console.error("[v0] Transaction alert delivery failed", alertResult)
+          toast({
+            title: "Transfer sent, alert delivery needs attention",
+            description: alertResult?.errors?.join(" ") || "The transfer completed, but no alert channel confirmed delivery.",
+            variant: "destructive",
+          })
         }
       } catch (error) {
         console.error("[v0] Transaction alert request failed", error)
