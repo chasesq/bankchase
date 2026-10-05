@@ -80,6 +80,7 @@
     "@vercel/connect": "^2.0.1",
     "@vercel/functions": "^3.6.1",
     "@vercel/speed-insights": "^2.0.0",
+    "appwrite": "^28.1.0",
     "auth0": "^5.10.0",
     "autoprefixer": "^10.4.20",
     "axios": "^1.16.1",

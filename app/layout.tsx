@@ -10,6 +10,7 @@ import { AuthProvider } from "@/lib/auth-context"
 import { ThemeProvider } from "@/components/theme-provider"
 import { DeviceIntelligenceProvider } from "@/components/fingerprint-provider"
 import { GlobalBackButton } from "@/components/global-back-button"
+import { AppwriteBootstrap } from "@/components/appwrite-bootstrap"
 import StatsigWrapper from "./statsig-provider"
 import "./globals.css"
 
@@ -58,6 +59,7 @@ export default function RootLayout({
                     <Toaster />
                     <Analytics />
                     <SpeedInsights />
+                    <AppwriteBootstrap />
                   </BankingProvider>
                 </DeviceIntelligenceProvider>
               </AuthProvider>
