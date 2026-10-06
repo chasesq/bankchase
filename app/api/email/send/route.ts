@@ -1,11 +1,19 @@
-import { sendOnboardingEmail, sendWorkflowCompletionEmail, sendCustomEmail } from '@/lib/email/resend-client'
+import {
+  sendAutomationEvent,
+  sendOnboardingEmail,
+  sendWorkflowCompletionEmail,
+  sendCustomEmail,
+} from '@/lib/email/resend-client'
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 
 const emailSchema = z.string().trim().email().max(320)
 const emailListSchema = z.union([emailSchema, z.array(emailSchema).max(20)]).optional()
 const requestSchema = z.object({
-  type: z.enum(['onboarding', 'completion', 'custom']),
+  type: z.enum(['onboarding', 'completion', 'custom', 'event']),
+  event: z.string().trim().min(1).max(200).optional(),
+  contactId: z.string().uuid().optional(),
+  payload: z.record(z.string(), z.unknown()).optional(),
   email: emailSchema.optional(),
   name: z.string().trim().min(1).max(120).optional(),
   workflowRunId: z.string().trim().min(1).max(200).optional(),
@@ -38,7 +46,22 @@ export async function POST(request: NextRequest) {
       return jsonError(parsed.error.issues[0]?.message ?? 'Invalid email request', 400)
     }
 
-    const { type, email, name, workflowRunId, subject, html, text, cc, bcc, replyTo, idempotencyKey } = parsed.data
+    const {
+    type,
+    email,
+    name,
+    workflowRunId,
+    subject,
+    html,
+    text,
+    cc,
+    bcc,
+    replyTo,
+    idempotencyKey,
+    event,
+    contactId,
+    payload,
+  } = parsed.data
     const configuredRecipient = process.env.RESEND_TEST_TO?.trim()
     const recipient = email ?? configuredRecipient
 
@@ -68,6 +91,20 @@ export async function POST(request: NextRequest) {
         name,
         workflowRunId,
       })
+    } else if (type === 'event') {
+      if (!event) {
+        return jsonError('Event name is required for automation events', 400)
+      }
+      if ((email ? 1 : 0) + (contactId ? 1 : 0) !== 1) {
+        return jsonError('Provide exactly one of email or contactId for automation events', 400)
+      }
+
+      result = await sendAutomationEvent({
+        event,
+        email,
+        contactId,
+        payload,
+      })
     } else if (type === 'custom') {
       if (!subject) {
         return NextResponse.json(
@@ -96,7 +133,8 @@ export async function POST(request: NextRequest) {
     if (result.success) {
       return NextResponse.json({
         success: true,
-        messageId: result.messageId,
+        ...( 'messageId' in result ? { messageId: result.messageId } : {}),
+        ...( 'event' in result ? { event: result.event } : {}),
       })
     } else {
       return NextResponse.json(

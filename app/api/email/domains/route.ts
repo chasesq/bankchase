@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { v4 as uuidv4 } from 'uuid'
-import axios from 'axios'
+import { Resend } from 'resend'
 
 /**
  * GET /api/email/domains
@@ -59,21 +58,21 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid domain format' }, { status: 400 })
     }
 
-    const verificationToken = uuidv4()
+    const resend = new Resend(process.env.RESEND_API_KEY)
+    const { data: resendDomain, error: resendError } = await resend.domains.create({ name: domain_name.trim().toLowerCase() })
+
+    if (resendError || !resendDomain) {
+      return NextResponse.json({ error: resendError?.message || 'Failed to create domain in Resend' }, { status: 502 })
+    }
 
     const { data: domain, error: insertError } = await supabase
       .from('email_domains')
       .insert({
         user_id: user.id,
         domain_name,
-        verification_token: verificationToken,
-        verified: false,
-        dns_record: {
-          type: 'CNAME',
-          name: `bounce.${domain_name}`,
-          value: `bounce.resend.com`,
-          note: 'Add this DNS record to verify your domain'
-        }
+        resend_domain_id: resendDomain.id,
+        verified: resendDomain.status === 'verified',
+        dns_record: resendDomain.records ?? [],
       })
       .select()
       .single()

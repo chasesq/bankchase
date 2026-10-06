@@ -27,7 +27,17 @@ function getSender() {
   }
 
   const domain = process.env.RESEND_EMAIL_DOMAIN?.trim()
-  return domain ? `onboarding@${domain}` : 'onboarding@resend.dev'
+  return domain ? `BankChase <onboarding@${domain}>` : 'BankChase <onboarding@resend.dev>'
+}
+
+function getErrorMessage(error: unknown): string {
+  if (!error) return 'Email delivery failed'
+  if (typeof error === 'string') return error
+  if (typeof error === 'object' && error !== null && 'message' in error) {
+    const message = (error as { message?: unknown }).message
+    if (typeof message === 'string' && message.trim()) return message
+  }
+  return 'Email delivery failed'
 }
 
 export async function sendOnboardingEmail({
@@ -50,7 +60,7 @@ export async function sendOnboardingEmail({
     )
 
     if (result.error) {
-      return { success: false, error: result.error.message }
+      return { success: false, error: getErrorMessage(result.error) }
     }
 
     return { success: true, messageId: result.data?.id }
@@ -85,7 +95,7 @@ export async function sendWorkflowCompletionEmail({
     )
 
     if (result.error) {
-      return { success: false, error: result.error.message }
+      return { success: false, error: getErrorMessage(result.error) }
     }
 
     return { success: true, messageId: result.data?.id }
@@ -94,6 +104,49 @@ export async function sendWorkflowCompletionEmail({
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Failed to send email',
+    }
+  }
+}
+
+export async function sendAutomationEvent({
+  event,
+  email,
+  contactId,
+  payload,
+}: {
+  event: string
+  email?: string
+  contactId?: string
+  payload?: Record<string, unknown>
+}) {
+  try {
+    if ((email ? 1 : 0) + (contactId ? 1 : 0) !== 1) {
+      return { success: false, error: 'Provide exactly one of email or contactId' }
+    }
+
+    const resend = getResendClient()
+    const result = email
+      ? await resend.events.send({
+          event,
+          email,
+          ...(payload ? { payload } : {}),
+        })
+      : await resend.events.send({
+          event,
+          contactId: contactId as string,
+          ...(payload ? { payload } : {}),
+        })
+
+    if (result.error) {
+      return { success: false, error: getErrorMessage(result.error) }
+    }
+
+    return { success: true, event: result.data?.event }
+  } catch (error) {
+    console.error('[Resend] Failed to send automation event:', error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to send automation event',
     }
   }
 }
@@ -137,7 +190,7 @@ export async function sendCustomEmail({
     )
 
     if (result.error) {
-      return { success: false, error: result.error.message }
+      return { success: false, error: getErrorMessage(result.error) }
     }
 
     return { success: true, messageId: result.data?.id }

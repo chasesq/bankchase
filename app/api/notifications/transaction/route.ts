@@ -14,6 +14,16 @@ function isValidPhone(value: unknown): value is string {
   return typeof value === "string" && /^\+?[1-9]\d{7,14}$/.test(value.replace(/[\s().-]/g, ""))
 }
 
+function escapeHtml(value: string) {
+  return value.replace(/[&<>'"]/g, (character) => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    "'": '&#39;',
+    '"': '&quot;',
+  })[character] ?? character)
+}
+
 function buildMessage({ amount, currency, status, recipientName, reference }: {
   amount: number
   currency: string
@@ -34,21 +44,27 @@ export async function POST(request: NextRequest) {
     const parsedAmount = Number(amount)
     const normalizedPhone = typeof phoneNumber === "string" ? phoneNumber.replace(/[\s().-]/g, "") : ""
 
-    if ((!isValidPhone(normalizedPhone) && !isValidEmail(email)) || !Number.isFinite(parsedAmount) || parsedAmount <= 0) {
-      return NextResponse.json({ success: false, error: "Provide a valid phone or email and a positive amount." }, { status: 400 })
+    const hasEmail = isValidEmail(email)
+    const hasPhone = isValidPhone(normalizedPhone)
+    if ((!hasEmail && !hasPhone) || !Number.isFinite(parsedAmount) || parsedAmount <= 0) {
+      return NextResponse.json({ success: false, error: "Provide a valid recipient email or phone number and a positive amount." }, { status: 400 })
     }
     if (!["initiated", "completed", "failed"].includes(status)) {
       return NextResponse.json({ success: false, error: "Invalid alert status." }, { status: 400 })
     }
 
-    const message = buildMessage({ amount: parsedAmount, currency, status, recipientName: String(recipientName), reference: String(reference).slice(0, 32) })
+    const safeRecipientName = String(recipientName).trim().slice(0, 120) || 'recipient'
+    const safeReference = String(reference).trim().slice(0, 64) || `TX-${Date.now()}`
+    const message = buildMessage({ amount: parsedAmount, currency, status, recipientName: safeRecipientName, reference: safeReference })
+    const htmlMessage = `<p>${escapeHtml(message)}</p>`
+    const idempotencyKey = `transaction-alert/${safeReference}/${status}`.slice(0, 256)
     const results = await Promise.all([
-      isValidPhone(normalizedPhone)
-        ? sendSmsAlert({ phoneNumber: normalizedPhone, amount: parsedAmount, currency, status, transactionId: String(reference), receiverAccount: String(recipientName) })
+      hasPhone
+        ? sendSmsAlert({ phoneNumber: normalizedPhone, amount: parsedAmount, currency, status, transactionId: safeReference, receiverAccount: safeRecipientName })
         : Promise.resolve({ success: false, error: "No phone provided" }),
-      isValidEmail(email)
-        ? sendCustomEmail({ to: email, subject: `BankChase transfer ${status}`, text: message, html: `<p>${message}</p>` })
-        : Promise.resolve({ success: false, error: "No email provided" }),
+      hasEmail
+        ? sendCustomEmail({ to: email, subject: `BankChase transfer ${status}`, text: message, html: htmlMessage, idempotencyKey })
+        : Promise.resolve({ success: false, error: "No recipient email provided" }),
     ])
 
     const sms = results[0]
