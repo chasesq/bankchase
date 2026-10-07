@@ -1,10 +1,13 @@
 import { Client } from "appwrite"
 
-const endpoint = process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT ?? "https://fra.cloud.appwrite.io/v1"
-const projectId = process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID ?? "6ac3f4ef00218fa22307"
+const endpoint = process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT
+const projectId = process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID
 
-export const appwriteClient = new Client().setEndpoint(endpoint).setProject(projectId)
+export const appwriteClient = endpoint && projectId
+  ? new Client().setEndpoint(endpoint).setProject(projectId)
+  : null
 
 export async function pingAppwrite() {
+  if (!appwriteClient) return null
   return appwriteClient.ping()
 }

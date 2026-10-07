@@ -47,6 +47,13 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    if (transferType === "bank_transfer" && (!toAccountNumber?.trim() || !toBankCode?.trim())) {
+      return NextResponse.json(
+        { error: "Recipient bank account number and bank code are required" },
+        { status: 400 }
+      )
+    }
+
     // Validate amount
     if (amount <= 0 || Math.round(amount * 100) !== amount * 100) {
       return NextResponse.json(
