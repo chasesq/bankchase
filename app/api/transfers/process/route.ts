@@ -3,7 +3,7 @@ import { db } from "@/lib/db/index"
 import { transfer, bankAccount, notification, user } from "@/lib/db/schema"
 import { eq, and } from "drizzle-orm"
 import { nanoid } from "nanoid"
-import { Configuration, PlaidApi, PlaidEnvironments } from "plaid"
+import { ACHClass, Configuration, PlaidApi, PlaidEnvironments, TransferNetwork, TransferType } from "plaid"
 
 interface TransferRequest {
   senderId: string
@@ -57,8 +57,9 @@ export async function POST(request: NextRequest) {
 
     if (transferType === "bank_transfer") {
       const plaidAccessToken = process.env.PLAID_ACCESS_TOKEN
-      const plaidAccount = plaidAccountId || process.env.PLAID_RECIPIENT_ACCOUNT_ID
-      if (!plaidAccessToken || !plaidAccount) {
+      const plaidAccount = process.env.PLAID_TRANSFER_ACCOUNT_ID
+      const plaidAuthorizationId = process.env.PLAID_TRANSFER_AUTHORIZATION_ID
+      if (!plaidAccessToken || !plaidAccount || !plaidAuthorizationId) {
         return NextResponse.json(
           { error: "Plaid recipient account is not linked. Link the recipient bank account before sending." },
           { status: 503 }
@@ -72,13 +73,14 @@ export async function POST(request: NextRequest) {
       try {
         const plaidTransfer = await plaid.transferCreate({
           access_token: plaidAccessToken,
+          authorization_id: plaidAuthorizationId,
           account_id: plaidAccount,
-          type: "credit",
-          network: "ach",
+          type: TransferType.Debit,
+          network: TransferNetwork.Ach,
           amount: amount.toFixed(2),
           iso_currency_code: "USD",
           description: (description || `Transfer to ${recipientName}`).slice(0, 140),
-          ach_class: "ppd",
+          ach_class: ACHClass.Ppd,
           user: { legal_name: recipientName },
         })
         console.log("[v0] Plaid transfer created:", plaidTransfer.data.transfer.id)
