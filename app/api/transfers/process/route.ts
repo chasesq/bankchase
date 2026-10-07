@@ -3,6 +3,7 @@ import { db } from "@/lib/db/index"
 import { transfer, bankAccount, notification, user } from "@/lib/db/schema"
 import { eq, and } from "drizzle-orm"
 import { nanoid } from "nanoid"
+import { Configuration, PlaidApi, PlaidEnvironments } from "plaid"
 
 interface TransferRequest {
   senderId: string
@@ -13,6 +14,10 @@ interface TransferRequest {
   amount: number
   description?: string
   transferType: "zelle" | "bank_transfer" | "internal"
+  toAccountNumber?: string
+  toBankCode?: string
+  recipientPhone?: string
+  plaidAccountId?: string
 }
 
 export async function POST(request: NextRequest) {
@@ -28,6 +33,10 @@ export async function POST(request: NextRequest) {
       amount,
       description,
       transferType,
+      toAccountNumber,
+      toBankCode,
+      recipientPhone,
+      plaidAccountId,
     } = body
 
     // Validate required fields
@@ -44,6 +53,39 @@ export async function POST(request: NextRequest) {
         { error: "Amount must be greater than 0" },
         { status: 400 }
       )
+    }
+
+    if (transferType === "bank_transfer") {
+      const plaidAccessToken = process.env.PLAID_ACCESS_TOKEN
+      const plaidAccount = plaidAccountId || process.env.PLAID_RECIPIENT_ACCOUNT_ID
+      if (!plaidAccessToken || !plaidAccount) {
+        return NextResponse.json(
+          { error: "Plaid recipient account is not linked. Link the recipient bank account before sending." },
+          { status: 503 }
+        )
+      }
+
+      const plaid = new PlaidApi(new Configuration({
+        basePath: PlaidEnvironments[process.env.PLAID_ENV === "production" ? "production" : "sandbox"],
+        baseOptions: { headers: { "PLAID-CLIENT-ID": process.env.PLAID_CLIENT_ID, "PLAID-SECRET": process.env.PLAID_SECRET } },
+      }))
+      try {
+        const plaidTransfer = await plaid.transferCreate({
+          access_token: plaidAccessToken,
+          account_id: plaidAccount,
+          type: "credit",
+          network: "ach",
+          amount: amount.toFixed(2),
+          iso_currency_code: "USD",
+          description: (description || `Transfer to ${recipientName}`).slice(0, 140),
+          ach_class: "ppd",
+          user: { legal_name: recipientName },
+        })
+        console.log("[v0] Plaid transfer created:", plaidTransfer.data.transfer.id)
+      } catch (error) {
+        console.error("[v0] Plaid transfer failed:", error)
+        return NextResponse.json({ error: "Plaid could not create the bank transfer" }, { status: 502 })
+      }
     }
 
     // Get sender account

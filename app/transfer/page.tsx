@@ -8,6 +8,7 @@ import { Send, Clock, CheckCircle, AlertCircle, Loader } from 'lucide-react';
 import Link from 'next/link';
 import { BankPicker, BANK_OPTIONS } from '@/components/bank-picker';
 import { toast } from 'sonner';
+import { sendTransfer } from '@/lib/transfer-service';
 
 interface Account {
   id: string;
@@ -137,7 +138,20 @@ function TransferContent() {
       const source = accounts.find((account) => account.id === formData.fromAccountId);
       if (!source) throw new Error('Select a valid source account');
 
-      updateBalance(source.id, -amount);
+      const providerResult = await sendTransfer({
+        fromAccountId: source.id,
+        toAccountNumber: formData.receiverBankAccount,
+        toBankCode: formData.receiverBankCode,
+        amount,
+        narration: formData.narration,
+        senderId: userId,
+        recipientName: formData.receiverName,
+        recipientPhone: formData.recipientPhone,
+        transferType: 'bank_transfer',
+      });
+      if (!providerResult.success) throw new Error(providerResult.error || 'Transfer failed');
+
+      updateBalance(source.id, -(amount + (providerResult.details?.fee || 0)));
       const transaction = addTransaction({
         description: formData.narration || `Transfer to ${formData.receiverName}`,
         amount,
