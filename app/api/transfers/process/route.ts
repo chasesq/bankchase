@@ -40,15 +40,15 @@ export async function POST(request: NextRequest) {
     } = body
 
     // Validate required fields
-    if (!senderId || !senderAccountId || !amount || !recipientName) {
+    if (!senderId || !senderAccountId || !recipientName || !Number.isFinite(amount)) {
       return NextResponse.json(
-        { error: "Missing required fields" },
+        { error: "Sender, source account, recipient name, and a numeric amount are required" },
         { status: 400 }
       )
     }
 
     // Validate amount
-    if (amount <= 0) {
+    if (amount <= 0 || Math.round(amount * 100) !== amount * 100) {
       return NextResponse.json(
         { error: "Amount must be greater than 0" },
         { status: 400 }
@@ -231,6 +231,7 @@ export async function POST(request: NextRequest) {
         senderNewBalance: newSenderBalance,
         receiverNewBalance: newReceiverBalance,
         fee,
+        details: { fee, transferType, recipientPhone, recipientEmail },
       },
       { status: 200 }
     )

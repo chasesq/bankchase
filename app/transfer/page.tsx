@@ -145,13 +145,14 @@ function TransferContent() {
         amount,
         narration: formData.narration,
         senderId: userId,
-        recipientName: formData.receiverName,
-        recipientPhone: formData.recipientPhone,
+            recipientName: formData.receiverName,
+            recipientPhone: formData.recipientPhone,
+            recipientEmail: formData.recipientEmail,
         transferType: 'bank_transfer',
       });
       if (!providerResult.success) throw new Error(providerResult.error || 'Transfer failed');
 
-      updateBalance(source.id, -(amount + (providerResult.details?.fee || 0)));
+      updateBalance(source.id, -(amount + (providerResult.details?.fee ?? 0)));
       const transaction = addTransaction({
         description: formData.narration || `Transfer to ${formData.receiverName}`,
         amount,
