@@ -13,6 +13,9 @@ export interface TransferRequest {
   senderId?: string
   recipientName?: string
   receiverAccountId?: string
+  recipientPhone?: string
+  recipientEmail?: string
+  plaidAccountId?: string
   transferType?: 'zelle' | 'bank_transfer' | 'internal'
 }
 
@@ -64,8 +67,10 @@ export async function sendTransfer(request: TransferRequest): Promise<TransferRe
         senderId: request.senderId,
         senderAccountId: request.fromAccountId,
         receiverAccountId: request.receiverAccountId,
-        recipientEmail: undefined,
+        recipientEmail: request.recipientEmail,
+        recipientPhone: request.recipientPhone,
         recipientName: request.recipientName || request.toAccountNumber,
+        plaidAccountId: request.plaidAccountId,
         amount: request.amount,
         description: request.narration,
         transferType: request.transferType || 'bank_transfer',

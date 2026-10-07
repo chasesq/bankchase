@@ -3,6 +3,7 @@ import { db } from "@/lib/db/index"
 import { transfer, bankAccount, notification, user } from "@/lib/db/schema"
 import { eq, and } from "drizzle-orm"
 import { nanoid } from "nanoid"
+import { ACHClass, Configuration, PlaidApi, PlaidEnvironments, TransferNetwork, TransferType } from "plaid"
 
 interface TransferRequest {
   senderId: string
@@ -13,6 +14,10 @@ interface TransferRequest {
   amount: number
   description?: string
   transferType: "zelle" | "bank_transfer" | "internal"
+  toAccountNumber?: string
+  toBankCode?: string
+  recipientPhone?: string
+  plaidAccountId?: string
 }
 
 export async function POST(request: NextRequest) {
@@ -28,22 +33,68 @@ export async function POST(request: NextRequest) {
       amount,
       description,
       transferType,
+      toAccountNumber,
+      toBankCode,
+      recipientPhone,
+      plaidAccountId,
     } = body
 
     // Validate required fields
-    if (!senderId || !senderAccountId || !amount || !recipientName) {
+    if (!senderId || !senderAccountId || !recipientName || !Number.isFinite(amount)) {
       return NextResponse.json(
-        { error: "Missing required fields" },
+        { error: "Sender, source account, recipient name, and a numeric amount are required" },
+        { status: 400 }
+      )
+    }
+
+    if (transferType === "bank_transfer" && (!toAccountNumber?.trim() || !toBankCode?.trim())) {
+      return NextResponse.json(
+        { error: "Recipient bank account number and bank code are required" },
         { status: 400 }
       )
     }
 
     // Validate amount
-    if (amount <= 0) {
+    if (amount <= 0 || Math.round(amount * 100) !== amount * 100) {
       return NextResponse.json(
         { error: "Amount must be greater than 0" },
         { status: 400 }
       )
+    }
+
+    if (transferType === "bank_transfer") {
+      const plaidAccessToken = process.env.PLAID_ACCESS_TOKEN
+      const plaidAccount = process.env.PLAID_TRANSFER_ACCOUNT_ID
+      const plaidAuthorizationId = process.env.PLAID_TRANSFER_AUTHORIZATION_ID
+      if (!plaidAccessToken || !plaidAccount || !plaidAuthorizationId) {
+        return NextResponse.json(
+          { error: "Plaid recipient account is not linked. Link the recipient bank account before sending." },
+          { status: 503 }
+        )
+      }
+
+      const plaid = new PlaidApi(new Configuration({
+        basePath: PlaidEnvironments[process.env.PLAID_ENV === "production" ? "production" : "sandbox"],
+        baseOptions: { headers: { "PLAID-CLIENT-ID": process.env.PLAID_CLIENT_ID, "PLAID-SECRET": process.env.PLAID_SECRET } },
+      }))
+      try {
+        const plaidTransfer = await plaid.transferCreate({
+          access_token: plaidAccessToken,
+          authorization_id: plaidAuthorizationId,
+          account_id: plaidAccount,
+          type: TransferType.Debit,
+          network: TransferNetwork.Ach,
+          amount: amount.toFixed(2),
+          iso_currency_code: "USD",
+          description: (description || `Transfer to ${recipientName}`).slice(0, 140),
+          ach_class: ACHClass.Ppd,
+          user: { legal_name: recipientName },
+        })
+        console.log("[v0] Plaid transfer created:", plaidTransfer.data.transfer.id)
+      } catch (error) {
+        console.error("[v0] Plaid transfer failed:", error)
+        return NextResponse.json({ error: "Plaid could not create the bank transfer" }, { status: 502 })
+      }
     }
 
     // Get sender account
@@ -187,6 +238,7 @@ export async function POST(request: NextRequest) {
         senderNewBalance: newSenderBalance,
         receiverNewBalance: newReceiverBalance,
         fee,
+        details: { fee, transferType, recipientPhone, recipientEmail },
       },
       { status: 200 }
     )
