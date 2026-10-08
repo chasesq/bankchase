@@ -125,16 +125,16 @@ export function safeValidateAndTransformFirecrawlJson(input: unknown) {
       return
     }
 
+    const { company, ...investment } = parsed.data
     records.push({
-      ...parsed.data,
-      company_name: parsed.data.company.name,
-      company_domain: parsed.data.company.domain,
-      company_website: parsed.data.company.website,
-      company_description: parsed.data.company.description,
-      sector: parsed.data.company.sector,
-      headquarters: parsed.data.company.headquarters,
+      ...investment,
+      company_name: company.name,
+      company_domain: company.domain,
+      company_website: company.website,
+      company_description: company.description,
+      sector: company.sector,
+      headquarters: company.headquarters,
     })
-    delete (records[records.length - 1] as Partial<NormalizedInvestment>).company
   })
 
   return errors.length
