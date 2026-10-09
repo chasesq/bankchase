@@ -33,7 +33,7 @@ function AccountsContent() {
         <div className="bg-gradient-to-r from-primary to-primary/80 rounded-2xl p-8 mb-8 text-background shadow-lg">
           <p className="text-background/80 mb-2 text-sm font-medium">Total Balance</p>
           <h2 className="text-5xl font-bold mb-6">
-            $12,054,994.00
+            ${totalBalance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </h2>
           <div className="flex justify-between items-end">
             <div className="flex gap-4">
@@ -69,6 +69,9 @@ function AccountsContent() {
                       </p>
                       <p className="text-lg font-semibold text-foreground font-mono break-all group-hover:text-primary transition">
                         {account.account_number}
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Owner: {account.owner_name || 'Primary account owner'}
                       </p>
                     </Link>
                     <button

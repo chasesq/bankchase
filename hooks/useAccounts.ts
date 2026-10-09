@@ -9,6 +9,8 @@ export interface Account {
   balance: number;
   is_demo_account: boolean;
   last_updated: string;
+  owner_name?: string;
+  owner_email?: string;
 }
 
 export interface AccountsData {
@@ -25,9 +27,20 @@ export function useAccounts() {
   { dedupingInterval: 0 }
   );
 
+  const accounts = (data?.accounts || []).map((account) => {
+    const normalizedType = account.account_type.toLowerCase();
+    const requestedNumber = normalizedType.includes('checking')
+      ? '132435465'
+      : normalizedType.includes('savings')
+        ? '987654321'
+        : account.account_number;
+
+    return { ...account, account_number: requestedNumber };
+  });
+
   return {
-    accounts: data?.accounts || [],
-    totalBalance: data?.total_balance || 0,
+    accounts,
+    totalBalance: accounts.reduce((total, account) => total + Number(account.balance || 0), 0),
     isLoading,
     isError: !!error,
     error,
