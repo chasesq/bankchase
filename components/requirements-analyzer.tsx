@@ -60,7 +60,7 @@ function GeneratedSpec({ source }: { source: string }) {
 
       <Card className="border-border/70 shadow-none">
         <CardHeader className="border-b border-border/60 px-5 py-4"><CardTitle className="text-base">Requirement Summary</CardTitle></CardHeader>
-        <CardContent className="px-5 py-5"><p className="text-[15px] leading-7 text-foreground/80">{hasSource ? "Manage the accounts your business uses in Xero, including bank accounts, credit cards, loans, petty cash, trust accounts, and the transactions recorded against them. Use the articles below to connect feeds, record money in and out, reconcile balances, and resolve common issues." : "Add product notes to generate a requirement summary."}</p></CardContent>
+        <CardContent className="px-5 py-5"><p className="text-[15px] leading-7 text-foreground/80">{hasSource ? "Help businesses connect bank, credit card, and loan accounts to Xero, then keep those records accurate through bank feeds, opening balances, reconciliation, transfers, and exception handling. The experience should support automatic and manual connections, suggested matches, manual transaction creation, overpayments, underpayments, auto-reconciliation, and repeat bank rules without silently changing the user’s intent." : "Add product notes to generate a requirement summary."}</p></CardContent>
       </Card>
 
       <div className="grid gap-4 lg:grid-cols-2">
