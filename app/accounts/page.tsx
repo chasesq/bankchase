@@ -15,9 +15,24 @@ function AccountsContent() {
   const [copiedAccountId, setCopiedAccountId] = useState<number | null>(null);
 
   const copyAccountNumber = async (accountId: number, accountNumber: string) => {
-    await navigator.clipboard.writeText(accountNumber);
-    setCopiedAccountId(accountId);
-    window.setTimeout(() => setCopiedAccountId(null), 1800);
+    try {
+      await navigator.clipboard.writeText(accountNumber);
+      setCopiedAccountId(accountId);
+      window.setTimeout(() => setCopiedAccountId(null), 1800);
+    } catch {
+      // Clipboard access can be unavailable in an embedded preview.
+      const input = document.createElement('input');
+      input.value = accountNumber;
+      input.setAttribute('readonly', 'true');
+      input.style.position = 'fixed';
+      input.style.opacity = '0';
+      document.body.appendChild(input);
+      input.select();
+      document.execCommand('copy');
+      input.remove();
+      setCopiedAccountId(accountId);
+      window.setTimeout(() => setCopiedAccountId(null), 1800);
+    }
   };
 
   return (
