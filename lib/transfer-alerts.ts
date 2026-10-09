@@ -10,15 +10,40 @@ const transferAlertSchema = z.object({
   status: z.enum(['initiated', 'completed', 'failed']),
   transferId: z.string().min(1),
   failureReason: z.string().max(300).optional(),
+  zelleEnrolled: z.boolean().optional(),
+  claimUrl: z.string().url().max(2048).optional(),
+  claimExpiresAt: z.coerce.date().optional(),
 })
 
 export type TransferAlertInput = z.input<typeof transferAlertSchema>
 
+function formatDate(value?: Date) {
+  return value
+    ? new Intl.DateTimeFormat('en-US', { dateStyle: 'medium' }).format(value)
+    : '14 days from today'
+}
+
 function messageFor(input: z.output<typeof transferAlertSchema>) {
   const amount = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(input.amount)
   const method = input.transferType === 'zelle' ? 'Zelle' : 'bank transfer'
-  if (input.status === 'failed') return `BankChase ${method} alert: your ${amount} transfer to ${input.recipientName} failed${input.failureReason ? `: ${input.failureReason}` : '.'}`
-  if (input.status === 'initiated') return `BankChase ${method} alert: a ${amount} transfer to ${input.recipientName} was initiated. ID ${input.transferId}.`
+
+  if (input.status === 'failed') {
+    return `BankChase ${method} alert: your ${amount} transfer to ${input.recipientName} failed${input.failureReason ? `: ${input.failureReason}` : '.'}`
+  }
+
+  if (input.status === 'initiated') {
+    return `BankChase ${method} alert: a ${amount} transfer to ${input.recipientName} was initiated. ID ${input.transferId}.`
+  }
+
+  if (input.transferType === 'zelle' && input.zelleEnrolled === false) {
+    const claimText = input.claimUrl ? ` Claim it here: ${input.claimUrl}.` : ' Follow your bank enrollment link to claim it.'
+    return `${input.senderName} sent you ${amount} with Zelle. To claim your money, enroll by ${formatDate(input.claimExpiresAt)}.${claimText}`
+  }
+
+  if (input.transferType === 'zelle') {
+    return `Zelle: ${input.senderName} sent you ${amount}. The money is now in your bank account. Log in to your banking app to view details.`
+  }
+
   return `BankChase credit alert: ${input.recipientName} received ${amount} via ${method}. Transfer ID ${input.transferId}.`
 }
 
