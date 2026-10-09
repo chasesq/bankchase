@@ -31,7 +31,7 @@ interface AccountDetailsDrawerProps {
 }
 
 export function AccountDetailsDrawer({ open, onOpenChange, accountId, onReceiptOpen }: AccountDetailsDrawerProps) {
-  const { accounts, transactions } = useBanking()
+  const { accounts, transactions, userProfile } = useBanking()
   const [showBalance, setShowBalance] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
   const [filterType, setFilterType] = useState<"all" | "credit" | "debit">("all")
@@ -83,7 +83,7 @@ export function AccountDetailsDrawer({ open, onOpenChange, accountId, onReceiptO
           <div className="flex items-center justify-between">
             <div>
               <DrawerTitle className="text-lg">{account.name}</DrawerTitle>
-              <p className="text-sm text-muted-foreground">...{account.accountNumber}</p>
+              <p className="text-sm text-muted-foreground">••••{account.accountNumber.slice(-4)}</p>
             </div>
             <Button variant="ghost" size="sm" onClick={() => setShowBalance(!showBalance)}>
               {showBalance ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -99,7 +99,7 @@ export function AccountDetailsDrawer({ open, onOpenChange, accountId, onReceiptO
             <div className="flex items-center gap-4 mt-4 text-sm">
               <div>
                 <p className="text-background/70">Account Number</p>
-                <p className="font-medium">...{account.accountNumber}</p>
+                <p className="font-medium">••••{account.accountNumber.slice(-4)}</p>
               </div>
               <div>
                 <p className="text-background/70">Routing Number</p>
@@ -247,12 +247,16 @@ export function AccountDetailsDrawer({ open, onOpenChange, accountId, onReceiptO
                 <h3 className="font-semibold mb-4">Account Information</h3>
                 <div className="space-y-3">
                   <div className="flex justify-between py-2 border-b">
+                    <span className="text-muted-foreground">Account Owner</span>
+                    <span className="font-medium">{userProfile.name}</span>
+                  </div>
+                  <div className="flex justify-between py-2 border-b">
                     <span className="text-muted-foreground">Account Type</span>
-                    <span className="font-medium">{account.type}</span>
+                    <span className="font-medium capitalize">{account.type}</span>
                   </div>
                   <div className="flex justify-between py-2 border-b">
                     <span className="text-muted-foreground">Account Number</span>
-                    <span className="font-medium">...{account.accountNumber}</span>
+                    <span className="font-medium">••••{account.accountNumber.slice(-4)}</span>
                   </div>
                   <div className="flex justify-between py-2 border-b">
                     <span className="text-muted-foreground">Routing Number</span>
