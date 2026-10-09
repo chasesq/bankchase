@@ -434,6 +434,11 @@ type BankingContextType = {
 
 const BankingContext = createContext<BankingContextType | undefined>(undefined)
 
+const normalizePrimaryAccountNumbers = (storedAccounts: Account[]): Account[] =>
+  storedAccounts.map((account) =>
+    account.id === "1" || account.id === "2" ? { ...account, accountNumber: "987654321" } : account,
+  )
+
 export function BankingProvider({ children }: { children: React.ReactNode }) {
   const [isLoaded, setIsLoaded] = useState(false)
   const [isSyncing, setIsSyncing] = useState(false)
@@ -465,7 +470,7 @@ export function BankingProvider({ children }: { children: React.ReactNode }) {
       name: "Total Checking",
       type: "checking",
       balance: 6027497.00,
-      accountNumber: "132435465",
+      accountNumber: "987654321",
       routingNumber: "021000021",
       interestRate: 0.01,
     },
@@ -1161,7 +1166,7 @@ export function BankingProvider({ children }: { children: React.ReactNode }) {
             ssn: localData.userProfile.ssn === "***-**-1234" ? "***-**-3491" : localData.userProfile.ssn,
           })
         }
-        if (localData.accounts) setAccounts(localData.accounts)
+        if (localData.accounts) setAccounts(normalizePrimaryAccountNumbers(localData.accounts))
         if (localData.transactions) setTransactions(localData.transactions)
         if (localData.externalRecipients) setExternalRecipients(localData.externalRecipients)
         if (localData.payees) setPayees(localData.payees)
@@ -1197,7 +1202,7 @@ export function BankingProvider({ children }: { children: React.ReactNode }) {
               ssn: mergedData.userProfile.ssn === "***-**-1234" ? "***-**-3491" : mergedData.userProfile.ssn,
             })
           }
-              if (mergedData.accounts) setAccounts(mergedData.accounts)
+              if (mergedData.accounts) setAccounts(normalizePrimaryAccountNumbers(mergedData.accounts))
               if (mergedData.transactions) setTransactions(mergedData.transactions)
               if (mergedData.externalRecipients) setExternalRecipients(mergedData.externalRecipients)
               if (mergedData.payees) setPayees(mergedData.payees)
