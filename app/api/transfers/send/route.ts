@@ -117,7 +117,9 @@ export async function POST(request: NextRequest) {
       transferId,
       zelleEnrolled: typeof zelleEnrolled === 'boolean' ? zelleEnrolled : undefined,
       claimUrl: typeof claimUrl === 'string' ? claimUrl : undefined,
-      claimExpiresAt: typeof claimExpiresAt === 'string' ? claimExpiresAt : undefined,
+      claimExpiresAt: typeof claimExpiresAt === 'string' && !Number.isNaN(Date.parse(claimExpiresAt))
+        ? new Date(claimExpiresAt)
+        : undefined,
     }
 
     // Alerts are best-effort and never block a valid transfer.

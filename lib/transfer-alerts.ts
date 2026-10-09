@@ -16,6 +16,7 @@ const transferAlertSchema = z.object({
 })
 
 export type TransferAlertInput = z.input<typeof transferAlertSchema>
+export type TransferAlertData = z.output<typeof transferAlertSchema>
 
 function formatDate(value?: Date) {
   return value
@@ -48,11 +49,14 @@ function messageFor(input: z.output<typeof transferAlertSchema>) {
 }
 
 async function sendSms(to: string, body: string) {
-  const sid = process.env.TWILIO_ACCOUNT_SID
-  const token = process.env.TWILIO_AUTH_TOKEN
-  const from = process.env.TWILIO_FROM_PHONE_NUMBER
-  if (!sid || !token || !from) return { channel: 'sms', sent: false, reason: 'Twilio is not configured' }
-  const form = new URLSearchParams({ From: from, To: to, Body: body })
+    const sid = process.env.TWILIO_ACCOUNT_SID || process.env.Account_SID || process.env.Accounts
+    const token = process.env.TWILIO_AUTH_TOKEN
+    const from = process.env.TWILIO_FROM_PHONE_NUMBER || process.env.TWILIO_FROM_PHONE || process.env.TWILIO_PHONE_NUMBER || process.env.number
+    const messagingServiceSid = process.env.TWILIO_MESSAGING_SERVICE_SID || process.env.MessagingServiceSid || process.env.Messaging_Service_SID || process.env.Messaging_Services
+    if (!sid || !token || (!from && !messagingServiceSid)) return { channel: 'sms', sent: false, reason: 'Twilio is not configured' }
+    const form = new URLSearchParams({ To: to, Body: body })
+    if (messagingServiceSid) form.set('MessagingServiceSid', messagingServiceSid)
+    else if (from) form.set('From', from)
   const response = await fetch(`https://api.twilio.com/2010-04-01/Accounts/${encodeURIComponent(sid)}/Messages.json`, {
     method: 'POST',
     headers: { Authorization: `Basic ${Buffer.from(`${sid}:${token}`).toString('base64')}`, 'Content-Type': 'application/x-www-form-urlencoded' },
