@@ -10,24 +10,53 @@ const transferAlertSchema = z.object({
   status: z.enum(['initiated', 'completed', 'failed']),
   transferId: z.string().min(1),
   failureReason: z.string().max(300).optional(),
+  zelleEnrolled: z.boolean().optional(),
+  claimUrl: z.string().url().max(2048).optional(),
+  claimExpiresAt: z.coerce.date().optional(),
 })
 
 export type TransferAlertInput = z.input<typeof transferAlertSchema>
+export type TransferAlertData = z.output<typeof transferAlertSchema>
+
+function formatDate(value?: Date) {
+  return value
+    ? new Intl.DateTimeFormat('en-US', { dateStyle: 'medium' }).format(value)
+    : '14 days from today'
+}
 
 function messageFor(input: z.output<typeof transferAlertSchema>) {
   const amount = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(input.amount)
   const method = input.transferType === 'zelle' ? 'Zelle' : 'bank transfer'
-  if (input.status === 'failed') return `BankChase ${method} alert: your ${amount} transfer to ${input.recipientName} failed${input.failureReason ? `: ${input.failureReason}` : '.'}`
-  if (input.status === 'initiated') return `BankChase ${method} alert: a ${amount} transfer to ${input.recipientName} was initiated. ID ${input.transferId}.`
+
+  if (input.status === 'failed') {
+    return `BankChase ${method} alert: your ${amount} transfer to ${input.recipientName} failed${input.failureReason ? `: ${input.failureReason}` : '.'}`
+  }
+
+  if (input.status === 'initiated') {
+    return `BankChase ${method} alert: a ${amount} transfer to ${input.recipientName} was initiated. ID ${input.transferId}.`
+  }
+
+  if (input.transferType === 'zelle' && input.zelleEnrolled === false) {
+    const claimText = input.claimUrl ? ` Claim it here: ${input.claimUrl}.` : ' Follow your bank enrollment link to claim it.'
+    return `${input.senderName} sent you ${amount} with Zelle. To claim your money, enroll by ${formatDate(input.claimExpiresAt)}.${claimText}`
+  }
+
+  if (input.transferType === 'zelle') {
+    return `Zelle: ${input.senderName} sent you ${amount}. The money is now in your bank account. Log in to your banking app to view details.`
+  }
+
   return `BankChase credit alert: ${input.recipientName} received ${amount} via ${method}. Transfer ID ${input.transferId}.`
 }
 
 async function sendSms(to: string, body: string) {
-  const sid = process.env.TWILIO_ACCOUNT_SID
-  const token = process.env.TWILIO_AUTH_TOKEN
-  const from = process.env.TWILIO_FROM_PHONE_NUMBER
-  if (!sid || !token || !from) return { channel: 'sms', sent: false, reason: 'Twilio is not configured' }
-  const form = new URLSearchParams({ From: from, To: to, Body: body })
+    const sid = process.env.TWILIO_ACCOUNT_SID || process.env.Account_SID || process.env.Accounts
+    const token = process.env.TWILIO_AUTH_TOKEN
+    const from = process.env.TWILIO_FROM_PHONE_NUMBER || process.env.TWILIO_FROM_PHONE || process.env.TWILIO_PHONE_NUMBER || process.env.number
+    const messagingServiceSid = process.env.TWILIO_MESSAGING_SERVICE_SID || process.env.MessagingServiceSid || process.env.Messaging_Service_SID || process.env.Messaging_Services
+    if (!sid || !token || (!from && !messagingServiceSid)) return { channel: 'sms', sent: false, reason: 'Twilio is not configured' }
+    const form = new URLSearchParams({ To: to, Body: body })
+    if (messagingServiceSid) form.set('MessagingServiceSid', messagingServiceSid)
+    else if (from) form.set('From', from)
   const response = await fetch(`https://api.twilio.com/2010-04-01/Accounts/${encodeURIComponent(sid)}/Messages.json`, {
     method: 'POST',
     headers: { Authorization: `Basic ${Buffer.from(`${sid}:${token}`).toString('base64')}`, 'Content-Type': 'application/x-www-form-urlencoded' },

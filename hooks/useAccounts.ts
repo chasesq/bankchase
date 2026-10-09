@@ -5,6 +5,7 @@ import ApiClient from '@/lib/api-client';
 export interface Account {
   id: number;
   account_number: string;
+  routing_number?: string;
   account_type: string;
   balance: number;
   is_demo_account: boolean;

@@ -74,12 +74,12 @@ async function sendTwilioAlert(
   message: string
 ): Promise<{ success: boolean; messageId?: string; error?: string }> {
   // Support the canonical names plus the names used by the connected Twilio setup.
-  const accountSid = process.env.TWILIO_ACCOUNT_SID || process.env.Accounts
-  const authToken = process.env.TWILIO_AUTH_TOKEN
-  const fromNumber = process.env.TWILIO_FROM_PHONE || process.env.TWILIO_PHONE_NUMBER
+  const accountSid = process.env.TWILIO_ACCOUNT_SID || process.env.Account_SID || process.env.Accounts
+  const authToken = process.env.TWILIO_AUTH_TOKEN || process.env.Auth_Token || process.env.AuthToken
+  const fromNumber = process.env.TWILIO_FROM_PHONE || process.env.TWILIO_FROM_PHONE_NUMBER || process.env.TWILIO_PHONE_NUMBER || process.env.number
   // Messaging Services are preferred because Twilio selects the sender from the service pool.
-  // The fallback keeps existing phone-number based setups working.
-  const messagingServiceSid = process.env.TWILIO_MESSAGING_SERVICE_SID || process.env.MessagingServiceSid
+  // Support the connected setup's variable names as well as the canonical names.
+  const messagingServiceSid = process.env.TWILIO_MESSAGING_SERVICE_SID || process.env.MessagingServiceSid || process.env.Messaging_Service_SID || process.env.Messaging_Services
 
   if (!accountSid || !authToken) {
     return {

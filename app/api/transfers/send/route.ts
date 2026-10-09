@@ -34,6 +34,10 @@ export async function POST(request: NextRequest) {
       recipientPhone,
       recipientEmail,
       transferType,
+      senderName,
+      zelleEnrolled,
+      claimUrl,
+      claimExpiresAt,
     } = body
 
     const sourceAccountSelector = fromAccountId || fromAccountNumber
@@ -105,9 +109,17 @@ export async function POST(request: NextRequest) {
       recipientPhone: typeof recipientPhone === 'string' ? recipientPhone : undefined,
       recipientEmail: typeof recipientEmail === 'string' ? recipientEmail : undefined,
       recipientName,
+      senderName: typeof senderName === 'string' && senderName.trim()
+        ? senderName.trim()
+        : user.user_metadata?.full_name || user.email || 'BankChase customer',
       amount: parsedAmount,
       transferType: transferType === 'zelle' ? 'zelle' as const : 'bank_transfer' as const,
       transferId,
+      zelleEnrolled: typeof zelleEnrolled === 'boolean' ? zelleEnrolled : undefined,
+      claimUrl: typeof claimUrl === 'string' ? claimUrl : undefined,
+      claimExpiresAt: typeof claimExpiresAt === 'string' && !Number.isNaN(Date.parse(claimExpiresAt))
+        ? new Date(claimExpiresAt)
+        : undefined,
     }
 
     // Alerts are best-effort and never block a valid transfer.
