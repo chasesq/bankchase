@@ -77,7 +77,7 @@ export function generateCreditAlert(input: CreditAlertInput): string {
 
   if (input.balance !== undefined) {
     if (!Number.isFinite(input.balance) || input.balance < 0) throw new Error("Balance must be a non-negative number")
-    lines.push(`Avail Bal: $${input.balance.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}")
+    lines.push(`Avail Bal: $${input.balance.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`)
   }
 
   return lines.join("\n")
