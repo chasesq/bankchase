@@ -115,19 +115,23 @@ export function TransactionsDrawer({ open, onOpenChange, onReceiptOpen }: Transa
   }, [filteredTransactions])
 
   const handleExportCSV = () => {
-    const headers = ["Date", "Description", "Category", "Type", "Amount", "Status", "Reference"]
+    const headers = ["*Date", "*Amount", "Payee", "Description", "Reference", "Check Number"]
+    const escapeCSV = (value: string | number) => {
+      const text = String(value)
+      return /[",\n\r]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text
+    }
+
     const rows = filteredTransactions.map((t) => [
-      new Date(t.date).toLocaleDateString(),
+      new Date(t.date).toISOString().slice(0, 10),
+      (t.type === "credit" ? t.amount : -t.amount).toFixed(2),
+      t.recipientName || t.senderName || "",
       t.description,
-      t.category,
-      t.type,
-      t.amount.toFixed(2),
-      t.status,
       t.reference || "",
+      "",
     ])
 
-    const csv = [headers, ...rows].map((row) => row.join(",")).join("\n")
-    const blob = new Blob([csv], { type: "text/csv" })
+    const csv = [headers, ...rows].map((row) => row.map(escapeCSV).join(",")).join("\r\n") + "\r\n"
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8" })
     const url = URL.createObjectURL(blob)
     const a = document.createElement("a")
     a.href = url
