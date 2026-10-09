@@ -120,24 +120,34 @@ export function TransactionsDrawer({ open, onOpenChange, onReceiptOpen }: Transa
       const text = String(value)
       return /[",\n\r]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text
     }
+    const formatDateForImport = (date: string) => {
+      const parsed = new Date(date)
+      const year = parsed.getFullYear()
+      const month = String(parsed.getMonth() + 1).padStart(2, "0")
+      const day = String(parsed.getDate()).padStart(2, "0")
+      return `${year}-${month}-${day}`
+    }
 
     const rows = filteredTransactions.map((t) => [
-      new Date(t.date).toISOString().slice(0, 10),
+      formatDateForImport(t.date),
       (t.type === "credit" ? t.amount : -t.amount).toFixed(2),
       t.recipientName || t.senderName || "",
-      t.description,
+      t.description || "",
       t.reference || "",
       "",
     ])
 
-    const csv = [headers, ...rows].map((row) => row.map(escapeCSV).join(",")).join("\r\n") + "\r\n"
+    // Match the bank's import template exactly, including UTF-8 support for payee names.
+    const csv = "\uFEFF" + [headers, ...rows].map((row) => row.map(escapeCSV).join(",")).join("\r\n") + "\r\n"
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8" })
     const url = URL.createObjectURL(blob)
     const a = document.createElement("a")
     a.href = url
-    a.download = `chase-transactions-${new Date().toISOString().split("T")[0]}.csv`
+    a.download = `chase-transactions-${formatDateForImport(new Date().toISOString())}.csv`
+    document.body.appendChild(a)
     a.click()
-    URL.revokeObjectURL(url)
+    a.remove()
+    window.setTimeout(() => URL.revokeObjectURL(url), 1000)
 
     toast({
       title: "Transactions Exported",
