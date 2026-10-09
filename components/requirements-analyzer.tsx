@@ -22,21 +22,21 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
 
-const starterText = `We need a way for product managers to turn rough product notes into technical specifications. Users should be able to paste requirements, review what is confirmed versus assumed, identify open questions, and get a clear implementation plan. The output should help engineers estimate the work and know how to validate it.`
+const starterText = `Bank accounts in Xero, including setting up and managing bank, credit card and loan accounts. Find guidance for connecting your bank, recording transactions, reconciling balances, fixing feed issues, and managing account transfers.`
 
 const sections = [
-  { label: "Requirement Summary", count: "01" },
-  { label: "Functional Requirements", count: "04" },
-  { label: "Non-Functional Requirements", count: "03" },
-  { label: "User & System Flows", count: "05" },
-  { label: "Technical Requirements", count: "06" },
-  { label: "Architecture Impact", count: "03" },
-  { label: "Acceptance Criteria", count: "08" },
-  { label: "Dependencies", count: "04" },
-  { label: "Risks & Unknowns", count: "05" },
-  { label: "Implementation Plan", count: "07" },
-  { label: "Validation Plan", count: "05" },
-  { label: "Open Questions", count: "06" },
+  { label: "Getting started", count: "01" },
+  { label: "Account transactions", count: "02" },
+  { label: "Add an account", count: "03" },
+  { label: "Balances & reconciliation", count: "04" },
+  { label: "Bank connections", count: "05" },
+  { label: "Money in and out", count: "06" },
+  { label: "Loans & credit cards", count: "07" },
+  { label: "Transfers & prepayments", count: "08" },
+  { label: "Cheques & payments", count: "09" },
+  { label: "Fix common issues", count: "10" },
+  { label: "Trust accounts", count: "11" },
+  { label: "All articles", count: "12" },
 ]
 
 function GeneratedSpec({ source }: { source: string }) {
@@ -45,9 +45,9 @@ function GeneratedSpec({ source }: { source: string }) {
     <div className="flex flex-col gap-6">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <p className="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-primary">Generated specification</p>
-          <h2 className="font-serif text-3xl tracking-tight text-foreground">Technical requirements brief</h2>
-          <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">A structured handoff from product intent to engineering discussion, with unknowns clearly called out.</p>
+          <p className="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-primary">Bank account guidance</p>
+          <h2 className="font-serif text-3xl tracking-tight text-foreground">Bank accounts in Xero</h2>
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">Guidance for setting up, managing, and troubleshooting your Xero bank, credit card, and loan accounts.</p>
         </div>
         <Button variant="outline" size="sm" className="shrink-0 gap-2 bg-background"><ClipboardCheck data-icon="inline-start" /> Copy spec</Button>
       </div>
@@ -60,7 +60,7 @@ function GeneratedSpec({ source }: { source: string }) {
 
       <Card className="border-border/70 shadow-none">
         <CardHeader className="border-b border-border/60 px-5 py-4"><CardTitle className="text-base">Requirement Summary</CardTitle></CardHeader>
-        <CardContent className="px-5 py-5"><p className="text-[15px] leading-7 text-foreground/80">{hasSource ? "Create an AI-assisted workspace that transforms unstructured product requirements into a structured, implementation-ready technical specification. The workflow preserves business intent while separating confirmed requirements, assumptions, dependencies, and unresolved decisions." : "Add product notes to generate a requirement summary."}</p></CardContent>
+        <CardContent className="px-5 py-5"><p className="text-[15px] leading-7 text-foreground/80">{hasSource ? "Manage the accounts your business uses in Xero, including bank accounts, credit cards, loans, petty cash, trust accounts, and the transactions recorded against them. Use the articles below to connect feeds, record money in and out, reconcile balances, and resolve common issues." : "Add product notes to generate a requirement summary."}</p></CardContent>
       </Card>
 
       <div className="grid gap-4 lg:grid-cols-2">
@@ -85,7 +85,7 @@ export function RequirementsAnalyzer() {
       </header>
       <div className="mx-auto flex max-w-[1500px]">
         <aside className="hidden w-60 shrink-0 border-r border-border/70 bg-background px-4 py-6 lg:block"><div className="mb-8 flex items-center justify-between px-2"><p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">Workspace</p><Button variant="ghost" size="icon" className="size-7"><Plus /></Button></div><nav className="flex flex-col gap-1"><Button variant="secondary" className="justify-start gap-3 font-medium"><LayoutDashboard data-icon="inline-start" /> Overview</Button><Button variant="ghost" className="justify-start gap-3 text-muted-foreground"><FileText data-icon="inline-start" /> Specifications <span className="ml-auto text-xs">12</span></Button><Button variant="ghost" className="justify-start gap-3 text-muted-foreground"><FolderOpen data-icon="inline-start" /> Projects</Button></nav><div className="mt-10 border-t border-border/60 pt-5"><p className="px-2 text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">Recent</p><div className="mt-3 flex flex-col gap-1"><button className="rounded-lg px-2 py-2 text-left text-sm text-foreground/75 hover:bg-muted">Payments redesign</button><button className="rounded-lg px-2 py-2 text-left text-sm text-foreground/75 hover:bg-muted">Mobile onboarding</button><button className="rounded-lg px-2 py-2 text-left text-sm text-foreground/75 hover:bg-muted">Support inbox</button></div></div><div className="mt-auto flex flex-col gap-1 pt-20"><Button variant="ghost" className="justify-start gap-3 text-muted-foreground"><Settings data-icon="inline-start" /> Settings</Button></div></aside>
-        <section className="min-w-0 flex-1 px-5 py-7 lg:px-10 lg:py-9"><div className="mb-8 flex flex-wrap items-end justify-between gap-4"><div><div className="mb-3 flex items-center gap-2 text-xs text-muted-foreground"><span>Overview</span><span>/</span><span className="text-foreground">New analysis</span></div><h1 className="font-serif text-4xl tracking-tight lg:text-5xl">Turn ambiguity into alignment.</h1><p className="mt-3 max-w-2xl text-base leading-7 text-muted-foreground">Paste a brief, feature request, or meeting note. Specwise will map the decisions your team needs to ship with confidence.</p></div><Button variant="ghost" className="gap-2 text-muted-foreground"><Search data-icon="inline-start" /> Find a spec</Button></div>
+        <section className="min-w-0 flex-1 px-5 py-7 lg:px-10 lg:py-9"><div className="mb-8 flex flex-wrap items-end justify-between gap-4"><div><div className="mb-3 flex items-center gap-2 text-xs text-muted-foreground"><span>Overview</span><span>/</span><span className="text-foreground">New analysis</span></div><h1 className="font-serif text-4xl tracking-tight lg:text-5xl">Bank accounts</h1><p className="mt-3 max-w-2xl text-base leading-7 text-muted-foreground">Bank accounts in Xero, including setting up and managing bank, credit card and loan accounts.</p></div><Button variant="ghost" className="gap-2 text-muted-foreground"><Search data-icon="inline-start" /> Find a spec</Button></div>
           <div className="grid gap-8 xl:grid-cols-[minmax(340px,0.8fr)_minmax(520px,1.4fr)]"><div className="flex flex-col gap-4"><Card className="border-border/70 shadow-sm"><CardHeader className="flex-row items-center justify-between px-5 pb-3 pt-5"><div><CardTitle className="text-base">Source material</CardTitle><p className="mt-1 text-xs text-muted-foreground">Paste the context you want to analyze</p></div><Badge variant="outline">{wordCount} words</Badge></CardHeader><CardContent className="px-5 pb-5"><Textarea value={input} onChange={(event) => setInput(event.target.value)} className="min-h-[260px] resize-none border-border/70 bg-[#fbfcfd] text-sm leading-6 shadow-none focus-visible:ring-primary/30" placeholder="Paste product requirements, notes, or a user story..." aria-label="Source material"/><div className="mt-4 flex items-center justify-between gap-3"><p className="text-xs text-muted-foreground">Supports requirements, notes, screenshots, and API docs.</p><Button onClick={() => setGenerated(true)} className="gap-2"><Sparkles data-icon="inline-start" /> Analyze notes <ArrowUpRight data-icon="inline-end" /></Button></div></CardContent></Card><Card className="border-border/70 bg-[#eef5f3] shadow-none"><CardContent className="flex gap-3 p-4"><AlertCircle className="mt-0.5 shrink-0 text-[#2b7567]" /><div><p className="text-sm font-medium text-[#1c5148]">Keep the original intent intact</p><p className="mt-1 text-xs leading-5 text-[#42776e]">The analyst flags gaps instead of silently filling them in. Every output section stays traceable to your source.</p></div></CardContent></Card></div>
             <div className="min-w-0">{generated ? <GeneratedSpec source={input} /> : <Card className="flex min-h-[500px] items-center justify-center border-dashed border-border bg-transparent shadow-none"><CardContent className="text-center"><Sparkles className="mx-auto mb-3 text-muted-foreground" /><p className="font-medium">Your specification will appear here</p><p className="mt-1 text-sm text-muted-foreground">Analyze your notes to get started.</p></CardContent></Card>}</div></div>
           <div className="mt-10 border-t border-border/70 pt-6"><div className="mb-4 flex items-center justify-between"><div><p className="text-sm font-semibold">Specification outline</p><p className="mt-1 text-xs text-muted-foreground">Jump to any generated section</p></div><Button variant="ghost" size="sm" className="gap-2 text-muted-foreground"><ChevronDown data-icon="inline-start" /> Collapse all</Button></div><div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">{sections.map((section) => <button key={section.label} onClick={() => setActiveSection(section.label)} className={`flex items-center justify-between rounded-lg border px-3 py-3 text-left text-sm transition-colors ${activeSection === section.label ? "border-primary/40 bg-primary/5 text-primary" : "border-border/70 bg-background text-foreground/75 hover:border-primary/30"}`}><span className="flex items-center gap-2"><span className="font-mono text-[10px] text-muted-foreground">{section.count}</span>{section.label}</span><ArrowUpRight className="text-muted-foreground" /></button>)}</div></div>
