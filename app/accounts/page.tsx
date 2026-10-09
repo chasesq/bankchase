@@ -1,16 +1,24 @@
 'use client';
 
+import { useState } from 'react';
 import { useAccounts } from '@/hooks/useAccounts';
 import { useTransactions } from '@/hooks/useTransactions';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { Navigation } from '@/components/Navigation';
-import { ArrowUpRight, ArrowDownLeft, TrendingUp, Wallet } from 'lucide-react';
+import { ArrowUpRight, ArrowDownLeft, TrendingUp, Wallet, Copy, Check } from 'lucide-react';
 import { format } from 'date-fns';
 import Link from 'next/link';
 
 function AccountsContent() {
   const { accounts, totalBalance, isLoading } = useAccounts();
   const { transactions } = useTransactions(undefined, 10);
+  const [copiedAccountId, setCopiedAccountId] = useState<number | null>(null);
+
+  const copyAccountNumber = async (accountId: number, accountNumber: string) => {
+    await navigator.clipboard.writeText(accountNumber);
+    setCopiedAccountId(accountId);
+    window.setTimeout(() => setCopiedAccountId(null), 1800);
+  };
 
   return (
     <main className="min-h-screen bg-background pb-24 md:pb-8">
@@ -50,34 +58,43 @@ function AccountsContent() {
               </div>
             ) : accounts.length > 0 ? (
               accounts.map((account) => (
-                <Link
+                <div
                   key={account.id}
-                  href={`/accounts/${account.id}`}
-                  className="group"
+                  className="bg-card border border-border rounded-xl p-6 hover:border-primary/50 transition"
                 >
-                  <div className="bg-card border border-border rounded-xl p-6 hover:border-primary/50 transition cursor-pointer">
-                    <div className="flex justify-between items-start mb-4">
-                      <div>
-                        <p className="text-sm text-muted-foreground mb-1">
-                          {account.account_type}
-                        </p>
-                        <p className="text-lg font-semibold text-foreground">
-                          {account.account_number}
-                        </p>
-                      </div>
-                      <Wallet className="w-5 h-5 text-muted-foreground group-hover:text-primary transition" />
-                    </div>
-                    <div className="pt-4 border-t border-border">
-                      <p className="text-sm text-muted-foreground mb-1">Balance</p>
-                      <p className="text-2xl font-bold text-foreground">
-                        ${account.balance.toFixed(2)}
+                  <div className="flex justify-between items-start mb-4">
+                    <Link href={`/accounts/${account.id}`} className="group min-w-0">
+                      <p className="text-sm text-muted-foreground mb-1">
+                        {account.account_type}
                       </p>
-                      {account.is_demo_account && (
-                        <p className="text-xs text-muted-foreground mt-2 font-medium">Simulated account</p>
+                      <p className="text-lg font-semibold text-foreground font-mono break-all group-hover:text-primary transition">
+                        {account.account_number}
+                      </p>
+                    </Link>
+                    <button
+                      type="button"
+                      aria-label={`Copy ${account.account_type} account number`}
+                      title="Copy account number"
+                      onClick={() => copyAccountNumber(account.id, account.account_number)}
+                      className="ml-3 shrink-0 rounded-md p-2 text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                    >
+                      {copiedAccountId === account.id ? (
+                        <Check className="w-5 h-5 text-green-600" aria-hidden="true" />
+                      ) : (
+                        <Copy className="w-5 h-5" aria-hidden="true" />
                       )}
-                    </div>
+                    </button>
                   </div>
-                </Link>
+                  <div className="pt-4 border-t border-border">
+                    <p className="text-sm text-muted-foreground mb-1">Balance</p>
+                    <p className="text-2xl font-bold text-foreground">
+                      ${account.balance.toFixed(2)}
+                    </p>
+                    {account.is_demo_account && (
+                      <p className="text-xs text-muted-foreground mt-2 font-medium">Simulated account</p>
+                    )}
+                  </div>
+                </div>
               ))
             ) : (
               <div className="col-span-full text-center py-8">
