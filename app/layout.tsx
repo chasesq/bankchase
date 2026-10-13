@@ -18,8 +18,8 @@ const _geist = Geist({ subsets: ["latin"] })
 const _geistMono = Geist_Mono({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "Banking Dashboard",
-  description: "Your personal banking dashboard",
+  title: "bluepillow B2A — Booking access for AI agents",
+  description: "One REST endpoint, one MCP server, and quickstarts for the most common AI agent stacks.",
   generator: "v0.app",
   icons: {
     icon: [
@@ -49,7 +49,7 @@ export default function RootLayout({
     <html lang="en" className="bg-background" suppressHydrationWarning>
       <head></head>
       <body className={`font-sans antialiased`}>
-        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
+        <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false} disableTransitionOnChange>
             <StatsigWrapper>
               <AuthProvider>
                 <DeviceIntelligenceProvider>
