@@ -12,7 +12,7 @@ const STATSIG_CLIENT_KEY =
 const STATSIG_USER_ID = process.env.NEXT_PUBLIC_STATSIG_USER_ID ?? "anonymous-user";
 const STATSIG_ACCOUNT_ID = process.env.NEXT_PUBLIC_STATSIG_ACCOUNT_ID;
 
-export default function StatsigWrapper({ children }: { children: React.ReactNode }) {
+function StatsigEnabled({ children }: { children: React.ReactNode }) {
   const user = useMemo(
     () => ({
       userID: STATSIG_USER_ID,
@@ -52,5 +52,17 @@ export default function StatsigWrapper({ children }: { children: React.ReactNode
     <StatsigProvider client={client} loadingComponent={null}>
       {children}
     </StatsigProvider>
+  );
+}
+
+export default function StatsigWrapper({ children }: { children: React.ReactNode }) {
+  // Cross-origin preview frames must not mount Statsig or its browser plugins.
+  const isTopLevelWindow =
+    typeof window === "undefined" || window.parent === window;
+
+  return isTopLevelWindow ? (
+    <StatsigEnabled>{children}</StatsigEnabled>
+  ) : (
+    <>{children}</>
   );
 }
