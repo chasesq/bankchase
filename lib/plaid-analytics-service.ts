@@ -4,8 +4,8 @@ import { createClient } from '@supabase/supabase-js';
 const PLAID_ENV = process.env.PLAID_ENV || 'production';
 const PLAID_DASHBOARD_TOKEN = process.env.PLAID_DASHBOARD_TOKEN;
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
 const supabase = supabaseUrl && supabaseKey
   ? createClient(supabaseUrl, supabaseKey)
   : null;
