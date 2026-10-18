@@ -27,8 +27,17 @@ export default function StatsigWrapper({ children }: { children: React.ReactNode
     // Preview embeds are cross-origin iframes. Analytics plugins may inspect
     // the parent frame and trigger a browser SecurityError there, so only
     // install them when this app is running in its top-level window.
-    const isTopLevelWindow =
-      typeof window !== "undefined" && window.self === window.top;
+    let isTopLevelWindow = false;
+
+    if (typeof window !== "undefined") {
+      try {
+        // Accessing a parent window's properties is blocked in cross-origin previews.
+        isTopLevelWindow = window.self === window.top;
+      } catch {
+        // Treat blocked frame access as an embedded preview and disable plugins.
+        isTopLevelWindow = false;
+      }
+    }
 
     return isTopLevelWindow
       ? {
