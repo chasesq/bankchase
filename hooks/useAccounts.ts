@@ -1,4 +1,3 @@
-import { useId } from 'react';
 import useSWR from 'swr';
 import ApiClient from '@/lib/api-client';
 
@@ -45,11 +44,13 @@ function normalizeAccount(account: Account): Account {
 }
 
 export function useAccounts() {
-  const instanceId = useId();
   const { data, error, isLoading } = useSWR<AccountsData>(
-  ['/accounts', instanceId],
-  () => ApiClient.getAccounts() as Promise<AccountsData>,
-  { dedupingInterval: 0 }
+    '/accounts',
+    () => ApiClient.getAccounts() as Promise<AccountsData>,
+    {
+      dedupingInterval: 2_000,
+      shouldRetryOnError: (requestError) => (requestError as { status?: number }).status !== 401,
+    },
   );
 
   const accounts = (data?.accounts || []).map(normalizeAccount);
