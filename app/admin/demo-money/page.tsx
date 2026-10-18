@@ -23,8 +23,9 @@ export default function DemoTransferPage() {
 
   const handleSingleTransfer = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!singleTransfer.to_account_number || !singleTransfer.amount) {
-      toast.error('Please fill in all required fields');
+    const amount = Number(singleTransfer.amount);
+    if (!singleTransfer.to_account_number.trim() || !Number.isFinite(amount) || amount <= 0) {
+      toast.error('Enter a valid account number and positive amount');
       return;
     }
 
@@ -32,7 +33,7 @@ export default function DemoTransferPage() {
     try {
       await ApiClient.adminSingleTransfer({
         to_account_number: singleTransfer.to_account_number,
-        amount: parseFloat(singleTransfer.amount),
+        amount,
         to_bank_code: singleTransfer.to_bank_code,
       });
 

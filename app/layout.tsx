@@ -4,7 +4,7 @@ import { Geist, Geist_Mono } from "next/font/google"
 import Script from "next/script"
 import { Analytics } from "@vercel/analytics/next"
 import { SpeedInsights } from "@vercel/speed-insights/next"
-import { Toaster } from "@/components/ui/toaster"
+import { Toaster } from "@/components/ui/sonner"
 import { BankingProvider } from "@/lib/banking-context"
 import { AuthProvider } from "@/lib/auth-context"
 import { ThemeProvider } from "@/components/theme-provider"
@@ -82,18 +82,6 @@ export default function RootLayout({
             data-chatbot-id={process.env.NEXT_PUBLIC_CHATBOT_ID.trim()}
           />
         )}
-        <Script
-          id="parallel-labs-agent-primary"
-          src="https://web.parallellabs.app/static/js/widget.js?agent=8bc8e30a-682d-4362-943d-5530e380fb02"
-          strategy="lazyOnload"
-          data-agent-id="8bc8e30a-682d-4362-943d-5530e380fb02"
-        />
-        <Script
-          id="parallel-labs-agent-secondary"
-          src="https://web.parallellabs.app/static/js/widget.js?agent=37ed41d9-2f80-467a-bbb8-925d6e1d58b2"
-          strategy="lazyOnload"
-          data-agent-id="37ed41d9-2f80-467a-bbb8-925d6e1d58b2"
-        />
       </body>
     </html>
   )

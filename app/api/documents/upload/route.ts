@@ -1,19 +1,10 @@
+import { put } from '@vercel/blob'
 import { NextRequest, NextResponse } from 'next/server'
-import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3'
 import { v4 as uuidv4 } from 'uuid'
 
 const ALLOWED_TYPES = ['application/pdf', 'image/jpeg', 'image/png']
 const ALLOWED_EXTENSIONS = ['pdf', 'jpg', 'jpeg', 'png']
 const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10MB
-
-// Initialize S3 client
-const s3Client = new S3Client({
-  region: process.env.AWS_REGION || 'us-east-1',
-  credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID || '',
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || '',
-  },
-})
 
 export async function POST(request: NextRequest) {
   try {
@@ -52,41 +43,24 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Read file buffer
-    const buffer = await file.arrayBuffer()
-
-    // Generate unique S3 key
     const timestamp = Date.now()
     const randomId = uuidv4().substring(0, 8)
     const sanitizedFileName = file.name
       .replace(/[^a-zA-Z0-9.-]/g, '-')
       .toLowerCase()
-    const s3Key = `documents/${timestamp}/${randomId}/${sanitizedFileName}`
+    const pathname = `documents/${timestamp}/${randomId}/${sanitizedFileName}`
 
-    // Upload to S3
-    const uploadCommand = new PutObjectCommand({
-      Bucket: process.env.AWS_S3_BUCKET_NAME || 'bankchase-uploads',
-      Key: s3Key,
-      Body: new Uint8Array(buffer),
-      ContentType: file.type,
-      Metadata: {
-        'original-name': file.name,
-        'upload-date': new Date().toISOString(),
-      },
+    const blob = await put(pathname, file, {
+      access: 'public',
+      contentType: file.type,
+      addRandomSuffix: false,
     })
-
-    await s3Client.send(uploadCommand)
-
-    // Construct public URL (adjust based on your S3 bucket configuration)
-    const s3Url = `https://${process.env.AWS_S3_BUCKET_NAME || 'bankchase-uploads'}.s3.${
-      process.env.AWS_REGION || 'us-east-1'
-    }.amazonaws.com/${s3Key}`
 
     return NextResponse.json(
       {
         success: true,
-        url: s3Url,
-        key: s3Key,
+        url: blob.url,
+        key: blob.pathname,
         size: file.size,
         type: file.type,
         name: file.name,

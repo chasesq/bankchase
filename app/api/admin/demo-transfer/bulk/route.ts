@@ -1,20 +1,28 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { createClient as createServerClient } from '@/lib/supabase/server';
 import { v4 as uuidv4 } from 'uuid';
+
+const MAX_DEMO_TRANSFER_AMOUNT = 1_000_000;
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
 
 export async function POST(request: NextRequest) {
   try {
-    const { amount, daysToRefund = 7, adminUserId } = await request.json();
+    const { amount, daysToRefund = 7 } = await request.json();
+    const authClient = await createServerClient();
+    const { data: { user } } = await authClient.auth.getUser();
+    const adminUserId = user?.id;
 
-    // Validate inputs
-    if (!amount || amount <= 0) {
-      return NextResponse.json(
-        { error: 'Invalid amount' },
-        { status: 400 }
-      );
+    if (!adminUserId) {
+      return NextResponse.json({ error: 'Authentication is required' }, { status: 401 });
+    }
+    if (typeof amount !== 'number' || !Number.isFinite(amount) || amount <= 0 || amount > MAX_DEMO_TRANSFER_AMOUNT) {
+      return NextResponse.json({ error: 'Invalid amount' }, { status: 400 });
+    }
+    if (!Number.isInteger(daysToRefund) || daysToRefund < 1 || daysToRefund > 30) {
+      return NextResponse.json({ error: 'Invalid refund period' }, { status: 400 });
     }
 
     const supabase = createClient(supabaseUrl, supabaseKey);
@@ -126,7 +134,7 @@ export async function POST(request: NextRequest) {
           from_account_id: adminAccountId,
           to_account_number: userDemoAccount?.account_number || `USER-${user.id.slice(0, 12).toUpperCase()}`,
           to_user_id: user.id,
-          amount: parseFloat(amount),
+          amount,
           status: 'completed',
           transfer_type: 'internal',
         })
