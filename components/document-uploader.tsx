@@ -109,6 +109,7 @@ export function DocumentUploader({
         })
 
         xhr.open('POST', '/api/documents/upload')
+        xhr.withCredentials = true
         xhr.send(formData)
       })
     } catch (error) {
@@ -174,11 +175,17 @@ export function DocumentUploader({
     if (!file) return
 
     try {
-      await fetch('/api/documents/delete', {
+      const response = await fetch('/api/documents/delete', {
         method: 'POST',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ fileId, url: file.url }),
+        body: JSON.stringify({ url: file.url }),
       })
+
+      if (!response.ok) {
+        const data = await response.json().catch(() => null)
+        throw new Error(data?.error || 'Delete request failed')
+      }
 
       setFiles((prev) => prev.filter((f) => f.id !== fileId))
       toast.success('File deleted')
