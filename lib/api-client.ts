@@ -163,7 +163,7 @@ export class ApiClient {
     return this.request('/admin/demo-transfer', {
       method: 'POST',
       body: JSON.stringify({
-        toAccountNumber: data.to_account_number,
+        toAccountNumber: data.to_account_number.trim(),
         amount: data.amount,
         daysToRefund: data.days_to_refund,
         narration: data.narration,

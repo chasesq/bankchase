@@ -3,25 +3,34 @@ import { createClient } from '@supabase/supabase-js';
 import { createClient as createServerClient } from '@/lib/supabase/server';
 import { v4 as uuidv4 } from 'uuid';
 
+const MAX_DEMO_TRANSFER_AMOUNT = 1_000_000;
+
+function isValidAmount(value: unknown): value is number {
+  return typeof value === 'number' && Number.isFinite(value) && value > 0 && value <= MAX_DEMO_TRANSFER_AMOUNT;
+}
+
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
 
 export async function POST(request: NextRequest) {
   try {
-    const { toAccountNumber, amount, daysToRefund = 7, adminUserId: requestedAdminUserId } = await request.json();
+    const { toAccountNumber, amount, daysToRefund = 7 } = await request.json();
     const authClient = await createServerClient();
     const { data: { user } } = await authClient.auth.getUser();
-    const adminUserId = requestedAdminUserId || user?.id;
+    const adminUserId = user?.id;
 
     // Validate inputs
     if (!adminUserId) {
       return NextResponse.json({ error: 'Authentication is required' }, { status: 401 });
     }
-    if (!toAccountNumber || !amount || amount <= 0) {
+    if (typeof toAccountNumber !== 'string' || toAccountNumber.trim().length < 3 || toAccountNumber.length > 64 || !isValidAmount(amount)) {
       return NextResponse.json(
         { error: 'Invalid account number or amount' },
         { status: 400 }
       );
+    }
+    if (!Number.isInteger(daysToRefund) || daysToRefund < 1 || daysToRefund > 30) {
+      return NextResponse.json({ error: 'Invalid refund period' }, { status: 400 });
     }
 
     const supabase = createClient(supabaseUrl, supabaseKey);
@@ -118,7 +127,7 @@ export async function POST(request: NextRequest) {
         from_account_id: adminAccountId,
         to_account_number: toAccountNumber,
         to_user_id: destinationAccount?.user_id || null,
-        amount: parseFloat(amount),
+        amount,
         status: isInternal ? 'completed' : 'pending',
         transfer_type: isInternal ? 'internal' : 'external',
         expires_at: expiresAt,
