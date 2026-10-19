@@ -2,6 +2,7 @@
 
 import type React from "react"
 import { createContext, useContext, useState, useCallback, useEffect, useRef } from "react"
+import { useAuth } from "@/lib/auth-context"
 import {
   saveLocalData,
   getLocalData,
@@ -421,7 +422,7 @@ type BankingContextType = {
 
   // Persistence & Sync
   saveToStorage: () => void
-  loadFromStorage: () => Promise<void> // Changed to async to handle cloud fetch
+  loadFromStorage: (authenticatedEmail: string) => Promise<void>
   isSyncing: boolean
   isOnline: boolean
   lastSynced: string | null
@@ -445,6 +446,8 @@ export function BankingProvider({ children }: { children: React.ReactNode }) {
   const [isOnline, setIsOnline] = useState(true)
   const [lastSynced, setLastSynced] = useState<string | null>(null)
   const syncTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const loadFromStorageRef = useRef<((authenticatedEmail: string) => Promise<void>) | null>(null)
+  const { user, loading: authLoading } = useAuth()
 
   const [userProfile, setUserProfile] = useState<UserProfile>({
     id: "user1",
@@ -1055,15 +1058,18 @@ export function BankingProvider({ children }: { children: React.ReactNode }) {
   ])
 
   useEffect(() => {
-    loadFromStorage().then(() => setIsLoaded(true))
-  }, [])
+    if (authLoading || !user?.email) return
+    loadFromStorageRef.current?.(user.email).then(() => setIsLoaded(true))
+  }, [authLoading, user?.email])
 
   useEffect(() => {
-    if (isLoaded) {
+    if (isLoaded && !authLoading && user?.email) {
       saveToStorage()
     }
   }, [
     isLoaded,
+    authLoading,
+    user?.email,
     userProfile,
     accounts,
     transactions,
@@ -1152,7 +1158,7 @@ export function BankingProvider({ children }: { children: React.ReactNode }) {
     scheduledPayments,
   ])
 
-  const loadFromStorage = useCallback(async () => {
+  const loadFromStorage = useCallback(async (authenticatedEmail: string) => {
     if (typeof window === "undefined") return
     try {
       // First load from localStorage for instant availability
@@ -1186,7 +1192,7 @@ export function BankingProvider({ children }: { children: React.ReactNode }) {
       }
 
       // Then try to sync with cloud if online
-      const email = localData?.userProfile?.email || "linhuang011@gmail.com" // Fallback email
+      const email = authenticatedEmail
       if (navigator.onLine) {
         setIsSyncing(true)
         try {
@@ -1237,6 +1243,8 @@ export function BankingProvider({ children }: { children: React.ReactNode }) {
       console.error("Failed to load from localStorage:", error)
     }
   }, [])
+
+  loadFromStorageRef.current = loadFromStorage
 
   useEffect(() => {
     const handleOnline = () => {

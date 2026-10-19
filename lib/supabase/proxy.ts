@@ -45,7 +45,25 @@ export async function updateSession(request: NextRequest) {
       },
     })
 
-    await supabase.auth.getUser()
+    const { data: { user } } = await supabase.auth.getUser()
+    const { pathname } = request.nextUrl
+    const publicPaths = new Set(['/login', '/sign-in', '/signup', '/sign-up'])
+    const isAuthCallback = pathname === '/auth/callback'
+    const isPublicPath = publicPaths.has(pathname) || isAuthCallback || pathname.startsWith('/_next/')
+
+    if (!user && !isPublicPath && !pathname.startsWith('/api/auth/')) {
+      const loginUrl = request.nextUrl.clone()
+      loginUrl.pathname = '/login'
+      loginUrl.searchParams.set('next', pathname)
+      return NextResponse.redirect(loginUrl)
+    }
+
+    if (user && publicPaths.has(pathname)) {
+      const dashboardUrl = request.nextUrl.clone()
+      dashboardUrl.pathname = '/'
+      dashboardUrl.search = ''
+      return NextResponse.redirect(dashboardUrl)
+    }
   } catch (error) {
     console.warn('[Supabase] Session refresh skipped:', error)
   }
