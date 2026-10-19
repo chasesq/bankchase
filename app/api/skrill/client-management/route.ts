@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 
 const METHODS = new Set(['GET', 'POST', 'PUT', 'DELETE'])
+const MAX_BODY_BYTES = 64 * 1024
+const JSON_CONTENT_TYPE = 'application/json'
 
 function getClientManagementUrl(clientId?: string) {
   const configured = process.env.Client_Management_APIs?.trim()
@@ -37,30 +39,57 @@ async function proxy(request: NextRequest) {
   }
 
   const headers = new Headers({
-    Accept: 'application/json',
+    Accept: JSON_CONTENT_TYPE,
     'X-User-Id': user.id,
+    'Cache-Control': 'no-store',
   })
   const configuredClientId = process.env.Client_ID?.trim()
   if (configuredClientId) headers.set('X-Client-ID', configuredClientId)
 
-  const authorization = request.headers.get('authorization')
-  if (authorization) headers.set('authorization', authorization)
-
   let body: string | undefined
   if (request.method === 'POST' || request.method === 'PUT') {
+    const contentLength = Number(request.headers.get('content-length') || 0)
+    if (contentLength > MAX_BODY_BYTES) {
+      return NextResponse.json({ error: 'Request body is too large' }, { status: 413 })
+    }
+
     body = await request.text()
-    if (body) headers.set('content-type', request.headers.get('content-type') || 'application/json')
+    if (body.length > MAX_BODY_BYTES) {
+      return NextResponse.json({ error: 'Request body is too large' }, { status: 413 })
+    }
+
+    if (body) {
+      const contentType = request.headers.get('content-type') || JSON_CONTENT_TYPE
+      if (!contentType.toLowerCase().startsWith(JSON_CONTENT_TYPE)) {
+        return NextResponse.json({ error: 'JSON request body required' }, { status: 415 })
+      }
+      try {
+        JSON.parse(body)
+      } catch {
+        return NextResponse.json({ error: 'Request body must be valid JSON' }, { status: 400 })
+      }
+      headers.set('content-type', JSON_CONTENT_TYPE)
+    }
   }
 
-  const upstream = await fetch(upstreamUrl, {
-    method: request.method,
-    headers,
-    body,
-    cache: 'no-store',
-  })
+  let upstream: Response
+  try {
+    upstream = await fetch(upstreamUrl, {
+      method: request.method,
+      headers,
+      body,
+      cache: 'no-store',
+      signal: AbortSignal.timeout(15_000),
+    })
+  } catch {
+    return NextResponse.json({ error: 'Skrill client-management service unavailable' }, { status: 502 })
+  }
 
   const responseBody = await upstream.text()
-  const responseHeaders = new Headers({ 'content-type': upstream.headers.get('content-type') || 'application/json' })
+  const responseHeaders = new Headers({
+    'content-type': upstream.headers.get('content-type') || JSON_CONTENT_TYPE,
+    'cache-control': 'no-store',
+  })
   return new NextResponse(responseBody, { status: upstream.status, headers: responseHeaders })
 }
 
