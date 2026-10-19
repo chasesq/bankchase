@@ -7,7 +7,9 @@ import { ACHClass, Configuration, PlaidApi, PlaidEnvironments, TransferNetwork, 
 
 interface TransferRequest {
   senderId: string
-  senderAccountId: string
+  senderAccountId?: string
+  // Accept the legacy client name while callers migrate to senderAccountId.
+  fromAccountId?: string
   receiverAccountId?: string
   recipientEmail?: string
   recipientName: string
@@ -26,7 +28,8 @@ export async function POST(request: NextRequest) {
     
       const {
       senderId,
-      senderAccountId,
+      senderAccountId: requestedSenderAccountId,
+      fromAccountId,
       receiverAccountId,
       recipientEmail,
       recipientName,
@@ -38,6 +41,8 @@ export async function POST(request: NextRequest) {
       recipientPhone,
       plaidAccountId,
     } = body
+
+    const senderAccountId = requestedSenderAccountId || fromAccountId
 
     // Validate required fields
     if (!senderId || !senderAccountId || !recipientName || !Number.isFinite(amount)) {
