@@ -5,13 +5,18 @@ const METHODS = new Set(['GET', 'POST', 'PUT', 'DELETE'])
 const MAX_BODY_BYTES = 64 * 1024
 const JSON_CONTENT_TYPE = 'application/json'
 
-function getClientManagementUrl(clientId?: string) {
+function getClientManagementUrl(path: string) {
   const configured = process.env.Client_Management_APIs?.trim()
   if (!configured) return null
 
   const url = new URL(configured)
-  if (clientId) {
-    url.pathname = `${url.pathname.replace(/\/$/, '')}/${encodeURIComponent(clientId)}`
+  const pathname = url.pathname.replace(/\/+$/, '')
+  const normalizedPath = path.replace(/^\/+/, '')
+
+  // The configured value may be either the API root or an existing resource URL.
+  // Keep an explicit /v1/accounts URL intact and otherwise resolve the documented endpoint.
+  if (!/\/v1\/accounts$/i.test(pathname)) {
+    url.pathname = `${pathname}/${normalizedPath}`
   }
   return url
 }
@@ -29,12 +34,13 @@ async function proxy(request: NextRequest) {
   }
 
   const clientId = request.nextUrl.searchParams.get('clientId')?.trim() || undefined
-  const upstreamUrl = getClientManagementUrl(clientId)
+  const upstreamPath = request.method === 'GET' ? 'v1/accounts' : clientId
+  const upstreamUrl = upstreamPath ? getClientManagementUrl(upstreamPath) : null
   if (!upstreamUrl) {
     return NextResponse.json({ error: 'Skrill client-management API is not configured' }, { status: 503 })
   }
 
-  if ((request.method === 'GET' || request.method === 'PUT' || request.method === 'DELETE') && !clientId) {
+  if (request.method !== 'GET' && (request.method === 'PUT' || request.method === 'DELETE') && !clientId) {
     return NextResponse.json({ error: 'clientId is required for this operation' }, { status: 400 })
   }
 
@@ -43,6 +49,10 @@ async function proxy(request: NextRequest) {
     'X-User-Id': user.id,
     'Cache-Control': 'no-store',
   })
+  const authorization = request.headers.get('authorization')
+  if (authorization?.toLowerCase().startsWith('bearer ')) {
+    headers.set('Authorization', authorization)
+  }
   const configuredClientId = process.env.Client_ID?.trim()
   if (configuredClientId) headers.set('X-Client-ID', configuredClientId)
 
