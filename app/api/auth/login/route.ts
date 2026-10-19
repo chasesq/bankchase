@@ -1,17 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 
-const DEMO_USER = {
-  id: 'demo-user-1',
-  username: 'Lin Huang',
-  email: 'linhuang011@gmail.com',
-  password: 'Lin1122@@',
-  firstName: 'Lin',
-  lastName: 'Huang',
-  role: 'customer',
-  emailVerified: true,
-}
-
 export async function POST(request: NextRequest) {
   try {
     const { username, password, token } = await request.json()
@@ -23,44 +12,6 @@ export async function POST(request: NextRequest) {
     }
     if (token !== undefined && !/^\d{6}$/.test(String(token))) {
       return NextResponse.json({ error: 'Enter a valid 6-digit security token' }, { status: 400 })
-    }
-
-    // Keep the seeded local admin usable when the preview's external auth
-    // configuration is unavailable. This is intentionally limited to the
-    // documented development account and creates a server-side demo session.
-    if (identifier.toLowerCase() === 'admin@bankchase.local' && secret === 'changeme') {
-      const response = NextResponse.json({
-        success: true,
-        token: 'demo-session',
-        user: {
-          id: 'demo-admin-1',
-          email: 'admin@bankchase.local',
-          username: 'admin@bankchase.local',
-          firstName: 'Admin',
-          lastName: 'User',
-          role: 'admin',
-          emailVerified: true,
-        },
-        legacyDemo: true,
-      })
-      response.cookies.set('demo_auth', 'admin', {
-        httpOnly: true,
-        sameSite: 'lax',
-        secure: process.env.NODE_ENV === 'production',
-        path: '/',
-      })
-      return response
-    }
-
-    if ((identifier.toLowerCase() === DEMO_USER.email.toLowerCase() || identifier.toLowerCase() === DEMO_USER.username.toLowerCase()) && secret === DEMO_USER.password) {
-      const response = NextResponse.json({
-        success: true,
-        token: null,
-        user: { id: DEMO_USER.id, email: DEMO_USER.email, username: DEMO_USER.username, firstName: DEMO_USER.firstName, lastName: DEMO_USER.lastName, role: DEMO_USER.role, emailVerified: DEMO_USER.emailVerified },
-        legacyDemo: true,
-      })
-      response.cookies.set('demo_auth', 'customer', { httpOnly: true, sameSite: 'lax', secure: process.env.NODE_ENV === 'production', path: '/' })
-      return response
     }
 
     const supabase = await createClient()
@@ -88,23 +39,7 @@ export async function POST(request: NextRequest) {
       })
     }
 
-    if ((identifier.toLowerCase() === DEMO_USER.email.toLowerCase() || identifier.toLowerCase() === DEMO_USER.username.toLowerCase()) && secret === DEMO_USER.password) {
-      const response = NextResponse.json({
-        success: true,
-        token: null,
-        user: { id: DEMO_USER.id, email: DEMO_USER.email, username: DEMO_USER.username, firstName: DEMO_USER.firstName, lastName: DEMO_USER.lastName, role: DEMO_USER.role, emailVerified: DEMO_USER.emailVerified },
-        legacyDemo: true,
-      })
-      response.cookies.set('demo_auth', 'customer', {
-        httpOnly: true,
-        sameSite: 'lax',
-        secure: process.env.NODE_ENV === 'production',
-        path: '/',
-      })
-      return response
-    }
-
-    return NextResponse.json({ error: authResult.error?.message ?? 'Invalid email or password' }, { status: 401 })
+    return NextResponse.json({ error: 'Invalid email or password' }, { status: 401 })
   } catch (error) {
     console.error('[v0] Login error:', error)
     return NextResponse.json({ error: 'Unable to sign in right now' }, { status: 500 })

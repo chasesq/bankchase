@@ -37,6 +37,8 @@ export function AuthForm({ mode }: { mode: "sign-in" | "sign-up" }) {
       if (isSignUp) {
         const [firstName, ...last] = name.trim().split(/\s+/)
         await register({ username: username.trim(), email: email.trim(), password, firstName: firstName || "", lastName: last.join(" "), phone: "", ssn: "", dateOfBirth: "", address: "", city: "", state: "", zipCode: "" })
+        window.location.replace('/login?registered=1')
+        return
       } else {
         await login(username.trim(), password, useToken ? token : undefined)
         if (remember) window.localStorage.setItem("chase_username", username.trim())

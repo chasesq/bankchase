@@ -8,7 +8,6 @@ export async function POST() {
     const supabase = await createClient()
     await supabase.auth.signOut()
   } catch (error) {
-    // Demo-only sessions and unconfigured preview auth can still be cleared below.
     console.warn('[v0] Supabase logout skipped:', error)
   }
 
