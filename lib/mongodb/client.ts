@@ -7,11 +7,20 @@ import { attachDatabasePool } from '@vercel/functions';
 // `sd_MONGODB_URI` may be mapped to `process.env.MONGODB_CONNECTION_STRING`
 // by the deployment environment, but the runtime must always read the actual
 // connection string value rather than the expression as a literal string.
-const mongoUri =
-  process.env.MONGODB_CONNECTION_STRING ??
-  process.env.MONGODB_URI ??
-  process.env.sd_MONGODB_URI ??
-  process.env.ws_MONGODB_URI;
+const configuredMongoUri = [
+  process.env.MONGODB_CONNECTION_STRING,
+  process.env.MONGODB_URI,
+  process.env.sd_MONGODB_URI,
+  process.env.ws_MONGODB_URI,
+].find((value) => value?.trim());
+
+// Keep malformed or placeholder environment values from crashing Next.js while
+// it imports API routes during build. The route reports the missing database at
+// request time instead of preventing the entire deployment from being built.
+const mongoUri = configuredMongoUri?.trim();
+const hasValidMongoScheme = Boolean(
+  mongoUri && /^(mongodb|mongodb\+srv):\/\//.test(mongoUri),
+);
 
 const options: MongoClientOptions = {
   appName: 'bankchase.app',
@@ -24,7 +33,9 @@ const options: MongoClientOptions = {
 };
 
 // Create MongoDB client (only if URI is provided)
-const client: MongoClient | null = mongoUri ? new MongoClient(mongoUri, options) : null;
+const client: MongoClient | null = hasValidMongoScheme
+  ? new MongoClient(mongoUri!, options)
+  : null;
 
 // Attach to Vercel's database pool for proper cleanup on function suspension
 if (client) {
