@@ -151,6 +151,20 @@ export class ApiClient {
     })
   }
 
+  static async finalizeSkrillSendMoney(
+    slipId: string | number,
+    scaDetails: {
+      clientEventId: string
+      eventId: string
+      link?: string
+    },
+  ) {
+    return this.request(`/skrill/send-money/${encodeURIComponent(String(slipId))}/finalize`, {
+      method: 'POST',
+      body: JSON.stringify({ scaDetails }),
+    })
+  }
+
   // Pay & Transfer
   static async sendMoney(data: {
     from_account_number: string;
