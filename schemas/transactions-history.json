@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://bankchase.example/schemas/transactions-history.json",
+  "title": "Mobile transaction history",
+  "type": "object",
+  "required": ["mobileTransactionHistory"],
+  "additionalProperties": false,
+  "properties": {
+    "mobileTransactionHistory": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "transactionAmount", "transactionCurrency", "status", "requestTime", "direction"],
+        "properties": {
+          "canResend": { "type": "boolean" },
+          "category": { "type": "string" },
+          "customerAmount": { "type": "number" },
+          "customerCurrency": { "type": "string" },
+          "details": { "type": "object", "additionalProperties": true },
+          "direction": { "type": "string" },
+          "feeAmount": { "type": "number" },
+          "feeCurrency": { "type": "string" },
+          "id": { "type": "integer" },
+          "location": { "type": "string" },
+          "metadata": { "type": "object", "additionalProperties": true },
+          "paymentInstrument": { "type": "string" },
+          "peerEmail": { "type": "string" },
+          "peerName": { "type": "string" },
+          "requestTime": { "type": "string", "format": "date-time" },
+          "status": { "type": "string" },
+          "terminalAmount": { "type": "number" },
+          "terminalCurrency": { "type": "string" },
+          "transactionAmount": { "type": "number" },
+          "transactionCurrency": { "type": "string" }
+        },
+        "additionalProperties": false
+      }
+    }
+  }
+}
