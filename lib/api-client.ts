@@ -116,7 +116,7 @@ export class ApiClient {
   static async getTransactions(accountId?: number, limit = 20, offset = 0) {
     const params = new URLSearchParams({ limit: limit.toString(), offset: offset.toString() });
     if (accountId) params.append('account_id', accountId.toString());
-    return this.request(`/transactions/history?${params}`);
+    return this.request(`/skrill/transactions?${params}`);
   }
 
   // Pay & Transfer
