@@ -31,7 +31,7 @@ export async function POST(request: Request) {
       redirectUri = new URL(input.redirectUri)
       if (redirectUri.protocol !== 'https:') throw new Error('invalid protocol')
     } catch {
-      return NextResponse.json({ error: 'redirectUri must be a valid HTTP or HTTPS URL' }, { status: 400 })
+      return NextResponse.json({ error: 'redirectUri must be a valid HTTPS URL' }, { status: 400 })
     }
 
     const team = await createTeam({ adminEmail: input.adminEmail, name: input.teamName.trim() })
@@ -46,7 +46,6 @@ export async function POST(request: Request) {
       teamId: team.id,
       environmentId: environment.id,
       clientId: environment.client_id,
-      apiKey: apiKey.value,
     })
   } catch (error) {
     const status = typeof error === 'object' && error && 'status' in error && typeof error.status === 'number' ? error.status : 500
