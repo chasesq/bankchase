@@ -29,7 +29,7 @@ export async function POST(request: Request) {
     let redirectUri: URL
     try {
       redirectUri = new URL(input.redirectUri)
-      if (!['http:', 'https:'].includes(redirectUri.protocol)) throw new Error('invalid protocol')
+      if (redirectUri.protocol !== 'https:') throw new Error('invalid protocol')
     } catch {
       return NextResponse.json({ error: 'redirectUri must be a valid HTTP or HTTPS URL' }, { status: 400 })
     }
