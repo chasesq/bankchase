@@ -29,7 +29,7 @@ export class ApiClient {
     options: RequestInit = {}
   ): Promise<T> {
     const headers = new Headers(options.headers)
-    headers.set('Content-Type', 'application/json')
+    if (!headers.has('Content-Type')) headers.set('Content-Type', 'application/json')
 
     if (this.token) {
       headers.set('Authorization', `Bearer ${this.token}`)
@@ -90,6 +90,42 @@ export class ApiClient {
 
   static async verifyToken() {
     return this.request('/auth/verify', { method: 'GET' });
+  }
+
+  static async exchangeSkrillAuthorizationCode(params: {
+    clientId: string
+    code: string
+    codeVerifier: string
+    redirectUri?: string
+  }) {
+    const form = new URLSearchParams({
+      grant_type: 'authorization_code',
+      client_id: params.clientId.trim(),
+      code: params.code.trim(),
+      code_verifier: params.codeVerifier.trim(),
+      ...(params.redirectUri?.trim() ? { redirect_uri: params.redirectUri.trim() } : {}),
+    })
+
+    return this.request('/skrill/oauth?action=token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: form.toString(),
+    })
+  }
+
+  static async refreshSkrillToken(params: { clientId: string; refreshToken: string; scope?: 'aisp' | 'pisp' | 'cbpii' }) {
+    const form = new URLSearchParams({
+      grant_type: 'refresh_token',
+      client_id: params.clientId.trim(),
+      refresh_token: params.refreshToken.trim(),
+      ...(params.scope ? { scope: params.scope } : {}),
+    })
+
+    return this.request('/skrill/oauth?action=token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: form.toString(),
+    })
   }
 
   static async logout() {

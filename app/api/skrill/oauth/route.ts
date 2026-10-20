@@ -42,11 +42,32 @@ export async function POST(request: NextRequest) {
   if (body.length > MAX_BODY_BYTES) return NextResponse.json({ error: 'Request body is too large' }, { status: 413 })
 
   const contentType = request.headers.get('content-type') || 'application/x-www-form-urlencoded'
-  if (!contentType.toLowerCase().startsWith('application/x-www-form-urlencoded') && !contentType.toLowerCase().startsWith('application/json')) {
+  const normalizedContentType = contentType.split(';', 1)[0].trim().toLowerCase()
+  if (normalizedContentType !== 'application/x-www-form-urlencoded' && normalizedContentType !== 'application/json') {
     return NextResponse.json({ error: 'OAuth form or JSON body required' }, { status: 415 })
   }
 
-  const headers = new Headers({ Accept: 'application/json', 'Content-Type': contentType, 'Cache-Control': 'no-store' })
+  if (action === 'token') {
+    if (normalizedContentType === 'application/json') {
+      return NextResponse.json({ error: 'Token requests must use application/x-www-form-urlencoded' }, { status: 415 })
+    }
+
+    const form = new URLSearchParams(body)
+    const grantType = form.get('grant_type')
+    if (!grantType || !['authorization_code', 'refresh_token'].includes(grantType)) {
+      return NextResponse.json({ error: 'grant_type must be authorization_code or refresh_token' }, { status: 400 })
+    }
+
+    if (grantType === 'authorization_code') {
+      for (const field of ['client_id', 'code', 'code_verifier']) {
+        if (!form.get(field)?.trim()) return NextResponse.json({ error: `${field} is required` }, { status: 400 })
+      }
+    } else if (!form.get('refresh_token')?.trim()) {
+      return NextResponse.json({ error: 'refresh_token is required' }, { status: 400 })
+    }
+  }
+
+  const headers = new Headers({ Accept: 'application/json', 'Content-Type': 'application/x-www-form-urlencoded', 'Cache-Control': 'no-store' })
   const clientId = process.env.Client_ID?.trim()
   const clientSecret = process.env.Secret?.trim()
   if (clientId && clientSecret && (action === 'token' || action === 'revoke')) {
