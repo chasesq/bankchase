@@ -119,6 +119,19 @@ export class ApiClient {
     return this.request(`/skrill/transactions?${params}`);
   }
 
+  static async previewSendMoney(params: Record<string, string | number | boolean>) {
+    const query = new URLSearchParams()
+    for (const [key, value] of Object.entries(params)) {
+      if (value !== undefined && value !== null && String(value).trim() !== '') {
+        query.set(key, String(value))
+      }
+    }
+
+    return this.request(`/skrill/send-money/preview?${query.toString()}`, {
+      method: 'GET',
+    })
+  }
+
   // Pay & Transfer
   static async sendMoney(data: {
     from_account_number: string;
