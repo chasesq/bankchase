@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://bankchase.example/schemas/oauth-errors.json",
+  "title": "OAuthError",
+  "type": "object",
+  "required": ["error"],
+  "properties": {
+    "error": { "type": "string", "enum": ["invalid_request", "invalid_redirect_uri", "invalid_client_metadata"] },
+    "error_description": { "type": "string" },
+    "error_uri": { "type": "string", "format": "uri" }
+  },
+  "additionalProperties": false
+}
