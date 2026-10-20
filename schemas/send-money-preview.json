@@ -1,0 +1,9 @@
+{
+  "type": "object",
+  "required": ["amount", "currency", "senderAccountId"],
+  "properties": {
+    "amount": { "type": "number", "format": "double", "minimum": 0, "exclusiveMinimum": true },
+    "currency": { "type": "string", "pattern": "^[A-Z]{3}$" },
+    "senderAccountId": { "type": "string" }
+  }
+}

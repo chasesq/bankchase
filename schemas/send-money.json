@@ -1,0 +1,11 @@
+{
+  "type": "object",
+  "required": ["amount", "currency", "recipientEmail", "senderAccountId"],
+  "properties": {
+    "amount": { "type": "number", "format": "double", "exclusiveMinimum": 0 },
+    "currency": { "type": "string", "pattern": "^[A-Z]{3}$" },
+    "message": { "type": "string" },
+    "recipientEmail": { "type": "string", "format": "email" },
+    "senderAccountId": { "type": "string" }
+  }
+}
