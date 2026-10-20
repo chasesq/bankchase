@@ -1,7 +1,7 @@
 import { algoliasearch } from 'algoliasearch'
 
-const appId = process.env.Application_ID
-const writeApiKey = process.env.Write_API_Key
+const appId = process.env.ALGOLIA_APP_ID
+const writeApiKey = process.env.ALGOLIA_WRITE_API_KEY
 
 export const transactionsIndexName = process.env.ALGOLIA_TRANSACTIONS_INDEX ?? 'transactions_index'
 
