@@ -10,7 +10,8 @@ export async function GET(request: NextRequest) {
 
     // Get query parameters
     const searchParams = request.nextUrl.searchParams
-    const limit = parseInt(searchParams.get('limit') || '50', 10)
+    const requestedLimit = Number.parseInt(searchParams.get('limit') || '50', 10)
+    const limit = Number.isFinite(requestedLimit) ? Math.min(Math.max(requestedLimit, 1), 100) : 50
 
     // Return demo transactions
     const transactions = [

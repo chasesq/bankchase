@@ -27,35 +27,32 @@ export function TransactionSearch({ transactions = [], onFilterChange }: Transac
   const [amountRange, setAmountRange] = useState({ min: '', max: '' })
   const [showAdvanced, setShowAdvanced] = useState(false)
 
-  // Mock transactions if none provided
-  const mockTransactions: Transaction[] = [
-    { id: '1', description: 'Amazon Purchase', amount: 45.99, date: '2024-07-08', category: 'Shopping', type: 'debit' },
-    { id: '2', description: 'Starbucks', amount: 6.50, date: '2024-07-08', category: 'Dining', type: 'debit' },
-    { id: '3', description: 'Salary Deposit', amount: 4500, date: '2024-07-01', category: 'Income', type: 'credit' },
-    { id: '4', description: 'Electric Bill', amount: 120.00, date: '2024-07-05', category: 'Utilities', type: 'debit' },
-    { id: '5', description: 'Whole Foods', amount: 78.30, date: '2024-07-07', category: 'Groceries', type: 'debit' },
-  ]
-
-  const data = transactions.length > 0 ? transactions : mockTransactions
-  const categories = useMemo(() => [...new Set(data.map(t => t.category))], [data])
+  const categories = useMemo(
+    () => [...new Set(transactions.map((transaction) => transaction.category))].sort(),
+    [transactions],
+  )
 
   const filteredTransactions = useMemo(() => {
-    return data.filter(transaction => {
-      const matchesSearch = transaction.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                           transaction.category.toLowerCase().includes(searchQuery.toLowerCase())
-      
+    const query = searchQuery.trim().toLowerCase()
+    const startTime = dateRange.start ? new Date(`${dateRange.start}T00:00:00`).getTime() : null
+    const endTime = dateRange.end ? new Date(`${dateRange.end}T23:59:59.999`).getTime() : null
+    const minAmount = amountRange.min === '' ? null : Number(amountRange.min)
+    const maxAmount = amountRange.max === '' ? null : Number(amountRange.max)
+
+    return transactions.filter((transaction) => {
+      const transactionTime = new Date(transaction.date).getTime()
+      const matchesSearch = !query ||
+        transaction.description.toLowerCase().includes(query) ||
+        transaction.category.toLowerCase().includes(query)
       const matchesCategory = !selectedCategory || transaction.category === selectedCategory
-      
-      const transactionDate = new Date(transaction.date)
-      const matchesDateStart = !dateRange.start || transactionDate >= new Date(dateRange.start)
-      const matchesDateEnd = !dateRange.end || transactionDate <= new Date(dateRange.end)
-      
-      const matchesAmountMin = !amountRange.min || transaction.amount >= parseFloat(amountRange.min)
-      const matchesAmountMax = !amountRange.max || transaction.amount <= parseFloat(amountRange.max)
-      
+      const matchesDateStart = startTime === null || transactionTime >= startTime
+      const matchesDateEnd = endTime === null || transactionTime <= endTime
+      const matchesAmountMin = minAmount === null || (Number.isFinite(minAmount) && transaction.amount >= minAmount)
+      const matchesAmountMax = maxAmount === null || (Number.isFinite(maxAmount) && transaction.amount <= maxAmount)
+
       return matchesSearch && matchesCategory && matchesDateStart && matchesDateEnd && matchesAmountMin && matchesAmountMax
     })
-  }, [data, searchQuery, selectedCategory, dateRange, amountRange])
+  }, [transactions, searchQuery, selectedCategory, dateRange, amountRange])
 
   useEffect(() => {
     onFilterChange?.(filteredTransactions)
