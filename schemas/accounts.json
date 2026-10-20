@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://bankchase.example/schemas/accounts.json",
+  "title": "Accounts",
+  "type": "array",
+  "items": {
+    "$ref": "#/$defs/account"
+  },
+  "$defs": {
+    "account": {
+      "type": "object",
+      "required": ["available", "balance", "crypto", "currency", "currencyCode", "id", "primary", "status", "type"],
+      "additionalProperties": false,
+      "properties": {
+        "available": { "type": "number", "description": "Account available balance" },
+        "balance": { "type": "number", "description": "Account balance" },
+        "crypto": { "type": "boolean" },
+        "currency": { "$ref": "#/$defs/currency" },
+        "currencyCode": { "type": "string", "description": "Account currency code" },
+        "id": { "type": "string", "format": "uuid", "description": "Account identifier" },
+        "primary": { "type": "boolean", "description": "Whether this is the primary account" },
+        "status": { "type": "string", "description": "Account status" },
+        "type": { "type": "string", "description": "Account type" }
+      }
+    },
+    "currency": {
+      "type": "object",
+      "required": ["decimalPlaces", "id", "increment", "isCrypto", "name"],
+      "additionalProperties": false,
+      "properties": {
+        "decimalPlaces": { "type": "integer", "format": "int32" },
+        "id": { "type": "string", "description": "Currency code" },
+        "increment": { "type": "number", "description": "Currency resolution" },
+        "isCrypto": { "type": "boolean" },
+        "name": { "type": "string", "description": "Currency name" }
+      }
+    }
+  }
+}

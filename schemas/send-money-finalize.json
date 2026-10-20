@@ -1,0 +1,5 @@
+{
+  "type": "object",
+  "required": ["slipID"],
+  "properties": { "slipID": { "type": "string", "description": "Send money transaction id" } }
+}
