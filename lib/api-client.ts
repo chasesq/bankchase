@@ -132,6 +132,25 @@ export class ApiClient {
     })
   }
 
+  static async sendSkrillMoney(data: {
+    amount: number
+    currency: string
+    recipientEmail: string
+    senderAccountId: string
+    message?: string
+  }) {
+    return this.request('/skrill/send-money', {
+      method: 'POST',
+      body: JSON.stringify({
+        amount: data.amount,
+        currency: data.currency,
+        recipientEmail: data.recipientEmail,
+        senderAccountId: data.senderAccountId,
+        ...(data.message?.trim() ? { message: data.message.trim() } : {}),
+      }),
+    })
+  }
+
   // Pay & Transfer
   static async sendMoney(data: {
     from_account_number: string;
