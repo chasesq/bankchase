@@ -91,6 +91,18 @@ export function SecurityAlerts() {
         </Button>
       </div>
 
+      <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-950">
+        <div className="flex items-start gap-3">
+          <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0 text-amber-700" />
+          <div className="space-y-1">
+            <p className="font-semibold">Protect yourself from scam texts, fake ads, and spoofed login alerts.</p>
+            <p>
+              Bank alerts can be enrolled and delivered by email, text, or in-app notification. Before you act, verify the message by opening the official BankChase app or website directly. If a text includes a link, asks for urgent action, or references a social media promotion, do not click it and do not send payment to a seller or recipient you have not verified.
+            </p>
+          </div>
+        </div>
+      </div>
+
       {mockAlerts.length === 0 ? (
         <Card className="bg-background shadow-lg border-0 p-8 text-center">
           <CheckCircle className="w-12 h-12 text-green-600 mx-auto mb-4" />
