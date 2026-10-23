@@ -20,7 +20,6 @@ export function PlaidLinkButton(_props: PlaidLinkButtonProps) {
         <Button
           type="button"
           quiltt-button="vaia9lgjhd"
-          onClick={handleClick}
           className="mt-4 w-full"
           size="lg"
         >
