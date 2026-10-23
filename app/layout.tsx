@@ -74,6 +74,11 @@ export default function RootLayout({
             data-is-production-environment="false"
           />
         )}
+        <Script
+          id="quiltt-connector"
+          src="https://cdn.quiltt.io/v1/connector.js"
+          strategy="afterInteractive"
+        />
         {process.env.NEXT_PUBLIC_CHATBOT_ID?.trim() && (
           <Script
             id="chatbase-widget"
