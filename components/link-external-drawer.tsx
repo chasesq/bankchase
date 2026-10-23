@@ -13,7 +13,7 @@ interface LinkExternalDrawerProps {
   onOpenChange: (open: boolean) => void
 }
 
-const connectorId = process.env.NEXT_PUBLIC_QUILTT_CONNECTOR_ID || "default"
+const connectorId = process.env.NEXT_PUBLIC_QUILTT_CONNECTOR_ID || "vaia9lgjhd.quiltt.app"
 
 export function LinkExternalDrawer({ open, onOpenChange }: LinkExternalDrawerProps) {
   const [sessionToken, setSessionToken] = useState<string | null>(null)
