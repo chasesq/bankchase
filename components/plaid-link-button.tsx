@@ -9,15 +9,7 @@ interface PlaidLinkButtonProps {
   phoneNumber?: string;
 }
 
-export function PlaidLinkButton({ onSuccess, onError }: PlaidLinkButtonProps) {
-  const handleClick = () => {
-    try {
-      onSuccess?.({ provider: 'quiltt', connectorId: 'vaia9lgjhd' });
-    } catch (error) {
-      onError?.(error);
-    }
-  };
-
+export function PlaidLinkButton(_props: PlaidLinkButtonProps) {
   return (
     <div className="w-full space-y-4">
       <div className="rounded-lg border border-border bg-muted/30 p-4">
