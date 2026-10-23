@@ -51,7 +51,11 @@ export async function POST(request: NextRequest) {
       throw new Error('Select a checking or savings account to continue.');
     }
 
-    const processor = process.env.PLAID_PROCESSOR || 'adyen';
+    // Never silently mint tokens for an unrelated processor. Quiltt's flow
+    // creates its processor token from the connected account ID after the
+    // account.created/account.verified webhook; Plaid processor tokens are
+    // only created when an explicit legacy processor is configured.
+    const processor = process.env.PLAID_PROCESSOR?.trim();
     const processorTokens = [];
     for (const account of eligibleAccounts) {
       await PlaidService.saveAccount(
@@ -70,13 +74,15 @@ export async function POST(request: NextRequest) {
         }
       );
 
-      const processorToken = await PlaidService.createProcessorToken({
-        accessToken: exchangeResult.accessToken,
-        accountId: account.accountId,
-        processor,
-        plaidSecret,
-      });
-      processorTokens.push(processorToken);
+      if (processor) {
+        const processorToken = await PlaidService.createProcessorToken({
+          accessToken: exchangeResult.accessToken,
+          accountId: account.accountId,
+          processor,
+          plaidSecret,
+        });
+        processorTokens.push(processorToken);
+      }
     }
 
     // Transactions may still be processing immediately after Link completes.
