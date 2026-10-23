@@ -75,8 +75,8 @@ export function LinkExternalDrawer({ open, onOpenChange }: LinkExternalDrawerPro
             <div className="flex items-start gap-3">
               <ShieldCheck className="mt-0.5 text-primary" aria-hidden="true" />
               <div className="flex flex-col gap-1">
-                <p className="font-medium">Secure connection with Quiltt</p>
-                <p className="text-sm text-muted-foreground">Sign in through your bank&apos;s secure window. Your bank credentials never touch this app.</p>
+                <p className="font-medium">Secure connection with Akoya</p>
+                <p className="text-sm text-muted-foreground">Quiltt routes you to your bank&apos;s secure consent flow. Your bank credentials never touch this app.</p>
               </div>
             </div>
           </div>
