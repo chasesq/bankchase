@@ -55,8 +55,6 @@ export async function POST(request: NextRequest) {
     // creates its processor token from the connected account ID after the
     // account.created/account.verified webhook; Plaid processor tokens are
     // only created when an explicit legacy processor is configured.
-    const processor = process.env.PLAID_PROCESSOR?.trim();
-    const processorTokens = [];
     for (const account of eligibleAccounts) {
       await PlaidService.saveAccount(
         userId,
@@ -74,15 +72,6 @@ export async function POST(request: NextRequest) {
         }
       );
 
-      if (processor) {
-        const processorToken = await PlaidService.createProcessorToken({
-          accessToken: exchangeResult.accessToken,
-          accountId: account.accountId,
-          processor,
-          plaidSecret,
-        });
-        processorTokens.push(processorToken);
-      }
     }
 
     // Transactions may still be processing immediately after Link completes.
@@ -106,13 +95,12 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       itemId: exchangeResult.itemId,
-      accountCount: accountsResult.accounts.length,
+      accountCount: eligibleAccounts.length,
       transactionCount,
-      processor,
-      processorTokenCount: processorTokens.length,
-      // Adyen needs the processor token to create its payment method. Return
-      // only tokens for accounts explicitly selected in Plaid Link.
-      processorTokens,
+      // Quiltt creates processor tokens only after its account.created or
+      // account.verified webhook identifies the connected account. The Plaid
+      // exchange endpoint must not mint or return a processor token.
+      processorTokenStatus: 'pending_account_webhook',
     });
   } catch (error: any) {
     console.error('[v0] Error exchanging token:', error);
