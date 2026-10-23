@@ -2,7 +2,7 @@ export type BankingMode = "simulated" | "connected"
 
 export type BankingProviderStatus = {
   mode: BankingMode
-  provider: "internal" | "plaid"
+  provider: "internal" | "quiltt" | "plaid"
   available: boolean
   message: string
 }
@@ -32,13 +32,13 @@ export class SimulatedBankingProvider implements BankingProvider {
 }
 
 export function getBankingProviderStatus(): BankingProviderStatus {
-  const connected = Boolean(process.env.PLAID_CLIENT_ID && process.env.PLAID_SECRET)
+  const connected = Boolean(process.env.QUILTT_API_KEY_SECRET)
   return connected
     ? {
         mode: "connected",
-        provider: "plaid",
+        provider: "quiltt",
         available: true,
-        message: "Connected account aggregation is configured.",
+        message: "Akoya account linking through Quiltt is configured.",
       }
     : new SimulatedBankingProvider().status
 }
