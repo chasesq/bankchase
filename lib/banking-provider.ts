@@ -44,7 +44,7 @@ export function getBankingProviderStatus(): BankingProviderStatus {
 }
 
 export function getBankingProvider(): BankingProvider {
-  // Plaid operations remain behind this boundary until a user-linked item and
-  // server-side token storage are available. Never expose provider secrets to UI.
+  // Quiltt session tokens are intentionally scoped to the browser. Account data
+  // is only reported as connected after the provider has linked an account.
   return new SimulatedBankingProvider()
 }
