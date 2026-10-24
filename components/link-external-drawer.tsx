@@ -53,17 +53,66 @@ export function LinkExternalDrawer({ open, onOpenChange }: LinkExternalDrawerPro
     if (!open) setSessionToken(null)
   }, [open, sessionToken, isLoadingToken, loadSession])
 
-  const handleConnected = useCallback(() => {
-    setIsConnecting(false)
-    addNotification({
-      title: "Bank account connected",
-      message: "Your connected account is now syncing securely through Quiltt.",
-      type: "success",
-      category: "Accounts",
-    })
-    toast({ title: "Account connected", description: "Your balances and transactions are syncing securely." })
-    onOpenChange(false)
-  }, [addNotification, onOpenChange, toast])
+  const handleConnected = useCallback(async (event?: unknown) => {
+    const findAccountId = (value: unknown): string | undefined => {
+      if (!value || typeof value !== "object") return undefined
+      if (Array.isArray(value)) {
+        for (const item of value) {
+          const found = findAccountId(item)
+          if (found) return found
+        }
+        return undefined
+      }
+      const record = value as Record<string, unknown>
+      for (const key of ["accountId", "account_id", "id"]) {
+        if (typeof record[key] === "string" && /^(acc_|account_)/i.test(record[key])) return record[key]
+      }
+      for (const child of Object.values(record)) {
+        const found = findAccountId(child)
+        if (found) return found
+      }
+      return undefined
+    }
+
+    setIsConnecting(true)
+    try {
+      const accountId = findAccountId(event)
+      if (!accountId) throw new Error("Quiltt connected, but no account was returned. Please try again.")
+
+      const tokenResponse = await fetch("/api/quiltt/processor-token", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ accountId }),
+      })
+      const tokenData = await tokenResponse.json()
+      if (!tokenResponse.ok || !tokenData.token) throw new Error(tokenData.error || "Unable to create the payment token.")
+
+      const paykeyResponse = await fetch("/api/straddle/paykey", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ customerId: userProfile.id, quilttToken: tokenData.token, externalId: accountId }),
+      })
+      const paykeyData = await paykeyResponse.json()
+      if (!paykeyResponse.ok) throw new Error(paykeyData.error || "Unable to activate the bank payment account.")
+
+      addNotification({
+        title: "Bank account connected",
+        message: "Your account is connected and ready for verified payments.",
+        type: "success",
+        category: "Accounts",
+      })
+      toast({ title: "Account connected", description: "Your bank account is ready for verified payments." })
+      onOpenChange(false)
+    } catch (error) {
+      toast({
+        title: "Account activation failed",
+        description: error instanceof Error ? error.message : "Please try connecting again.",
+        variant: "destructive",
+      })
+    } finally {
+      setIsConnecting(false)
+    }
+  }, [addNotification, onOpenChange, toast, userProfile.id])
 
   return (
     <Drawer open={open} onOpenChange={onOpenChange}>
