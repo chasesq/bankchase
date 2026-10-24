@@ -7,6 +7,13 @@ const SESSION_TIMEOUT_MS = 10_000
 
 type SessionRequest = { userId?: unknown }
 
+type SessionResponse = {
+  token?: string
+  userId?: string
+  message?: string
+  instruction?: string
+}
+
 export async function POST(request: Request) {
   const apiKey = process.env.QUILTT_API_KEY_SECRET
   if (!apiKey) {
@@ -32,14 +39,16 @@ export async function POST(request: Request) {
         "Content-Type": "application/json",
         Accept: "application/json",
       },
-      body: JSON.stringify(userId ? { userId } : {}),
+      body: JSON.stringify(
+        userId?.startsWith("p_")
+          ? { userId }
+          : { metadata: { applicationUserId: userId ?? crypto.randomUUID() } },
+      ),
       cache: "no-store",
       signal: controller.signal,
     })
 
-    const data = (await response.json().catch(() => null)) as
-      | { token?: string; userId?: string; message?: string; instruction?: string }
-      | null
+    const data = (await response.json().catch(() => null)) as SessionResponse | null
 
     if (!response.ok || !data?.token) {
       return NextResponse.json(

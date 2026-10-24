@@ -17,6 +17,7 @@ const connectorId = process.env.NEXT_PUBLIC_QUILTT_CONNECTOR_ID || "vaia9lgjhd.q
 
 export function LinkExternalDrawer({ open, onOpenChange }: LinkExternalDrawerProps) {
   const [sessionToken, setSessionToken] = useState<string | null>(null)
+  const [quilttUserId, setQuilttUserId] = useState<string | null>(null)
   const [isLoadingToken, setIsLoadingToken] = useState(false)
   const [isConnecting, setIsConnecting] = useState(false)
   const { toast } = useToast()
@@ -28,11 +29,12 @@ export function LinkExternalDrawer({ open, onOpenChange }: LinkExternalDrawerPro
       const response = await fetch("/api/quiltt/session", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId: userProfile.id }),
+        body: JSON.stringify({ userId: quilttUserId ?? userProfile.id }),
       })
       const data = await response.json()
       if (!response.ok || !data.token) throw new Error(data.error || "Unable to start secure bank connection.")
       setSessionToken(data.token)
+      if (typeof data.userId === "string" && data.userId.trim()) setQuilttUserId(data.userId)
     } catch (error) {
       toast({
         title: "Quiltt connection unavailable",
@@ -42,7 +44,7 @@ export function LinkExternalDrawer({ open, onOpenChange }: LinkExternalDrawerPro
     } finally {
       setIsLoadingToken(false)
     }
-  }, [toast, userProfile.id])
+  }, [quilttUserId, toast, userProfile.id])
 
   useEffect(() => {
     // Opening the drawer intentionally starts the server-side session request.
