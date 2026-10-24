@@ -20,7 +20,7 @@ export function LinkExternalDrawer({ open, onOpenChange }: LinkExternalDrawerPro
   const [isLoadingToken, setIsLoadingToken] = useState(false)
   const [isConnecting, setIsConnecting] = useState(false)
   const { toast } = useToast()
-  const { addNotification } = useBanking()
+  const { addNotification, userProfile } = useBanking()
 
   const loadSession = useCallback(async () => {
     setIsLoadingToken(true)
@@ -28,7 +28,7 @@ export function LinkExternalDrawer({ open, onOpenChange }: LinkExternalDrawerPro
       const response = await fetch("/api/quiltt/session", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({}),
+        body: JSON.stringify({ userId: userProfile.id }),
       })
       const data = await response.json()
       if (!response.ok || !data.token) throw new Error(data.error || "Unable to start secure bank connection.")
@@ -42,7 +42,7 @@ export function LinkExternalDrawer({ open, onOpenChange }: LinkExternalDrawerPro
     } finally {
       setIsLoadingToken(false)
     }
-  }, [toast])
+  }, [toast, userProfile.id])
 
   useEffect(() => {
     // Opening the drawer intentionally starts the server-side session request.
