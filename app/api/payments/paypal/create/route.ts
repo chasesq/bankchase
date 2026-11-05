@@ -12,8 +12,11 @@ export async function POST(request: NextRequest) {
     const amount = Number(body.amount)
     const currency = String(body.currency || 'USD').toUpperCase()
     const description = String(body.description || 'BankChase payment').trim()
-    if (!Number.isFinite(amount) || amount <= 0 || amount > 1000000) {
-      return NextResponse.json({ error: 'Enter a valid amount.' }, { status: 400 })
+    if (!Number.isFinite(amount) || amount <= 0 || amount > 1000000 || !/^\d+(\.\d{1,2})?$/.test(String(body.amount).trim())) {
+      return NextResponse.json({ error: 'Enter a valid amount with up to two decimal places.' }, { status: 400 })
+    }
+    if (!description) {
+      return NextResponse.json({ error: 'Enter a payment description.' }, { status: 400 })
     }
     if (!/^[A-Z]{3}$/.test(currency)) {
       return NextResponse.json({ error: 'Enter a valid currency.' }, { status: 400 })
