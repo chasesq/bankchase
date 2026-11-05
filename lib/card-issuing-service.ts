@@ -301,7 +301,7 @@ export function getCardDetails(cardId: string): { cardNumber: string; expiry: st
 
   return {
     cardNumber: details.cardNumber,
-    expiry: `${details.expiryMonth}/${details.expiryYear}`,
+      expiry: `${details.expiryMonth}/${details.expiryYear.length === 2 ? `20${details.expiryYear}` : details.expiryYear}`,
     cardholderName: details.cardholderName,
   }
 }
