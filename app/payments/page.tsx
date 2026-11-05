@@ -1,6 +1,7 @@
 import { WorkspaceFeaturePage } from '@/components/workspace-feature-page'
 import { PayPalCheckout } from '@/components/paypal-checkout'
 import { PayPalSandboxTesting } from '@/components/paypal-sandbox-testing'
+import { PayPalVenmo } from '@/components/paypal-venmo'
 
 export default function PaymentsPage() {
   return (
