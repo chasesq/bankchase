@@ -343,9 +343,10 @@ function CardsContent() {
                   <div className="bg-card border border-border rounded-lg p-4">
                     <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Linked account</p>
                     <p className="font-semibold text-foreground">{accounts.find((account) => account.id === card.accountId)?.name ?? 'Account unavailable'}</p>
-                    <p className="mt-3 text-xs text-muted-foreground uppercase tracking-wider mb-1">Available balance</p>
-                    <p className="text-2xl font-bold text-foreground">${(accounts.find((account) => account.id === card.accountId)?.balance ?? card.balance).toFixed(2)}</p>
-                    <p className="text-xs text-muted-foreground mt-2">{card.currency}</p>
+                    <div className="mt-3 flex items-baseline justify-between gap-4">
+                      <p className="text-xs uppercase tracking-wider text-muted-foreground">Available balance</p>
+                      <p className="text-right text-2xl font-bold text-foreground">${(accounts.find((account) => account.id === card.accountId)?.balance ?? card.balance).toFixed(2)} <span className="text-xs font-medium text-muted-foreground">{card.currency}</span></p>
+                    </div>
                   </div>
 
                   {/* Status */}
