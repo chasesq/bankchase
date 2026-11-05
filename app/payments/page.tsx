@@ -8,6 +8,7 @@ export default function PaymentsPage() {
     <div className="space-y-6">
       <WorkspaceFeaturePage title="Payments" description="Review outgoing and incoming payment activity across your workspace." actions={['Payment activity', 'Recipients', 'Payment settings']} />
       <PayPalCheckout />
+      <PayPalVenmo />
       <PayPalSandboxTesting />
     </div>
   )
