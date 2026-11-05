@@ -170,7 +170,7 @@ export function tokenizeCard(cardData: CardData): TokenizedCard {
   // Validate expiry
   const currentDate = new Date()
   const expiryDate = new Date(
-    parseInt(`20${cardData.expiryYear}`),
+    parseInt(cardData.expiryYear.length === 2 ? `20${cardData.expiryYear}` : cardData.expiryYear),
     parseInt(cardData.expiryMonth) - 1
   )
   
