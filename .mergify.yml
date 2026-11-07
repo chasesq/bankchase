@@ -1,0 +1,10 @@
+pull_request_rules:
+  - name: Auto-merge approved PRs
+    conditions:
+      - base = main
+      - "#approved-reviews-by >= 2"
+      - check-success = ci/build
+      - "#check-success = 1"
+    actions:
+      merge:
+        method: merge
