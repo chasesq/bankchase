@@ -16,11 +16,20 @@ interface ProtectedRouteProps {
 export function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) {
   const router = useRouter();
   const { data, error, isLoading } = useSWR<SessionResponse>('/api/auth/session', async (url) => {
-    const response = await fetch(url, {
-      credentials: 'include',
-      cache: 'no-store',
-      headers: { 'Cache-Control': 'no-cache' },
-    })
+    const controller = new AbortController()
+    const timeout = window.setTimeout(() => controller.abort(), 8000)
+    try {
+      const response = await fetch(url, {
+        credentials: 'include',
+        cache: 'no-store',
+        headers: { 'Cache-Control': 'no-cache' },
+        signal: controller.signal,
+      })
+      if (!response.ok) throw new Error('Session check failed')
+      return response.json()
+    } finally {
+      window.clearTimeout(timeout)
+    }
     if (!response.ok) throw new Error('Session check failed')
     return response.json()
   }, { revalidateOnFocus: false, shouldRetryOnError: false });
