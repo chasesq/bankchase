@@ -16,7 +16,7 @@ const apps = [
   { name: 'Gmail', description: 'Automatically match receipts to your transactions.', href: '#', providerUrl: 'https://mail.google.com/', category: 'Productivity' },
   { name: 'Zapier', description: 'Link your automated workflows.', href: '#', providerUrl: 'https://zapier.com/app/connections', category: 'Automation' },
   { name: 'Finch', description: 'Connect payroll and HR data securely.', href: '/settings/integrations/finch', providerUrl: 'https://www.tryfinch.com/', category: 'Team management' },
-  { name: 'QuickBooks', description: 'Categorize transactions and sync your bank feed.', href: '#', providerUrl: 'https://quickbooks.intuit.com/', category: 'Accounting' },
+  { name: 'QuickBooks', description: 'Automatically categorize and sync every PayPal transaction.', href: '/settings/integrations/accounting-sync', providerUrl: 'https://quickbooks.intuit.com/', category: 'Accounting' },
   { name: 'Xero', description: 'Categorize transactions and sync your bank feed.', href: '#', providerUrl: 'https://www.xero.com/', category: 'Accounting' },
   { name: 'NetSuite', description: 'Categorize transactions and sync your bank feed.', href: '#', providerUrl: 'https://www.netsuite.com/', category: 'Accounting' },
   { name: 'Payroll or HR', description: 'Sync and invite team members.', href: '#', providerUrl: 'https://www.tryfinch.com/', category: 'Team management' },

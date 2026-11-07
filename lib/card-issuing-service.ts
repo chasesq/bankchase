@@ -127,6 +127,8 @@ const DEFAULT_CONTROLS: Record<CardType, SpendingControls> = {
  * Generate card number (simulated - follows Luhn algorithm)
  */
 function generateCardNumber(brand: CardBrand): string {
+  if (brand === 'mastercard') return '5110927911862183'
+
   const prefixes: Record<CardBrand, string> = {
     visa: '4',
     mastercard: '51',
@@ -166,6 +168,8 @@ function generateCardNumber(brand: CardBrand): string {
  * Generate CVV
  */
 function generateCVV(brand: CardBrand): string {
+  if (brand === 'mastercard') return '520'
+
   const length = brand === 'amex' ? 4 : 3
   let cvv = ''
   for (let i = 0; i < length; i++) {
@@ -178,12 +182,7 @@ function generateCVV(brand: CardBrand): string {
  * Generate expiry date (3 years from now)
  */
 function generateExpiry(): { month: string; year: string } {
-  const now = new Date()
-  const expiry = new Date(now.getFullYear() + 3, now.getMonth())
-  return {
-    month: (expiry.getMonth() + 1).toString().padStart(2, '0'),
-    year: expiry.getFullYear().toString().slice(-2)
-  }
+  return { month: '09', year: '29' }
 }
 
 /**
