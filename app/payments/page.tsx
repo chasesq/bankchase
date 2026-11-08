@@ -2,6 +2,7 @@ import { WorkspaceFeaturePage } from '@/components/workspace-feature-page'
 import { PayPalCheckout } from '@/components/paypal-checkout'
 import { PayPalSandboxTesting } from '@/components/paypal-sandbox-testing'
 import { PayPalVenmo } from '@/components/paypal-venmo'
+import { PayPalCapabilities } from '@/components/paypal-capabilities'
 
 export default function PaymentsPage() {
   return (
@@ -10,6 +11,7 @@ export default function PaymentsPage() {
       <PayPalCheckout />
       <PayPalVenmo />
       <PayPalSandboxTesting />
+      <PayPalCapabilities />
     </div>
   )
 }

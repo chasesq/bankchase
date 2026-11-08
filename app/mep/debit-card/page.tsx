@@ -7,7 +7,7 @@ import { useBanking } from '@/lib/banking-context'
 
 function DebitCardContent() {
   const { userProfile } = useBanking()
-  const firstName = userProfile?.firstName || 'there'
+  const firstName = userProfile?.name?.split(' ')[0] || 'there'
 
   return (
     <main className="min-h-screen bg-[#f5f7fa] text-[#1f2937]">
