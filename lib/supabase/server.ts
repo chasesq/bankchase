@@ -6,8 +6,8 @@ import { cookies } from 'next/headers'
  * Always create a new client within each function when using it.
  */
 function getSupabaseConfig() {
-  const supabaseUrl = (process.env.NEXT_PUBLIC_SUPABASE_URL ?? process.env.SUPABASE_URL)?.trim()
-  const supabaseKey = (process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? process.env.SUPABASE_PUBLISHABLE_KEY ?? process.env.SUPABASE_ANON_KEY)?.trim()
+  const supabaseUrl = (process.env.NEXT_PUBLIC_SUPABASE_URL ?? process.env.SUPABASE_URL ?? process.env.SUPABASE_URL_2)?.trim()
+  const supabaseKey = (process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? process.env.SUPABASE_PUBLISHABLE_KEY ?? process.env.SUPABASE_PUBLISHABLE_KEY_2 ?? process.env.SUPABASE_ANON_KEY)?.trim()
 
   if (!supabaseUrl || !supabaseKey || !supabaseUrl.startsWith('http')) return null
   return { supabaseUrl, supabaseKey }

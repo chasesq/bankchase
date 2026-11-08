@@ -8,6 +8,7 @@ export async function updateSession(request: NextRequest) {
     process.env.NEXT_PUBLIC_SUPABASE_URL ??
     process.env.NEXT_PUBLIC_SRT_SUPABASE_URL ??
     process.env.SUPABASE_URL ??
+    process.env.SUPABASE_URL_2 ??
     process.env.SRT_SUPABASE_URL
   const supabaseKey =
     process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ??
@@ -15,6 +16,7 @@ export async function updateSession(request: NextRequest) {
     process.env.NEXT_PUBLIC_SRT_SUPABASE_PUBLISHABLE_KEY ??
     process.env.NEXT_PUBLIC_SRT_SUPABASE_ANON_KEY ??
     process.env.SUPABASE_PUBLISHABLE_KEY ??
+    process.env.SUPABASE_PUBLISHABLE_KEY_2 ??
     process.env.SUPABASE_ANON_KEY ??
     process.env.SRT_SUPABASE_PUBLISHABLE_KEY ??
     process.env.SRT_SUPABASE_ANON_KEY
