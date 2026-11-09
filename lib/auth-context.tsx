@@ -62,11 +62,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     let active = true
 
     const initAuth = async () => {
+      const controller = new AbortController()
+      const timeoutId = window.setTimeout(() => controller.abort(), 5000)
+
       try {
         const response = await fetch('/api/auth/session', {
           cache: 'no-store',
           credentials: 'include',
           headers: { 'Cache-Control': 'no-cache' },
+          signal: controller.signal,
         })
         if (!response.ok) throw new Error('Session check failed')
         const data = await response.json()
@@ -93,6 +97,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setToken(null)
         }
       } finally {
+        window.clearTimeout(timeoutId)
         if (active) setLoading(false)
       }
     }
