@@ -6,7 +6,9 @@ export async function GET() {
     return NextResponse.json({ error: 'PayPal is not configured.' }, { status: 503 })
   }
 
-  return NextResponse.json({ clientId, environment: 'sandbox' }, {
+  const environment = process.env.PAYPAL_ENVIRONMENT === 'production' ? 'production' : 'sandbox'
+
+  return NextResponse.json({ clientId, environment }, {
     headers: { 'Cache-Control': 'private, max-age=300' },
   })
 }

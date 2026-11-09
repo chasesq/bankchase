@@ -86,7 +86,8 @@ function PayPalCheckoutContent() {
       if (!window.paypal) {
         await new Promise<void>((resolve, reject) => {
           const script = document.createElement('script')
-          script.src = `https://www.paypal.com/sdk/js?client-id=${encodeURIComponent(config.clientId)}&currency=USD&intent=capture&components=buttons,card-fields`
+          const sdkHost = config.environment === 'production' ? 'https://www.paypal.com' : 'https://www.sandbox.paypal.com'
+          script.src = `${sdkHost}/sdk/js?client-id=${encodeURIComponent(config.clientId)}&currency=USD&intent=capture&components=buttons,card-fields`
           script.onload = () => resolve()
           script.onerror = () => reject(new Error('Unable to load PayPal checkout'))
           document.head.appendChild(script)
