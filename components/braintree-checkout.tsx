@@ -49,7 +49,7 @@ export function BraintreeCheckout() {
 
   return (
     <Card className="border-border/70 shadow-sm">
-      <CardHeader><CardTitle>Braintree sandbox checkout</CardTitle><CardDescription>Use a Braintree sandbox test card or PayPal account.</CardDescription></CardHeader>
+      <CardHeader><CardTitle>Braintree sandbox checkout</CardTitle><CardDescription>Use a Braintree sandbox test card or PayPal account. Vaulted cards can be covered by Account Updater after Braintree enables it for your merchant account.</CardDescription></CardHeader>
       <CardContent className="space-y-4">
         <div className="space-y-2"><Label htmlFor="braintree-amount">Amount (USD)</Label><Input id="braintree-amount" inputMode="decimal" value={amount} onChange={(event) => setAmount(event.target.value)} /></div>
         <div id="braintree-drop-in" aria-label="Braintree payment method" />
