@@ -4,14 +4,6 @@ import { useEffect, useRef, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 
-declare global {
-  interface Window {
-    paypal?: {
-      createInstance: (options: { clientId: string; components: string[]; pageType: string }) => Promise<PayPalSdkInstance>
-    }
-  }
-}
-
 type VenmoPaymentSession = {
   start: (options: { presentationMode: 'auto' }, order: Promise<{ orderId: string }>) => Promise<void>
 }
@@ -25,9 +17,17 @@ type PayPalSdkInstance = {
   }) => VenmoPaymentSession
 }
 
+type VenmoPayPalApi = {
+  createInstance: (options: { clientId: string; components: string[]; pageType: string }) => Promise<PayPalSdkInstance>
+}
+
+function getVenmoPayPal() {
+  return (window as Window & { paypal?: VenmoPayPalApi }).paypal
+}
+
 function loadPayPalSdk(clientId: string) {
   return new Promise<void>((resolve, reject) => {
-    if (window.paypal) {
+    if (getVenmoPayPal()) {
       resolve()
       return
     }
@@ -65,8 +65,9 @@ export function PayPalVenmo() {
         if (!configResponse.ok) throw new Error(config.error || 'PayPal is not configured.')
 
         await loadPayPalSdk(config.clientId)
-        if (!window.paypal) throw new Error('PayPal SDK is unavailable.')
-        const sdk = await window.paypal.createInstance({ clientId: config.clientId, components: ['venmo-payments'], pageType: 'checkout' })
+        const paypal = getVenmoPayPal()
+        if (!paypal) throw new Error('PayPal SDK is unavailable.')
+        const sdk = await paypal.createInstance({ clientId: config.clientId, components: ['venmo-payments'], pageType: 'checkout' })
         const methods = await sdk.findEligibleMethods({ currencyCode: 'USD' })
         if (!active) return
         setEligible(methods.isEligible('venmo'))
