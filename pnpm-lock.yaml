@@ -176,6 +176,12 @@ importers:
       bcryptjs:
         specifier: ^3.0.3
         version: 3.0.3
+      braintree:
+        specifier: ^3.41.0
+        version: 3.41.0
+      braintree-web-drop-in:
+        specifier: ^1.48.0
+        version: 1.48.0
       class-variance-authority:
         specifier: ^0.7.1
         version: 0.7.1
@@ -697,6 +703,36 @@ packages:
 
   '@borewit/text-codec@0.2.2':
     resolution: {integrity: sha512-DDaRehssg1aNrH4+2hnj1B7vnUGEjU6OIlyRdkMd0aUdIUvKXrJfXsy8LVtXAy7DRvYVluWbMspsRhz2lcW0mQ==}
+
+  '@braintree/asset-loader@2.0.0':
+    resolution: {integrity: sha512-7Zs3/g3lPTfkdtWr7cKh3tk1pDruXR++TXwGKkx7BPuTjjLNFul2JSfI+ScHzNU4u/gZNPNQagsSTlYxIhBgMA==}
+
+  '@braintree/asset-loader@2.0.3':
+    resolution: {integrity: sha512-uREap1j30wKRlC0mK99nNPMpEp77NtB6XixpDfFJPZHmkrmw7IB4skKe+26LZBK1H6oSainFhAyKoP7x3eyOKA==}
+
+  '@braintree/browser-detection@1.17.2':
+    resolution: {integrity: sha512-DdEX09uYs6kHwGt4cbONlxlta/0hfmrDUncP6EtfZxFVywNF9LeRUyon+2LihJTbqgSnGqz9ZL450hkqBd6oSw==}
+
+  '@braintree/browser-detection@2.0.2':
+    resolution: {integrity: sha512-Zrv/pyodvwv/hsjsBKXKVcwHZOkx4A/5Cy2hViXtqghAhLd3483bYUIfHZJE5JKTrd018ny1FI5pN1PHFtW7vw==}
+
+  '@braintree/event-emitter@0.4.1':
+    resolution: {integrity: sha512-X41357O3OXUDlnwMvS1m0GQEn3zB3s3flOBeg2J5OBvLvdJEIAVpPkblABPtsPrlciDSvfv1aSG5ixHPgFH0Zg==}
+
+  '@braintree/extended-promise@1.0.0':
+    resolution: {integrity: sha512-E9529FJNG4OgeeLJ00vNs3TW67+AeSQobJg0hwfsQk29hgK4bVBsvQHVD4nwDuDD1Czon90K88gfQIFadAMs0w==}
+
+  '@braintree/iframer@2.0.1':
+    resolution: {integrity: sha512-t1zJX5+f1yxHAzBJPaQT/XVMocKodUqjTE+hYvuxxWjqEZIbH8/eT5b5n767jY16mYw3+XiDkKHqcp4Pclq1wg==}
+
+  '@braintree/sanitize-url@7.0.4':
+    resolution: {integrity: sha512-hPYRrKFoI+nuckPgDJfyYAkybFvheo4usS0Vw0HNAe+fmGBQA5Az37b/yStO284atBoqqdOUhKJ3d9Zw3PQkcQ==}
+
+  '@braintree/uuid@1.0.1':
+    resolution: {integrity: sha512-Tgu5GoODkf4oj4aLlVIapEPEfjitIHrg5ftqY6pa5Ghr4ZUA9XtZIIZ6ZPdP9x8/X0lt/FB8tRq83QuCQCwOrA==}
+
+  '@braintree/wrap-promise@2.1.0':
+    resolution: {integrity: sha512-UIrJB+AfKU0CCfbMoWrsGpd2D/hBpY/SGgFI6WRHPOwhaZ3g9rz1weiJ6eb6L9KgVyunT7s2tckcPkbHw+NzeA==}
 
   '@bufbuild/protobuf@2.13.0':
     resolution: {integrity: sha512-acq7c49vxfm1ggJ95P70TX7ABDM0vxr1SYD3BB0o0jnBLB4OAqeHyKuN+cD3w80gXEDQ2zxHpR6CUeA+O/aU9g==}
@@ -2439,6 +2475,9 @@ packages:
 
   '@panva/hkdf@1.2.1':
     resolution: {integrity: sha512-6oclG6Y3PiDFcoyk8srjLfVKyMfVCKJ27JwNPViuXziFpmdz+MZnZN/aKY0JGXgYuO/VghU0jcOAZgWXZ1Dmrw==}
+
+  '@paypal/accelerated-checkout-loader@1.1.0':
+    resolution: {integrity: sha512-S2KkIpq15VnxYyI0tycvfYiNsqdsg2a92El2huYUVLsWnBbubl8toYK8khaP5nnxZ0MGl9mEB9Y9axmfOw2Yvg==}
 
   '@pkgjs/parseargs@0.11.0':
     resolution: {integrity: sha512-+1VkjdD0QBLPodGrJUeqarH8VAIvQODIbwh9XpP5Syisf7YoQgsJKPNFoqqLQlu+VQ/tVSshMR6loPMn8U+dPg==}
@@ -4681,6 +4720,16 @@ packages:
     resolution: {integrity: sha512-yQbXgO/OSZVD2IsiLlro+7Hf6Q18EJrKSEsdoMzKePKXct3gvD8oLcOQdIzGupr5Fj+EDe8gO/lxc1BzfMpxvA==}
     engines: {node: '>=8'}
 
+  braintree-web-drop-in@1.48.0:
+    resolution: {integrity: sha512-wijOaQ8OHnwam0mfhhYYaEb+Jc06W5dNe+ExSJBjoonOTMJc30/WwafMTZM9UitrwwtF/BJ+GxwARnS8Ablh0g==}
+
+  braintree-web@3.123.2:
+    resolution: {integrity: sha512-N4IH75vKY67eONc0Ao4e7F+XagFW+3ok+Nfs/eOjw5D/TUt03diMAQ8woOwJghi2ql6/yjqNzZi2zE/sTWXmJg==}
+
+  braintree@3.41.0:
+    resolution: {integrity: sha512-usaiCgjavM9dVMwszjcSdi1gf41Ujn5bqYtaEdbaeY9VVoy/Yenn4AaahpfulGRB8Fqc5RjfHd1ovg1SWvoFxw==}
+    engines: {node: '>=10.0', npm: '>=6'}
+
   browserslist@4.28.7:
     resolution: {integrity: sha512-JxV13hNrFxqjOc8alRbq9dK1MM79NEXYpma2B2J4wAtpWS5zIEIKqWPGCl7N4o7Uc7B7itylh7SuDujATRyyTw==}
     engines: {node: ^6 || ^7 || ^8 || ^9 || ^10 || ^11 || ^12 || >=13.7}
@@ -4767,6 +4816,9 @@ packages:
 
   canonicalize@1.0.8:
     resolution: {integrity: sha512-0CNTVCLZggSh7bc5VkX5WWPWO+cyZbNd07IHIsSXLia/eAq+r836hgk+8BKoEh7949Mda87VUOitx5OddVj64A==}
+
+  card-validator@10.0.3:
+    resolution: {integrity: sha512-xOEDsK3hojV0OIpmrR64eZGpngnOqRDEP20O+WSRtvjLSW6nyekW4i2N9SzYg679uFO3RyHcFHxb+mml5tXc4A==}
 
   cbor-extract@2.2.2:
     resolution: {integrity: sha512-hlSxxI9XO2yQfe9g6msd3g4xCfDqK5T5P0fRMLuaLHhxn4ViPrm+a+MUfhrvH2W962RGxcBwEGzLQyjbDG1gng==}
@@ -4949,6 +5001,9 @@ packages:
     engines: {node: ^14.15.0 || ^16.10.0 || >=18.0.0}
     hasBin: true
 
+  credit-card-type@10.0.2:
+    resolution: {integrity: sha512-vt/iQokU0mtrT7ceRU75FSmWnIh5JFpLsUUUWYRmztYekOGm0ZbCuzwFTbNkq41k92y+0B8ChscFhRN9DhVZEA==}
+
   cross-fetch@4.1.0:
     resolution: {integrity: sha512-uKm5PU+MHTootlWEY+mZ4vvXoCn4fLQxT9dSc1sXVMSFkINTJVN8cAQROpwcKm8bJ/c7rgZVIBWzH5T78sNZZw==}
 
@@ -5047,6 +5102,9 @@ packages:
 
   date-fns@4.1.0:
     resolution: {integrity: sha512-Ukq0owbQXxa/U3EGtsdVBkR1w7KOQ5gIBqdH2hkvknzZPYvBxb/aa6E8L7tmjFtkwZBu3UXBbjIgPo/Ez4xaNg==}
+
+  dateformat@4.5.1:
+    resolution: {integrity: sha512-OD0TZ+B7yP7ZgpJf5K2DIbj3FZvFvxgFUuaqA/V5zTjAtAAXZ1E8bktHxmAGs4x5b7PflqA9LeQ84Og7wYtF7Q==}
 
   debug@3.2.7:
     resolution: {integrity: sha512-CFjzYYAi4ThfiQvizrFQevTTXHtnCqWfe7x1AhgEscTz6ZbLbfoLRLPugTQyBth6f8ZERVUSyWHFD/7Wu4t1XQ==}
@@ -5339,6 +5397,10 @@ packages:
   entities@6.0.1:
     resolution: {integrity: sha512-aN97NXWF6AWBTahfVOIrB/NShkzi5H7F9r1s9mD3cDj4Ko5f2qhhVoYMibXF7GlLveb/D2ioWay8lxI97Ven3g==}
     engines: {node: '>=0.12'}
+
+  envify@4.1.0:
+    resolution: {integrity: sha512-IKRVVoAYr4pIx4yIWNsz9mOsboxlNXiu7TNBnem/K/uTHdkyzXWDzHCK7UTolqBbgaBz0tQHsD3YNls0uIIjiw==}
+    hasBin: true
 
   environment@1.1.0:
     resolution: {integrity: sha512-xUtoPkMggbz0MPyPiIWr1Kp4aeWJjDZ6SMvURhimjdZgsRuDplF5/s9hcgGhyXMhs+6vpnuoiZ2kFiu3FMnS8Q==}
@@ -5753,6 +5815,9 @@ packages:
   fraction.js@5.3.4:
     resolution: {integrity: sha512-1X1NTtiJphryn/uLQz3whtY6jK3fTqoE3ohKs0tT+Ujr1W59oopxmoEh7Lu5p6vBaPbgoM0bzveAW4Qi5RyWDQ==}
 
+  framebus@6.0.3:
+    resolution: {integrity: sha512-G/N2p+kFZ1xPBge7tbtTq2KcTR1kSKs1rVbTqH//WdtvJSexS33fsTTOq3yfUWvUczqhujyaFc+omawC9YyRBg==}
+
   fresh@2.0.0:
     resolution: {integrity: sha512-Rx/WycZ60HOaqLKAi6cHRKKI7zxWbJ31MhntmtwMoaTeF7XFH9hhBp8vITaMidfljRQ6eYWCKkaTK+ykVJHP2A==}
     engines: {node: '>= 0.8'}
@@ -6052,6 +6117,9 @@ packages:
 
   inherits@2.0.4:
     resolution: {integrity: sha512-k/vGaX4/Yla3WzyMCvTQOXYeIHvqOKtnqBduzTHpzpQZzAskKMhZ2K+EnBiSM9zGSoIFeMpXKxa4dYeZIQqewQ==}
+
+  inject-stylesheet@6.0.2:
+    resolution: {integrity: sha512-sswMueya1LXEfwcy7KXPuq3zAW6HvgAeViApEhIaCviCkP4XYoKrQj8ftEmxPmIHn88X4R3xOAsnN/QCPvVKWw==}
 
   inngest@4.13.0:
     resolution: {integrity: sha512-VC/I8KmqNmIFR9vrYrGkIXwLjevIVds1YqR1vw1WHIYWK9ZVFgfviyR7ciKTaKGwuKWlQKo6EdpY/jc8mucifQ==}
@@ -7383,6 +7451,9 @@ packages:
     resolution: {integrity: sha512-gjVS5hOP+M3wMm5nmNOucbIrqudzs9v/57bWRHQWLYklXqoXKrVfYW2W9+glfGsqtPgpiz5WwyEEB+ksXIx3gQ==}
     engines: {node: '>=18'}
 
+  promise-polyfill@8.2.3:
+    resolution: {integrity: sha512-Og0+jCRQetV84U8wVjMNccfGCnMQ9mGs9Hv78QFe+pSDD3gWTpz0y+1QCuxy5d/vBFuZ3iwP2eycAkvqIMPmWg==}
+
   prompts@2.4.2:
     resolution: {integrity: sha512-NxNv/kLguCA7p3jE8oL2aEBsrJWgAakBpgmgK6lpPWV+WuOmY6r2/zbAVnP+T8bQlA0nzHXSJSJW0Hq7ylaD2Q==}
     engines: {node: '>= 6'}
@@ -7638,6 +7709,9 @@ packages:
     resolution: {integrity: sha512-oMA2dcrw6u0YfxJQXm342bFKX/E4sG9rbTzO9ptUcR/e8A33cHuvStiYOwH7fszkZlZ1z/ta9AAoPk2F4qIOHA==}
     engines: {node: '>=18'}
 
+  restricted-input@4.0.3:
+    resolution: {integrity: sha512-VpkwT5Fr3DhvoRZfPnmHDhnYAYETjjNzDlvA4NlW0iknFS47C5X4OCHEpOOxaPjvmka5V8d1ty1jVVoorZKvHg==}
+
   retry@0.13.1:
     resolution: {integrity: sha512-XQBQ3I8W1Cge0Seh+6gjj03LbmRFWuoszgK9ooCpwYIrhhoO80pfq4cUkU5DkknwfOfFteRwlZ56PYOGYyFWdg==}
     engines: {node: '>= 4'}
@@ -7690,6 +7764,10 @@ packages:
 
   safer-buffer@2.1.2:
     resolution: {integrity: sha512-YZo3K82SD7Riyi0E1EQPojLz7kpepnSQI9IyPbHHg1XXXevb5dJI7tpyN2ADxGcQbHG7vcyRHk0cbwqcQriUtg==}
+
+  sax@1.6.1:
+    resolution: {integrity: sha512-42tBVwLWnaQvW5zc4HbZrTuWccECCZfBi92FDuwtqxasH+JbPB3/FOKb1m222K42R4WxuxzzMsTswfzgtSu64Q==}
+    engines: {node: '>=11.0.0'}
 
   saxes@6.0.0:
     resolution: {integrity: sha512-xAg7SOnEhrm5zI3puOOKyy1OMcMlIJZYNJY7xLBwSze0UjhPLnWfj2GF2EpT0jmzaJKIWKHLsaSSajf35bcYnA==}
@@ -8161,6 +8239,11 @@ packages:
       eslint: ^8.57.0 || ^9.0.0 || ^10.0.0
       typescript: '>=4.8.4 <6.1.0'
 
+  typescript@4.9.5:
+    resolution: {integrity: sha512-1FXk9E2Hm+QzZQ7z+McJiHL4NW1F2EzMu9Nq9i3zAaGqibafqYwCVU6WyWAuyQRRzOlxou8xZSyXLEN8oKj24g==}
+    engines: {node: '>=4.2.0'}
+    hasBin: true
+
   typescript@5.9.3:
     resolution: {integrity: sha512-jl1vZzPDinLr9eUt3J/t7V6FgNEw9QjvBPdysz9KfQDD41fQrC2Y4vKQdiaUpFT4bXlb1RHhLpp8wtm6M5TgSw==}
     engines: {node: '>=14.17'}
@@ -8501,6 +8584,14 @@ packages:
   xml-name-validator@4.0.0:
     resolution: {integrity: sha512-ICP2e+jsHvAj2E2lIHxa5tjXRlKDJo4IdvPvCXbXQGdzSfmSpNVyIKMvoZHjDY9DP0zV17iI85o90vRFXNccRw==}
     engines: {node: '>=12'}
+
+  xml2js@0.5.0:
+    resolution: {integrity: sha512-drPFnkQJik/O+uPKpqSgr22mpuFHqKdbS835iAQrUC73L2F5WkboIRd63ai/2Yg6I1jzifPFKH2NTK+cfglkIA==}
+    engines: {node: '>=4.0.0'}
+
+  xmlbuilder@11.0.1:
+    resolution: {integrity: sha512-fDlsI/kFEx7gLvbecc0/ohLG50fugQp8ryHzMTuW9vSa1GJ0XYWKnhsUx7oie3G98+r56aTQIUB4kht42R3JvA==}
+    engines: {node: '>=4.0'}
 
   xmlchars@2.2.0:
     resolution: {integrity: sha512-JZnDKK8B0RCDw84FNdDAIpZK+JuJw+s7Lz8nksI7SIuU3UXJJslUthsi+uWBUYOwPFwW7W7PRLRfUKpxjtjFCw==}
@@ -9069,6 +9160,26 @@ snapshots:
   '@bcoe/v8-coverage@0.2.3': {}
 
   '@borewit/text-codec@0.2.2': {}
+
+  '@braintree/asset-loader@2.0.0': {}
+
+  '@braintree/asset-loader@2.0.3': {}
+
+  '@braintree/browser-detection@1.17.2': {}
+
+  '@braintree/browser-detection@2.0.2': {}
+
+  '@braintree/event-emitter@0.4.1': {}
+
+  '@braintree/extended-promise@1.0.0': {}
+
+  '@braintree/iframer@2.0.1': {}
+
+  '@braintree/sanitize-url@7.0.4': {}
+
+  '@braintree/uuid@1.0.1': {}
+
+  '@braintree/wrap-promise@2.1.0': {}
 
   '@bufbuild/protobuf@2.13.0': {}
 
@@ -10986,6 +11097,12 @@ snapshots:
       '@opentelemetry/core': 2.10.0(@opentelemetry/api@1.9.1)
 
   '@panva/hkdf@1.2.1': {}
+
+  '@paypal/accelerated-checkout-loader@1.1.0':
+    dependencies:
+      '@braintree/asset-loader': 2.0.0
+      envify: 4.1.0
+      typescript: 4.9.5
 
   '@pkgjs/parseargs@0.11.0':
     optional: true
@@ -13493,6 +13610,39 @@ snapshots:
     dependencies:
       fill-range: 7.1.1
 
+  braintree-web-drop-in@1.48.0:
+    dependencies:
+      '@braintree/asset-loader': 2.0.3
+      '@braintree/browser-detection': 2.0.2
+      '@braintree/event-emitter': 0.4.1
+      '@braintree/uuid': 1.0.1
+      '@braintree/wrap-promise': 2.1.0
+      braintree-web: 3.123.2
+
+  braintree-web@3.123.2:
+    dependencies:
+      '@braintree/asset-loader': 2.0.3
+      '@braintree/browser-detection': 2.0.2
+      '@braintree/event-emitter': 0.4.1
+      '@braintree/extended-promise': 1.0.0
+      '@braintree/iframer': 2.0.1
+      '@braintree/sanitize-url': 7.0.4
+      '@braintree/uuid': 1.0.1
+      '@braintree/wrap-promise': 2.1.0
+      '@paypal/accelerated-checkout-loader': 1.1.0
+      card-validator: 10.0.3
+      credit-card-type: 10.0.2
+      framebus: 6.0.3
+      inject-stylesheet: 6.0.2
+      promise-polyfill: 8.2.3
+      restricted-input: 4.0.3
+
+  braintree@3.41.0:
+    dependencies:
+      '@braintree/wrap-promise': 2.1.0
+      dateformat: 4.5.1
+      xml2js: 0.5.0
+
   browserslist@4.28.7:
     dependencies:
       baseline-browser-mapping: 2.11.1
@@ -13581,6 +13731,10 @@ snapshots:
   caniuse-lite@1.0.30001806: {}
 
   canonicalize@1.0.8: {}
+
+  card-validator@10.0.3:
+    dependencies:
+      credit-card-type: 10.0.2
 
   cbor-extract@2.2.2:
     dependencies:
@@ -13742,6 +13896,8 @@ snapshots:
       - supports-color
       - ts-node
 
+  credit-card-type@10.0.2: {}
+
   cross-fetch@4.1.0:
     dependencies:
       node-fetch: 2.7.0
@@ -13837,6 +13993,8 @@ snapshots:
   date-fns-jalali@4.1.0-0: {}
 
   date-fns@4.1.0: {}
+
+  dateformat@4.5.1: {}
 
   debug@3.2.7:
     dependencies:
@@ -14000,6 +14158,11 @@ snapshots:
       tapable: 2.3.3
 
   entities@6.0.1: {}
+
+  envify@4.1.0:
+    dependencies:
+      esprima: 4.0.1
+      through: 2.3.8
 
   environment@1.1.0: {}
 
@@ -14667,6 +14830,10 @@ snapshots:
 
   fraction.js@5.3.4: {}
 
+  framebus@6.0.3:
+    dependencies:
+      '@braintree/uuid': 1.0.1
+
   fresh@2.0.0: {}
 
   fs-extra@11.4.0:
@@ -14975,6 +15142,8 @@ snapshots:
       wrappy: 1.0.2
 
   inherits@2.0.4: {}
+
+  inject-stylesheet@6.0.2: {}
 
   inngest@4.13.0(@opentelemetry/core@2.10.0(@opentelemetry/api@1.9.1))(express@5.2.1)(next@16.2.0(@babel/core@7.29.7)(@opentelemetry/api@1.9.1)(@playwright/test@1.62.0)(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(react@19.2.8)(typescript@5.9.3)(zod@3.25.76):
     dependencies:
@@ -16404,6 +16573,8 @@ snapshots:
     dependencies:
       parse-ms: 4.0.0
 
+  promise-polyfill@8.2.3: {}
+
   prompts@2.4.2:
     dependencies:
       kleur: 3.0.3
@@ -16675,6 +16846,10 @@ snapshots:
       onetime: 7.0.0
       signal-exit: 4.1.0
 
+  restricted-input@4.0.3:
+    dependencies:
+      '@braintree/browser-detection': 1.17.2
+
   retry@0.13.1: {}
 
   reusify@1.1.0: {}
@@ -16744,6 +16919,8 @@ snapshots:
       is-regex: 1.2.1
 
   safer-buffer@2.1.2: {}
+
+  sax@1.6.1: {}
 
   saxes@6.0.0:
     dependencies:
@@ -17311,6 +17488,8 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
+  typescript@4.9.5: {}
+
   typescript@5.9.3: {}
 
   ufo@1.6.4: {}
@@ -17708,6 +17887,13 @@ snapshots:
   xlsx@https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz: {}
 
   xml-name-validator@4.0.0: {}
+
+  xml2js@0.5.0:
+    dependencies:
+      sax: 1.6.1
+      xmlbuilder: 11.0.1
+
+  xmlbuilder@11.0.1: {}
 
   xmlchars@2.2.0: {}
 

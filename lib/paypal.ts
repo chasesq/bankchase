@@ -4,8 +4,8 @@ const PAYPAL_API_BASE =
     : 'https://api-m.sandbox.paypal.com'
 
 async function getAccessToken() {
-  const clientId = process.env.PAYPAL_CLIENT_ID
-  const clientSecret = process.env.PAYPAL_CLIENT_SECRET
+  const clientId = process.env.PAYPAL_CLIENT_ID || process.env.PAYPAL_CLIENT_ID_2 || process.env.PayPay_Client_ID
+  const clientSecret = process.env.PAYPAL_CLIENT_SECRET || process.env.PAYPAL_SECRET || process.env.PAYPAL_SECRET_2 || process.env.PayPal_Secret
 
   if (!clientId || !clientSecret) {
     throw new Error('PayPal credentials are not configured')
