@@ -40,6 +40,8 @@ export function BraintreeCheckout() {
       const data = await response.json()
       if (!response.ok) throw new Error(data.error || 'Braintree payment failed')
       setResult(`Payment submitted. Braintree transaction ${data.transactionId} is ${data.status}.`)
+      const paidAmount = Number(amount)
+      if (Number.isFinite(paidAmount) && paidAmount > 0) window.dispatchEvent(new CustomEvent('bankchase:payment-success', { detail: { amount: paidAmount } }))
     } catch (submitError) {
       setError(submitError instanceof Error ? submitError.message : 'Braintree payment failed')
     } finally { setLoading(false) }

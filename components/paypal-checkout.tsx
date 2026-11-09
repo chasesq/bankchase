@@ -71,6 +71,8 @@ function PayPalCheckoutContent() {
         const capture = await response.json()
         if (!response.ok) throw new Error(capture.error || 'Unable to capture payment')
         setResult(`Payment ${capture.status}. PayPal order ${capture.orderId} was captured.`)
+        const paidAmount = Number(amount)
+        if (Number.isFinite(paidAmount) && paidAmount > 0) window.dispatchEvent(new CustomEvent('bankchase:payment-success', { detail: { amount: paidAmount } }))
       } finally {
         setCaptureLoading(false)
       }
